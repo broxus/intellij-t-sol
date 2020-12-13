@@ -40,6 +40,7 @@ fun factory(name: String): SolStubElementType<*, *> = when (name) {
 
   "ELEMENTARY_TYPE_NAME" -> SolTypeRefStub.Type("ELEMENTARY_TYPE_NAME", ::SolElementaryTypeNameImpl)
   "MAPPING_TYPE_NAME" -> SolTypeRefStub.Type("MAPPING_TYPE_NAME", ::SolMappingTypeNameImpl)
+  "OPTIONAL_TYPE_NAME" -> SolTypeRefStub.Type("OPTIONAL_TYPE_NAME", ::SolOptionalTypeNameImpl)
   "FUNCTION_TYPE_NAME" -> SolTypeRefStub.Type("FUNCTION_TYPE_NAME", ::SolFunctionTypeNameImpl)
   "ARRAY_TYPE_NAME" -> SolTypeRefStub.Type("ARRAY_TYPE_NAME", ::SolArrayTypeNameImpl)
   "BYTES_ARRAY_TYPE_NAME" -> SolTypeRefStub.Type("BYTES_ARRAY_TYPE_NAME", ::SolBytesArrayTypeNameImpl)

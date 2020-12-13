@@ -105,6 +105,7 @@ typeName
   : elementaryTypeName
   | userDefinedTypeName
   | mapping
+  | optionalTypeName
   | typeName '[' expression? ']'
   | functionTypeName ;
 
@@ -113,6 +114,9 @@ userDefinedTypeName
 
 mapping
   : 'mapping' '(' mappingKey '=>' typeName ')' ;
+
+optionalTypeName:
+  : 'optional' '(' typeName ')' ;
 
 mappingKey
   : elementaryTypeName
@@ -388,7 +392,10 @@ HexDigits
 
 NumberUnit
   : 'wei' | 'ether'
-  | 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'years' ;
+  | 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'years'
+  | 'nano' | 'nanoton' | 'nTon' | 'ton' | 'Ton' | 'micro'
+  | 'microton' | 'milli' | 'milliton' | 'kiloton' | kTon'
+  | 'megaton' | 'MTon' | 'gigaton' | 'GTon' ;
 
 Gwei: 'gwei' ;
 Szabo: 'szabo' ;

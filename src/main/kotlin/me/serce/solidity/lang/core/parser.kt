@@ -47,7 +47,7 @@ class SolidityParserDefinition : ParserDefinition {
       PERCENT, LSHIFT, RSHIFT, LEFT_ASSEMBLY, RIGHT_ASSEMBLY
     )
     val CONTROL_STRUCTURES: TokenSet = TokenSet.create(
-      IF, ELSE, WHILE, FOR, DO
+      IF, ELSE, WHILE, FOR, DO, REPEAT
     )
   }
 }

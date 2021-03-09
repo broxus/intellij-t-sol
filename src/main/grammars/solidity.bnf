@@ -155,8 +155,9 @@ InheritanceSpecifier ::= UserDefinedTypeName ( '(' Expression ( ',' Expression )
 
 VisibilityModifier ::= ( public | internal | private )
 MutationModifier ::= (constant | immutable)
+StaticModifier ::= static
 
-StateVariableDeclaration ::= TypeName (VisibilityModifier MutationModifier | MutationModifier? VisibilityModifier? ) Identifier ('=' Expression)? ';'  {
+StateVariableDeclaration ::= TypeName (VisibilityModifier MutationModifier OverrideSpecifier? StaticModifier? | MutationModifier? VisibilityModifier? OverrideSpecifier? StaticModifier? ) Identifier ('=' Expression)? ';'  {
     implements = "me.serce.solidity.lang.psi.SolStateVarElement"
     mixin = "me.serce.solidity.lang.psi.impl.SolStateVarDeclMixin"
     stubClass = "me.serce.solidity.lang.stubs.SolStateVarDeclStub"
@@ -433,7 +434,7 @@ FunctionCallExpression ::= Expression FunctionInvocation {
 
 private FunctionInvocation ::= MapExpression? '(' FunctionCallArguments? ')'
 FunctionCallArguments ::= MapExpression | Expression? ( ',' Expression )*
-private MapExpressionClause ::= Identifier ':' Expression {pin=2}
+private MapExpressionClause ::= Identifier ':' (Expression | MapExpression) {pin=2}
 private MapExpression ::= '{' MapExpressionClause (',' MapExpressionClause )* '}' {pin=1}
 
 NewExpression ::= new ( Identifier | PrimitiveLiteral ) NewExpressionEnd* {

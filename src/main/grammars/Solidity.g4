@@ -43,7 +43,7 @@ contractPart
 
 stateVariableDeclaration
   : typeName
-    ( PublicKeyword | InternalKeyword | PrivateKeyword | ConstantKeyword | ImmutableKeyword | overrideSpecifier )*
+    ( PublicKeyword | InternalKeyword | PrivateKeyword | ConstantKeyword | ImmutableKeyword | overrideSpecifier | StaticKeyword )*
     identifier ('=' expression)? ';' ;
 
 overrideSpecifier : 'override' ( '(' userDefinedTypeName (',' userDefinedTypeName)* ')' )? ;
@@ -446,6 +446,7 @@ VirtualKeyword : 'virtual' ;
 PureKeyword : 'pure' ;
 TypeKeyword : 'type' ;
 ViewKeyword : 'view' ;
+StaticKeyword : 'static';
 
 ConstructorKeyword : 'constructor' ;
 FallbackKeyword : 'fallback' ;

@@ -350,7 +350,7 @@ TupleStatement ::= VariableDeclaration '=' SeqExpression ';'
     | SeqExpression '=' Expression ';'
 
 // intentionally not pinned
-ReturnTupleStatement ::= return SeqExpression ';'
+ReturnTupleStatement ::= return MapExpression? SeqExpression ';'
 
 private ExpressionStatement ::= Expression
 IfStatement ::= if '(' Expression ')' Statement ( else Statement )? {pin = 1}
@@ -365,7 +365,7 @@ InlineAssemblyStatement ::= assembly AssemblyBlock {pin=1}
 DoWhileStatement ::= do Statement while '(' Expression ')' {pin=1}
 ContinueSt ::= continue
 BreakSt ::= break
-ReturnSt ::= return Expression? {pin=1}
+ReturnSt ::= return MapExpression? Expression? {pin=1}
 ThrowSt ::= throw
 EmitStatement ::= emit FunctionCallExpression {pin=1}
 SeqExpression ::= '(' ','* (Expression ',')* Expression? ','* ')' {pin=1}

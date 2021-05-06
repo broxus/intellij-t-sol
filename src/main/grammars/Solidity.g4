@@ -167,7 +167,7 @@ whileStatement
   : 'while' '(' expression ')' statement ;
 
 forStatement
-  : 'for' '(' ( simpleStatement | ';' ) ( expressionStatement | ';' ) expression? ')' statement ;
+  : 'for' '(' ( simpleStatement | ';' ) ( expressionStatement | ';' | ':' ) expression? ')' statement ;
 
 simpleStatement
   : ( variableDeclarationStatement | expressionStatement ) ;

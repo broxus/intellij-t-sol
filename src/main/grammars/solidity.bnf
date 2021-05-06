@@ -359,7 +359,7 @@ CatchClause ::= catch ( Identifier? ParameterList )? Block {pin = 1}
 WhileStatement ::= while '(' Expression ')' Statement {pin = 1}
 PlaceholderStatement ::= '_'
 private SimpleStatement ::= VariableDefinition | ExpressionStatement
-ForStatement ::= for '(' (SimpleStatement)? ';' (Expression)? ';' (ExpressionStatement)? ')' Statement {pin=1}
+ForStatement ::= for '(' ((SimpleStatement)? ';' (Expression)? ';' (ExpressionStatement)? | SimpleStatement ':' Identifier) ')' Statement {pin=1}
 RepeatStatement ::= repeat '(' (SimpleStatement)? ';' (Expression)? ';' (ExpressionStatement)? ')' Statement {pin=1}
 InlineAssemblyStatement ::= assembly AssemblyBlock {pin=1}
 DoWhileStatement ::= do Statement while '(' Expression ')' {pin=1}

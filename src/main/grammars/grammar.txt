@@ -55,11 +55,13 @@ TypeName = ElementaryTypeName
 UserDefinedTypeName = Identifier ( '.' Identifier )*
 
 Mapping = 'mapping' '(' ElementaryTypeName '=>' TypeName ')'
+Optional = 'optional' '(' TypeName ')' ;
 ArrayTypeName = TypeName '[' Expression? ']'
 FunctionTypeName = 'function' FunctionTypeParameterList ( 'internal' | 'external' | StateMutability )*
                    ( 'returns' FunctionTypeParameterList )?
 StorageLocation = 'memory' | 'storage' | 'calldata'
 StateMutability = 'pure' | 'view' | 'payable'
+Static = 'static'
 
 Block = '{' Statement* '}'
 Statement = IfStatement | WhileStatement | ForStatement | Block | InlineAssemblyStatement | RepeatStatement |

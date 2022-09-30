@@ -21,6 +21,7 @@ object SolHighlighter : SyntaxHighlighterBase() {
 
   private val tokenMapping: Map<IElementType, TextAttributesKey> = mapOf(
     COMMENT to SolColor.LINE_COMMENT,
+    NAT_SPEC_TAG to SolColor.NAT_SPEC_TAG,
 
     LBRACE to SolColor.BRACES,
     RBRACE to SolColor.BRACES,
@@ -43,17 +44,24 @@ object SolHighlighter : SyntaxHighlighterBase() {
     literals().map { it to SolColor.KEYWORD }
   ).plus(
     operators().map { it to SolColor.OPERATION_SIGN }
+  ).plus(
+    types().map { it to SolColor.TYPE }
   ).mapValues { it.value.textAttributesKey }
 
   private fun keywords() = setOf<IElementType>(
-    IMPORT, AS, PRAGMA, NEW, DELETE, EMIT, CONSTRUCTOR,
+    // Note, the ERROR/REVERT are not keywords and are excluded
+    IMPORT, AS, PRAGMA, NEW, DELETE, EMIT, /*REVERT,*/ CONSTRUCTOR,
     CONTRACT, LIBRARY, INTERFACE, IS, STRUCT, FUNCTION, ENUM,
     PUBLIC, PRIVATE, INTERNAL, EXTERNAL, CONSTANT, PURE, VIEW,
     IF, ELSE, FOR, WHILE, DO, BREAK, CONTINUE, THROW, USING, RETURN, RETURNS,
-    MAPPING, EVENT, ANONYMOUS, MODIFIER, ASSEMBLY, BYTENUMTYPE, BYTESNUMTYPE,
-    FIXEDNUMTYPE, INTNUMTYPE, UFIXEDNUMTYPE, UINTNUMTYPE, STRING, BOOL, ADDRESS,
-    VAR, STORAGE, MEMORY, WEI, ETHER, SZABO, FINNEY, SECONDS, MINUTES, HOURS,
-    DAYS, WEEKS, YEARS
+    MAPPING, EVENT, /*ERROR,*/ ANONYMOUS, MODIFIER, ASSEMBLY,
+    VAR, STORAGE, MEMORY, WEI, ETHER, GWEI, SZABO, FINNEY, SECONDS, MINUTES, HOURS,
+    DAYS, WEEKS, YEARS, TYPE, VIRTUAL, OVERRIDE
+  )
+
+  private fun types() = setOf<IElementType>(
+    BYTENUMTYPE, BYTESNUMTYPE, FIXEDNUMTYPE, INTNUMTYPE, UFIXEDNUMTYPE, UINTNUMTYPE,
+    STRING, BOOL, ADDRESS,
   )
 
   private fun literals() = setOf<IElementType>(BOOLEANLITERAL)
@@ -71,4 +79,3 @@ object SolHighlighter : SyntaxHighlighterBase() {
   )
 }
 
-private inline fun <reified T : Any?> T?.asArray(): Array<out T> = if (this == null) emptyArray() else arrayOf(this)

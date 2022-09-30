@@ -21,7 +21,7 @@ class SolidityParserDefinition : ParserDefinition {
 
   override fun createFile(viewProvider: FileViewProvider): PsiFile = SolidityFile(viewProvider)
 
-  override fun spaceExistanceTypeBetweenTokens(left: ASTNode?, right: ASTNode?): ParserDefinition.SpaceRequirements? =
+  override fun spaceExistanceTypeBetweenTokens(left: ASTNode, right: ASTNode): ParserDefinition.SpaceRequirements =
     LanguageUtil.canStickTokensTogetherByLexer(left, right, SolidityLexer())
 
   override fun getStringLiteralElements(): TokenSet = TokenSet.EMPTY
@@ -30,7 +30,7 @@ class SolidityParserDefinition : ParserDefinition {
 
   override fun getCommentTokens(): TokenSet = COMMENTS
 
-  override fun getFileNodeType(): IFileElementType? = SolidityFileStub.Type
+  override fun getFileNodeType(): IFileElementType = SolidityFileStub.Type
 
   override fun createLexer(project: Project?): Lexer = SolidityLexer()
 
@@ -38,7 +38,7 @@ class SolidityParserDefinition : ParserDefinition {
 
   companion object {
     val WHITE_SPACES: TokenSet = TokenSet.create(TokenType.WHITE_SPACE)
-    val COMMENTS: TokenSet = TokenSet.create(SolidityTokenTypes.COMMENT)
+    val COMMENTS: TokenSet = TokenSet.create(SolidityTokenTypes.COMMENT, NAT_SPEC_TAG)
     val BINARY_OPERATORS: TokenSet = TokenSet.create(
       PLUS, MINUS, MULT, DIV, EXPONENT,
       ASSIGN, TO, EQ, NEQ,

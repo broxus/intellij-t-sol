@@ -26,7 +26,7 @@ class SolidityRunConfigProducer : LazyRunConfigurationProducer<SolidityRunConfig
       val contrName = config.getPersistentData().contractName ?: return@ifSolidityRunConfig false
       val psiElement = context.location?.psiElement ?: return@ifSolidityRunConfig false
       val func = searchFunction(psiElement) ?: return@ifSolidityRunConfig false
-      return@ifSolidityRunConfig funcName == func.name && contrName == func.contract.name
+      return@ifSolidityRunConfig funcName == func.name && contrName == func.contract?.name
     }
   }
 
@@ -50,7 +50,7 @@ class SolidityRunConfigProducer : LazyRunConfigurationProducer<SolidityRunConfig
     return ifSolidityRunConfig(configuration) { config ->
       config.setModule(context.module)
       config.getPersistentData().setFunction(solFunctionDefinition)
-      config.name = solFunctionDefinition.contract.name + "." + solFunctionDefinition.name
+      config.name = solFunctionDefinition.contract?.name + "." + solFunctionDefinition.name
       true
     }
   }
@@ -65,7 +65,7 @@ private fun searchFunction(sourceElement: PsiElement?): SolFunctionDefinition? {
 }
 
 class SolidityRunLineMarkerProvider : RunLineMarkerContributor() {
-  override fun getInfo(e: PsiElement): RunLineMarkerContributor.Info? {
+  override fun getInfo(e: PsiElement): Info? {
     if (!hasJavaSupport) return null
 
     val elementType = e.elementType
@@ -73,9 +73,12 @@ class SolidityRunLineMarkerProvider : RunLineMarkerContributor() {
       val searchFunction = e.parent ?: return null
       if (searchFunction is SolFunctionDefinition && SearchUtils.runnableFilter.invoke(searchFunction)) {
         val actions = ExecutorAction.getActions(0).filter { it.toString().startsWith("Run context configuration") }.toTypedArray()
-        return RunLineMarkerContributor.Info(AllIcons.RunConfigurations.TestState.Run,
-          { element1 -> StringUtil.join(ContainerUtil.mapNotNull<AnAction, String>(actions) { action -> RunLineMarkerContributor.getText(action, element1) }, "\n") },
-          actions)
+        return Info(AllIcons.RunConfigurations.TestState.Run, { element1: PsiElement ->
+          StringUtil.join(
+            ContainerUtil.mapNotNull<AnAction, String>(actions) { action -> getText(action, element1) },
+            "\n"
+          )
+        }, *actions)
       }
     }
     return null

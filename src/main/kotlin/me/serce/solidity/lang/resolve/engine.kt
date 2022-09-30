@@ -10,6 +10,7 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import me.serce.solidity.lang.core.SolidityFile
 import me.serce.solidity.lang.psi.*
+import me.serce.solidity.lang.psi.impl.SolNewExpressionElement
 import me.serce.solidity.lang.resolve.ref.SolFunctionCallReference
 import me.serce.solidity.lang.stubs.SolGotoClassIndex
 import me.serce.solidity.lang.stubs.SolModifierIndex
@@ -18,17 +19,31 @@ import me.serce.solidity.nullIfError
 import me.serce.solidity.wrap
 
 object SolResolver {
-  fun resolveTypeNameUsingImports(element: PsiElement): Set<SolNamedElement> = CachedValuesManager.getCachedValue(element) {
-    val result = resolveContractUsingImports(element, element.containingFile, true) +
-      resolveEnum(element) +
-      resolveStruct(element)
-    CachedValueProvider.Result.create(result, PsiModificationTracker.MODIFICATION_COUNT)
-  }
+  fun resolveTypeNameUsingImports(element: PsiElement): Set<SolNamedElement> =
+    CachedValuesManager.getCachedValue(element) {
+      val result = if (element is SolFunctionCallElement) {
+        resolveError(element) +
+          resolveEvent(element) +
+          resolveContractUsingImports(element, element.containingFile, true) +
+          resolveEnum(element) +
+          resolveUserDefinedValueType(element)
+      } else {
+        resolveContractUsingImports(element, element.containingFile, true) +
+          resolveEnum(element) +
+          resolveStruct(element) +
+          resolveUserDefinedValueType(element)
+      }
+      CachedValueProvider.Result.create(result, PsiModificationTracker.MODIFICATION_COUNT)
+    }
 
   /**
    * @param withAliases aliases are not recursive, so count them only at the first level of recursion
    */
-  private fun resolveContractUsingImports(element: PsiElement, file: PsiFile, withAliases: Boolean): Set<SolContractDefinition> =
+  private fun resolveContractUsingImports(
+    element: PsiElement,
+    file: PsiFile,
+    withAliases: Boolean
+  ): Set<SolContractDefinition> =
     RecursionManager.doPreventingRecursion(ResolveContractKey(element.nameOrText, file), true) {
       if (element is SolUserDefinedTypeName && element.findIdentifiers().size > 1) {
         emptySet()
@@ -64,12 +79,34 @@ object SolResolver {
     } ?: emptySet()
 
   private fun resolveEnum(element: PsiElement): Set<SolNamedElement> =
-    resolveInnerType<SolEnumDefinition>(element) { it.enumDefinitionList }
+    resolveInFile<SolEnumDefinition>(element) + resolveInnerType<SolEnumDefinition>(element) { it.enumDefinitionList }
 
   private fun resolveStruct(element: PsiElement): Set<SolNamedElement> =
-    resolveInnerType<SolStructDefinition>(element) { it.structDefinitionList }
+    resolveInFile<SolStructDefinition>(element) + resolveInnerType<SolStructDefinition>(element) { it.structDefinitionList }
 
-  private fun <T : SolNamedElement> resolveInnerType(element: PsiElement, f: (SolContractDefinition) -> List<T>): Set<T> {
+  private fun resolveUserDefinedValueType(element: PsiElement): Set<SolNamedElement> =
+    resolveInFile<SolUserDefinedValueTypeDefinition>(element) + resolveInnerType<SolUserDefinedValueTypeDefinition>(
+      element,
+      { it.userDefinedValueTypeDefinitionList })
+
+  private fun resolveEvent(element: PsiElement): Set<SolNamedElement> =
+    resolveInnerType<SolEventDefinition>(element) { it.eventDefinitionList }
+
+  private fun resolveError(element: PsiElement): Set<SolNamedElement> =
+    resolveInnerType<SolErrorDefinition>(element) { it.errorDefinitionList }
+
+  private inline fun <reified T : SolNamedElement> resolveInFile(element: PsiElement) : Set<T> {
+    return element.parentOfType<SolidityFile>()
+      ?.children
+      ?.filterIsInstance<T>()
+      ?.filter { it.name == element.text }
+      ?.toSet() ?: emptySet()
+  }
+
+  private fun <T : SolNamedElement> resolveInnerType(
+    element: PsiElement,
+    f: (SolContractDefinition) -> List<T>
+  ): Set<T> {
     val inheritanceSpecifier = element.parentOfType<SolInheritanceSpecifier>()
     return if (inheritanceSpecifier != null) {
       emptySet()
@@ -88,7 +125,11 @@ object SolResolver {
           ?: emptySet()
 
         else -> element.parentOfType<SolContractDefinition>()
-          ?.let { resolveInnerType(it, names[0].nameOrText!!, f) }
+          ?.let {
+            names[0].nameOrText?.let { nameOrText ->
+              resolveInnerType(it, nameOrText, f)
+            }
+          }
           ?: emptySet()
       }
     }
@@ -101,7 +142,11 @@ object SolResolver {
       this.text
     }
 
-  private fun <T : SolNamedElement> resolveInnerType(contract: SolContractDefinition, name: String, f: (SolContractDefinition) -> List<T>): Set<T> {
+  private fun <T : SolNamedElement> resolveInnerType(
+    contract: SolContractDefinition,
+    name: String,
+    f: (SolContractDefinition) -> List<T>
+  ): Set<T> {
     val supers = contract.collectSupers
       .mapNotNull { it.reference?.resolve() }.filterIsInstance<SolContractDefinition>() + contract
     return supers.flatMap(f)
@@ -149,7 +194,7 @@ object SolResolver {
   private fun <T : Any> List<T>.findBest(priorities: (T) -> Int): List<T> {
     return this
       .groupBy { priorities(it) }
-      .minBy { it.key }
+      .minByOrNull { it.key }
       ?.value
       ?: emptyList()
   }
@@ -222,9 +267,10 @@ object SolResolver {
         val childrenScope = sequenceOf(
           scope.stateVariableDeclarationList as List<PsiElement>,
           scope.enumDefinitionList,
-          scope.structDefinitionList).flatten()
+          scope.structDefinitionList
+        ).flatten()
           .map { lexicalDeclarations(it, place) }
-          .flatten() + scope.structDefinitionList + scope.eventDefinitionList
+          .flatten() + scope.structDefinitionList + scope.eventDefinitionList + scope.errorDefinitionList
         val extendsScope = scope.supers.asSequence()
           .map { resolveTypeName(it).firstOrNull() }
           .filterNotNull()
@@ -258,6 +304,12 @@ object SolResolver {
           val contracts = scope.children.asSequence()
             .filterIsInstance<SolContractDefinition>()
 
+          val constantVariables = scope.children.asSequence()
+            .filterIsInstance<SolConstantVariable>()
+
+          val freeFunctions = scope.children.asSequence()
+            .filterIsInstance<SolFunctionDefinition>()
+
           // NOTE: Imports are intentionally resolved eagerly rather than lazily to ensure that
           // cyclic imports don't cause infinite recursion.
           val imports = scope.children.asSequence().filterIsInstance<SolImportDirective>()
@@ -266,7 +318,7 @@ object SolResolver {
             .flatten()
             .toList()
             .asSequence()
-           imports + contracts
+          imports + contracts + constantVariables + freeFunctions
         } ?: emptySequence()
       }
 
@@ -284,6 +336,10 @@ object SolResolver {
 
       else -> emptySequence()
     }
+  }
+
+  fun resolveNewExpression(parentNew: SolNewExpressionElement): Collection<PsiElement> {
+    return parentNew.reference.multiResolve()
   }
 }
 

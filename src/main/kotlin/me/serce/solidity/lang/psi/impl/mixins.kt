@@ -15,7 +15,6 @@ import me.serce.solidity.lang.resolve.SolResolver
 import me.serce.solidity.lang.resolve.ref.*
 import me.serce.solidity.lang.stubs.*
 import me.serce.solidity.lang.types.*
-import java.util.*
 import javax.naming.OperationNotSupportedException
 
 open class SolImportPathElement : SolStubbedNamedElementImpl<SolImportPathDefStub>, SolReferenceElement {
@@ -40,6 +39,12 @@ abstract class SolEnumItemImplMixin : SolStubbedNamedElementImpl<SolEnumDefStub>
     get() = ancestors.firstInstance()
 
   override fun getIcon(flags: Int) = SolidityIcons.ENUM
+}
+
+abstract class SolUserDefinedValueTypeDefMixin : SolStubbedNamedElementImpl<SolUserDefinedValueTypeDefStub>,
+  SolUserDefinedValueTypeDefinition {
+  constructor(node: ASTNode) : super(node)
+  constructor(stub: SolUserDefinedValueTypeDefStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 }
 
 abstract class SolEnumValueMixin(node: ASTNode) : SolNamedElementImpl(node), SolEnumValue {
@@ -149,7 +154,7 @@ abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefSt
 
   override val visibility
     get() = functionVisibilitySpecifierList
-      .map { it.text.toUpperCase() }
+      .map { it.text.uppercase() }
       .mapNotNull { safeValueOf<Visibility>(it) }
       .firstOrNull()
       ?: Visibility.PUBLIC
@@ -176,13 +181,13 @@ abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefSt
       null
     }
 
-  override val contract: SolContractDefinition
+  override val contract: SolContractDefinition?
     get() = this.ancestors.asSequence()
       .filterIsInstance<SolContractDefinition>()
-      .first()
+      .firstOrNull()
 
   override val isConstructor: Boolean
-    get() = contract.name == name
+    get() = contract?.name == name
 
   constructor(node: ASTNode) : super(node)
   constructor(stub: SolFunctionDefStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
@@ -231,7 +236,15 @@ abstract class SolStateVarDeclMixin : SolStubbedNamedElementImpl<SolStateVarDecl
   override fun resolveElement() = this
 
   override val visibility
-    get() = visibilityModifier?.text?.let { safeValueOf<Visibility>(it.toUpperCase()) } ?: Visibility.INTERNAL
+    get() = visibilityModifier?.text?.let { safeValueOf<Visibility>(it.uppercase()) } ?: Visibility.INTERNAL
+}
+
+abstract class SolConstantVariableDeclMixin : SolStubbedNamedElementImpl<SolConstantVariableDeclStub>, SolConstantVariableDeclaration {
+  constructor(node: ASTNode) : super(node)
+  constructor(stub: SolConstantVariableDeclStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
+
+  // TODO: does it need a separate icon?
+  override fun getIcon(flags: Int) = SolidityIcons.STATE_VAR
 }
 
 abstract class SolStructDefMixin : SolStubbedNamedElementImpl<SolStructDefStub>, SolStructDefinition, SolCallableElement {
@@ -257,24 +270,31 @@ abstract class SolStructDefMixin : SolStubbedNamedElementImpl<SolStructDefStub>,
 }
 
 abstract class SolFunctionCallMixin(node: ASTNode) : SolNamedElementImpl(node), SolFunctionCallElement, SolFunctionCallExpression {
-  override fun getBaseAndReferenceNameElement(): Pair<SolExpression?, PsiElement> {
-    return when (val expr = expression) {
+
+  private fun getReferenceNameElement(expr: SolExpression): PsiElement {
+    return when (expr) {
       is SolPrimaryExpression ->
-        expr.varLiteral?.let { Pair(null, it) }
-          ?: expr.elementaryTypeName?.let { Pair(null, it) }!!
+        expr.varLiteral ?: expr.elementaryTypeName!!
       is SolMemberAccessExpression ->
-        Pair(expr.expression, expr.identifier!!)
+        expr.identifier!!
       is SolFunctionCallExpression ->
-        Pair(expr.expression, expr.firstChild)
-      else -> throw IllegalStateException("unable to extract reference name element from $this")
+        expr.firstChild
+      is SolIndexAccessExpression ->
+        expr.firstChild
+      is SolNewExpression ->
+        expr.typeName as PsiElement
+      is SolSeqExpression ->
+        getReferenceNameElement(expr.expressionList.first())
+      // unable to extract reference name element
+      else -> expr
     }
   }
 
-  override val expression: SolExpression?
-    get() = expressionList[0]
+  override val expression: SolExpression
+    get() = expressionList.first()
 
   override val referenceNameElement: PsiElement
-    get() = getBaseAndReferenceNameElement().second
+    get() = getReferenceNameElement(expression)
 
   override val referenceName: String
     get() = referenceNameElement.text
@@ -351,7 +371,7 @@ abstract class SolMemberAccessElement(node: ASTNode) : SolNamedElementImpl(node)
 
 abstract class SolNewExpressionElement(node: ASTNode) : SolNamedElementImpl(node), SolNewExpression {
   override val referenceNameElement: PsiElement
-    get() = findChildByType(IDENTIFIER) ?: firstChild
+    get() = typeName ?: firstChild
   override val referenceName: String
     get() = referenceNameElement.text
 
@@ -378,6 +398,32 @@ abstract class SolEventDefMixin : SolStubbedNamedElementImpl<SolEventDefStub>, S
   override val callablePriority = 1000
 }
 
+abstract class SolErrorDefMixin : SolStubbedNamedElementImpl<SolErrorDefStub>, SolErrorDefinition, SolCallableElement {
+  constructor(node: ASTNode) : super(node)
+  constructor(stub: SolErrorDefStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
+
+  //todo add error args identifiers
+  override fun parseParameters(): List<Pair<String?, SolType>> {
+    return indexedParameterList?.typeNameList
+      ?.map { null to getSolType(it) }
+      ?: emptyList()
+  }
+
+  override fun getNameIdentifier(): PsiElement? {
+    // use the second identifier because "error" isn't a keyword but also an identifier
+    return findChildrenByType<PsiElement>(IDENTIFIER).getOrNull(1)
+  }
+
+  override fun parseType(): SolType {
+    return SolUnknown
+  }
+
+  override fun resolveElement() = this
+
+  override val callablePriority = 1000
+}
+
+
 abstract class SolUsingForMixin(node: ASTNode) : SolElementImpl(node), SolUsingForElement {
   override val type: SolType?
     get() {
@@ -388,8 +434,8 @@ abstract class SolUsingForMixin(node: ASTNode) : SolElementImpl(node), SolUsingF
         null
       }
     }
-  override val library: SolContractDefinition
+  override val library: SolContractDefinition?
     get() = SolResolver.resolveTypeNameUsingImports(getTypeNameList()[0] as SolUserDefinedTypeName)
       .filterIsInstance<SolContractDefinition>()
-      .first()
+      .firstOrNull()
 }

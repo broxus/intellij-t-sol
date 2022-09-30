@@ -7,6 +7,11 @@ fun IndexSink.indexEnumDef(stub: SolEnumDefStub) {
   indexGotoClass(stub)
 }
 
+fun IndexSink.indexUserDefinedValueTypeDef(stub: SolUserDefinedValueTypeDefStub) {
+  indexNamedStub(stub)
+  indexGotoClass(stub)
+}
+
 fun IndexSink.indexContractDef(stub: SolContractOrLibDefStub) {
   indexNamedStub(stub)
   indexGotoClass(stub)
@@ -31,9 +36,19 @@ fun IndexSink.indexStateVarDecl(stub: SolStateVarDeclStub) {
   indexNamedStub(stub)
 }
 
+fun IndexSink.indexConstantVariableDecl(stub: SolConstantVariableDeclStub) {
+  indexNamedStub(stub)
+}
+
 fun IndexSink.indexEventDef(stub: SolEventDefStub) {
   indexNamedStub(stub)
   indexEvent(stub)
+  indexGotoClass(stub)
+}
+
+fun IndexSink.indexErrorDef(stub: SolErrorDefStub) {
+  indexNamedStub(stub)
+  indexError(stub)
   indexGotoClass(stub)
 }
 
@@ -63,6 +78,12 @@ private fun IndexSink.indexGotoClass(stub: SolNamedStub) {
 private fun IndexSink.indexEvent(stub: SolEventDefStub) {
   stub.name?.let {
     occurrence(SolEventIndex.KEY, it)
+  }
+}
+
+private fun IndexSink.indexError(stub: SolErrorDefStub) {
+  stub.name?.let {
+    occurrence(SolErrorIndex.KEY, it)
   }
 }
 

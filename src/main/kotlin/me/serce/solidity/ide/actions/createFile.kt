@@ -12,17 +12,19 @@ import me.serce.solidity.ide.SolidityIcons
 
 private const val CAPTION = "New Solidity File"
 
+const val SMART_CONTRACT_TEMPLATE = "Solidity Contract"
+
 class SolCreateFileAction : CreateFileFromTemplateAction(CAPTION, "", SolidityIcons.FILE_ICON), DumbAware {
 
   override fun getActionName(directory: PsiDirectory?, newName: String, templateName: String?) = CAPTION
 
   override fun buildDialog(
-    project: Project?,
-    directory: PsiDirectory?,
+    project: Project,
+    directory: PsiDirectory,
     builder: CreateFileFromTemplateDialog.Builder
   ) {
     builder.setTitle(CAPTION)
-      .addKind("Smart contract", SolidityIcons.FILE_ICON, "Solidity Contract")
+      .addKind("Smart contract", SolidityIcons.FILE_ICON, SMART_CONTRACT_TEMPLATE)
       .addKind("Solidity library", SolidityIcons.FILE_ICON, "Solidity Library")
       .setValidator(object : InputValidatorEx {
         override fun checkInput(inputString: String): Boolean {

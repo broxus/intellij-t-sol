@@ -6,6 +6,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.source.tree.LeafElement
 import me.serce.solidity.lang.core.SolidityFile
 import me.serce.solidity.lang.psi.impl.SolImportPathElement
+import java.nio.file.Paths;
 
 class SolImportPathReference(element: SolImportPathElement) : SolReferenceBase<SolImportPathElement>(element) {
   override fun singleResolve(): PsiElement? {
@@ -24,10 +25,14 @@ class SolImportPathReference(element: SolImportPathElement) : SolReferenceBase<S
       directFile
     } else {
       val npmFile = findNpmImportFile(file, path)
-      when {
-        npmFile != null -> npmFile
-        else -> findEthPMImportFile(file, path)
+      if (npmFile != null) {
+        return npmFile
       }
+      val ethPmFile = findEthPMImportFile(file, path)
+      if (ethPmFile != null) {
+        return ethPmFile
+      }
+      findFoundryImportFile(file, path)
     }
   }
 
@@ -36,6 +41,22 @@ class SolImportPathReference(element: SolImportPathElement) : SolReferenceBase<S
     return when {
       test != null -> test
       file.parent != null -> findNpmImportFile(file.parent, path)
+      else -> null
+    }
+  }
+
+  // default lib located at: forge-std/Test.sol => lib/forge-std/src/Test.sol
+  private fun findFoundryImportFile(file: VirtualFile, path: String): VirtualFile? {
+    val count = Paths.get(path).nameCount;
+    if (count < 2) {
+      return null;
+    }
+    val libName = Paths.get(path).subpath(0, 1).toString();
+    val libFile = Paths.get(path).subpath(1, count).toString();
+    val test = file.findFileByRelativePath("lib/$libName/src/$libFile");
+    return when {
+      test != null -> test
+      file.parent != null -> findFoundryImportFile(file.parent, path)
       else -> null
     }
   }

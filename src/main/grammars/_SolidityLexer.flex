@@ -26,17 +26,21 @@ import static me.serce.solidity.lang.core.SolidityTokenTypes.*;
 %state PRAGMA_REST
 
 EOL=\R
+%state IN_BLOCK_COMMENT
+%state IN_EOL_COMMENT
+
 WHITE_SPACE=\s+
 
-// TODO: proper grammar instead of this regex hell
-COMMENT=("//".*)|(\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/)
+EOL_COMMENT="/""/"[^\n]*
+// see https://docs.soliditylang.org/en/v0.8.7/natspec-format.html for NatSpec tags support
+NAT_SPEC_TAG=@[a-zA-Z_0-9:]*
 HEXLITERAL=(hex\"([_0-9a-fA-F]+)\"|hex\'([_0-9a-fA-F]+)\')
-STRINGLITERAL=(\"([^\"\r\n\\]|\\.)*\")|(\'([^\'\r\n\\]|\\.)*\')
+STRINGLITERAL=(\"([^\"\r\n\\]|\\.)*\")|(\'([^\'\r\n\\]|\\.)*\')|unicode(\"([^\"])*\")|unicode(\'([^\"])*\')
 DECIMALNUMBER=[0-9][_0-9]*
 FIXEDNUMBER=(([0-9][_0-9]*)+\.[_0-9]*|([0-9][_0-9]*)*\.([0-9][_0-9]*))
 SCIENTIFICNUMBER=((([0-9][_0-9]*)+|([0-9][_0-9]*)+\.[_0-9]*|([0-9][_0-9]*|[0-9])*\.([0-9][_0-9]*))[Ee][+-]?[_0-9]+)
 HEXNUMBER=(0[xX][_0-9a-fA-F]+)
-NUMBERUNIT=(wei|szabo|finney|ether|seconds|minutes|hours|days|weeks|years|nano|nanoton|nTon|ton|Ton|micro|microton|milli|milliton|kiloton|kTon|megaton|MTon|gigaton|GTon)
+NUMBERUNIT=(wei|gwei|szabo|finney|ether|seconds|minutes|hours|days|weeks|years|nano|nanoton|nTon|ton|Ton|micro|microton|milli|milliton|kiloton|kTon|megaton|MTon|gigaton|GTon)
 INTNUMTYPE=int(8|16|24|32|40|48|56|64|72|80|88|96|104|112|120|128|136|144|152|160|168|176|184|192|200|208|216|224|232|240|248|256)?
 UINTNUMTYPE=uint(8|16|24|32|40|48|56|64|72|80|88|96|104|112|120|128|136|144|152|160|168|176|184|192|200|208|216|224|232|240|248|256)?
 BYTENUMTYPE=byte(1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32)?
@@ -101,15 +105,21 @@ PRAGMAALL=[^ ][^;]*
   ">>"                    { return RSHIFT; }
   ":="                    { return LEFT_ASSEMBLY; }
   "=:"                    { return RIGHT_ASSEMBLY; }
-  "/*"                    { return DOC_COMMENT_BEGIN; }
-  "*/"                    { return DOC_COMMENT_END; }
+  "/*"                    {
+                            yybegin(IN_BLOCK_COMMENT);
+                            yypushback(2);
+                          }
+  "//"                    {
+                            yybegin(IN_EOL_COMMENT);
+                            yypushback(2);
+                          }
   "pragma"                {
                             yybegin(PRAGMA_OPEN);
                             return PRAGMA;
                           }
   "as"                    { return AS; }
-  "abstract"              { return ABSTRACT; }
   "import"                { return IMPORT; }
+  "abstract"              { return ABSTRACT; }
   "contract"              { return CONTRACT; }
   "library"               { return LIBRARY; }
   "interface"             { return INTERFACE; }
@@ -135,6 +145,7 @@ PRAGMAALL=[^ ][^;]*
   "event"                 { return EVENT; }
   "anonymous"             { return ANONYMOUS; }
   "enum"                  { return ENUM; }
+  "type"                  { return TYPE; }
   "indexed"               { return INDEXED; }
   "var"                   { return VAR; }
   "mapping"               { return MAPPING; }
@@ -143,6 +154,7 @@ PRAGMAALL=[^ ][^;]*
   "calldata"              { return CALLDATA; }
   "pure"                  { return PURE; }
   "view"                  { return VIEW; }
+  "unchecked"             { return UNCHECKED; }
   "return"                { return RETURN; }
   "if"                    { return IF; }
   "else"                  { return ELSE; }
@@ -158,6 +170,7 @@ PRAGMAALL=[^ ][^;]*
   "delete"                { return DELETE; }
   "new"                   { return NEW; }
   "wei"                   { return WEI; }
+  "gwei"                  { return GWEI; }
   "szabo"                 { return SZABO; }
   "finney"                { return FINNEY; }
   "ether"                 { return ETHER; }
@@ -185,11 +198,9 @@ PRAGMAALL=[^ ][^;]*
   "address"               { return ADDRESS; }
   "string"                { return STRING; }
   "bool"                  { return BOOL; }
-  "let"                   { return LET; }
   "optional"              { return OPTIONAL; }
   "static"                { return STATIC; }
 
-  {COMMENT}               { return COMMENT; }
   {HEXLITERAL}            { return HEXLITERAL; }
   {STRINGLITERAL}         { return STRINGLITERAL; }
   {DECIMALNUMBER}         { return DECIMALNUMBER; }
@@ -206,6 +217,59 @@ PRAGMAALL=[^ ][^;]*
   {BOOLEANLITERAL}        { return BOOLEANLITERAL; }
   {SPACE}                 { return SPACE; }
   {IDENTIFIER}            { return IDENTIFIER; }
+}
+
+// nested block comments are not supported, so don't track the occurrences of /*
+<IN_BLOCK_COMMENT> {
+  // to avoid tokenizing by whitespaces, and only split the comment into parts if
+  // NatSpec tags are included.
+  " @"                    {
+                            yypushback(1);
+                            return COMMENT;
+                          }
+
+  "*/"                    {
+                            yybegin(YYINITIAL);
+                            return COMMENT;
+                          }
+
+  {NAT_SPEC_TAG}         {
+                            //
+                            if (yycharat(-1) == ' ') {
+                                return NAT_SPEC_TAG;
+                            }
+                            return COMMENT;
+                          }
+
+  <<EOF>>                 { yybegin(YYINITIAL); }
+
+  [^]                     { }
+}
+
+<IN_EOL_COMMENT> {
+  // to avoid tokenizing by whitespaces, and only split the comment into parts if
+  // NatSpec tags are included.
+  " @"                    {
+                            yypushback(1);
+                            return COMMENT;
+                          }
+
+  {NAT_SPEC_TAG}          {
+                              //
+                              if (yycharat(-1) == ' ') {
+                                  return NAT_SPEC_TAG;
+                              }
+                              return COMMENT;
+                          }
+
+  {EOL}                   {
+                            yybegin(YYINITIAL);
+                            // do not include '\n' in the comment
+                            yypushback(1);
+                            return COMMENT;
+                          }
+
+  [^]                     { }
 }
 
 <PRAGMA_OPEN> {

@@ -1,14 +1,14 @@
 <idea-plugin>
     <id>me.serce.solidity</id>
-    <name>Intellij-Solidity</name>
+    <name>Solidity</name>
     <vendor email="sergeicelov@gmail.com" url="https://github.com/intellij-solidity">Intellij Solidity</vendor>
 
     <description><![CDATA[
-      IntelliJ solidity support
+      Solidity support for IntelliJ.
 
       <p>
-        You can support the plugin development by <a href="https://github.com/intellij-solidity/intellij-solidity">sponsoring</a> ❤️ the plugin on Github, by clicking star on
-        <a href="https://github.com/intellij-solidity/intellij-solidity">GitHub</a>
+        You can support the plugin development by <a href="https://github.com/intellij-solidity/intellij-solidity">sponsoring</a> ❤️ the plugin on Github,
+        supporting the project on <a href="https://gitcoin.co/grants/1047/intellij-solidity">GitCoin</a>, or by clicking star on <a href="https://github.com/intellij-solidity/intellij-solidity">GitHub</a>
         and rating it on the <a href="https://plugins.jetbrains.com/plugin/9475-intellij-solidity">plugin page</a>.
       </p>
       <p>
@@ -18,28 +18,34 @@
 
     <change-notes><![CDATA[
       <p>
-        <b>v2.3.1</b>
+        Thank you for your support!
+        <p>Huge thank you to all participants of the last GitCoin round, Yenwen Feng (@tempofeng), and LevX (@LevxApp) in particular! https://gitcoin.co/grants/1047/intellij-solidity!❤️</p>
+        <p>Huge thank you to all of you who sponsor the plugin development on GitHub, and Tyler Smith (@tyler-smith) and Kevin Upton (@kevupton) in particular!❤️</p>
+
+        <b>v2.3.10</b>
+        In this release:
         <ul>
-          <li>allow for typenames in mappings</li>
-          <li>allow for casting using 'payable'</li>
-          <li>update grammar to include immutable keyword, thanks @patitonar</li>
+          <li>Support returns in fallback functions, yours @SerCeMan</li>
+          <li>Support single-quoted unicode strings, yours @SerCeMan</li>
+          <li>Resolve the infinite recursion issue on resolve. The fix also provides performance improvements, yours @SerCeMan</li>
         </ul>
-        <b>v2.3.0</b>
+        <b>v2.3.9</b>
+        In this release:
         <ul>
-          <li>
-            v2.2.1 introduces the initial support for Solidity v6. Does the plugin help you in your developer life?
-            Please consider sponsoring or convincing your employer to support the plugin on
-            <a href="https://github.com/intellij-solidity/intellij-solidity">GitHub</a> to support keeping up with the
-            Solidity language development and releasing of the new features.
-          </li>
-          <li>fix parameter info handler, thanks @evgenynacu!</li>
+          <li>Adding basic support for foundry, thanks @dyzz<!/li>
+          <li>Improve syntax highlighting, thanks @apottere!</li>
+          <li>Run find implementation under a progress, yours @SerCeMan</li>
+          <li>Tooling upgrades to keep up with IJ releases</li>
         </ul>
       </p>
     ]]>
     </change-notes>
 
-    <!-- 201.4515.24 is IntelliJ IDEA 2020.1 EAP -->
-    <idea-version since-build="201.4515.24"/>
+    <!--
+        See https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html
+        203.8084.24 is IntelliJ IDEA 2020.3.4
+    -->
+    <idea-version since-build="203.8084.24"/>
 
     <depends>com.intellij.modules.lang</depends>
     <!--
@@ -90,6 +96,8 @@
                                 implementationClass="me.serce.solidity.lang.completion.SolFunctionCompletionContributor"/>
         <completion.contributor language="Solidity"
                                 implementationClass="me.serce.solidity.lang.completion.SolContextCompletionContributor"/>
+        <completion.contributor language="Solidity"
+                                implementationClass="me.serce.solidity.lang.completion.SolNatSpecCompletionContributor"/>
 
         <lang.formatter language="Solidity"
                         implementationClass="me.serce.solidity.ide.formatting.SolidityFormattingModelBuilder"/>
@@ -105,6 +113,7 @@
         <stubIndex implementation="me.serce.solidity.lang.stubs.SolGotoClassIndex"/>
         <stubIndex implementation="me.serce.solidity.lang.stubs.SolModifierIndex"/>
         <stubIndex implementation="me.serce.solidity.lang.stubs.SolEventIndex"/>
+        <stubIndex implementation="me.serce.solidity.lang.stubs.SolErrorIndex"/>
         <stubIndex implementation="me.serce.solidity.lang.stubs.SolFunctionIndex"/>
         <stubIndex implementation="me.serce.solidity.lang.stubs.SolImportIndex"/>
 
@@ -135,7 +144,7 @@
                                    implementationClass="me.serce.solidity.ide.inspections.SolInspectionSuppressor"/>
 
         <localInspection language="Solidity" groupName="Solidity"
-                         displayName="Suicide is deprecated. Use seldestruct instead EIP 6"
+                         displayName="Suicide is deprecated. Use selfdestruct instead EIP 6"
                          enabledByDefault="true"
                          level="WARNING"
                          implementationClass="me.serce.solidity.ide.inspections.SelfdestructRenameInspection"/>

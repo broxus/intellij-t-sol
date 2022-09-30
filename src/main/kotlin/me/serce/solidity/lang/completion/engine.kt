@@ -12,6 +12,7 @@ import me.serce.solidity.ide.SolidityIcons
 import me.serce.solidity.ide.inspections.fixes.ImportFileAction
 import me.serce.solidity.lang.psi.*
 import me.serce.solidity.lang.resolve.SolResolver
+import me.serce.solidity.lang.stubs.SolErrorIndex
 import me.serce.solidity.lang.stubs.SolEventIndex
 import me.serce.solidity.lang.stubs.SolGotoClassIndex
 import me.serce.solidity.lang.stubs.SolModifierIndex
@@ -33,6 +34,21 @@ object SolCompleter {
         LookupElementBuilder
           .create(it, it)
           .withIcon(SolidityIcons.EVENT)
+      }
+      .toTypedArray()
+  }
+
+  fun completeErrorName(element: PsiElement): Array<out LookupElementBuilder> {
+    val project = element.project
+    val allTypeNames = StubIndex.getInstance().getAllKeys(
+      SolErrorIndex.KEY,
+      project
+    )
+    return allTypeNames
+      .map {
+        LookupElementBuilder
+          .create(it, it)
+          .withIcon(SolidityIcons.ERROR)
       }
       .toTypedArray()
   }
@@ -77,7 +93,10 @@ object SolCompleter {
     return element.expression.getMembers()
       .mapNotNull {
         when (it.getPossibleUsage(contextType)) {
-          Usage.CALLABLE -> (it as SolCallableElement).toFunctionLookup()
+          Usage.CALLABLE -> {
+            // could also be a builtin, me.serce.solidity.lang.types.BuiltinCallable
+            (it as? SolCallableElement)?.toFunctionLookup()
+          }
           Usage.VARIABLE -> it.getName()?.let { name ->
             PrioritizedLookupElement.withPriority(
               LookupElementBuilder.create(name).withIcon(SolidityIcons.STATE_VAR),

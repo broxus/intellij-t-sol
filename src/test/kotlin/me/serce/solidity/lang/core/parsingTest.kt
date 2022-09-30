@@ -24,6 +24,7 @@ class SolidityCompleteCustomParsingTest : SolidityParsingTestBase("fixtures/pars
   fun testAssignments() = doTest(true)
   fun testBytes() = doTest(true)
   fun testContract() = doTest(true)
+  fun testConstants() = doTest(true)
   fun testCalldataArray() = doTest(true)
   fun testCallChain() = doTest(true)
   fun testCallOptions() = doTest(true)
@@ -36,6 +37,8 @@ class SolidityCompleteCustomParsingTest : SolidityParsingTestBase("fixtures/pars
   fun testEmit() = doTest(true)
   fun testEnums() = doTest(true)
   fun testEvent() = doTest(true)
+  fun testError() = doTest(true)
+  fun testFallback() = doTest(true)
   fun testFunctions() = doTest(true)
   fun testImports() = doTest(true)
   fun testIdentifier() = doTest(true)
@@ -46,6 +49,7 @@ class SolidityCompleteCustomParsingTest : SolidityParsingTestBase("fixtures/pars
   fun testMapInvoke() = doTest(true)
   fun testMappings() = doTest(true)
   fun testModifiers() = doTest(true)
+  fun testNatSpec() = doTest(true)
   fun testNew() = doTest(true)
   fun testPragma() = doTest(true)
   fun testReturnTuples() = doTest(true)
@@ -54,6 +58,10 @@ class SolidityCompleteCustomParsingTest : SolidityParsingTestBase("fixtures/pars
   fun testStateVars() = doTest(true)
   fun testTernary() = doTest(true)
   fun testTryCatch() = doTest(true)
+  fun testTypeExpression() = doTest(true)
+  fun testUnchecked() = doTest(true)
+  fun testUserDefinedValueTypes() = doTest(true)
+  fun testUsing() = doTest(true)
 }
 
 class SolidityCompleteOfficialSuccessfulParsingTest :

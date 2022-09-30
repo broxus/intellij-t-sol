@@ -16,7 +16,7 @@
   tokens = [
     comment='regexp:(//.*)|(/\\*(?:.|[\\n\\r])*?\\*/)'
     hexLiteral='regexp:hex"([0-9a-fA-F]+)"'
-    stringLiteral='regexp:("([^"\r\n\\]|\\.)*")'
+    stringLiteral='regexp:("([^"\r\n\\]|\\.)*")|unicode("([^"])*")'
     decimalNumber='regexp:([0-9][_0-9]*)'
     fixedNumber='regexp:(([0-9][_0-9]*)+\.[_0-9]*|([0-9][_0-9]*)*\.([0-9][_0-9]*))'
     scientificNumber='regexp:((([0-9][_0-9]*)+|([0-9][_0-9]*)+\.[_0-9]*|([0-9][_0-9]*|[0-9])*\.[_0-9]+)[Ee][+-]?[_0-9]+)'
@@ -32,7 +32,6 @@
     space='regexp:\s+'
 
     Identifier='regexp:[a-zA-Z_$][a-zA-Z_$0-9]*'
-
 
     DOT='.'
     COLON=':'
@@ -82,8 +81,7 @@
     RSHIFT='>>'
     LEFT_ASSEMBLY=':='
     RIGHT_ASSEMBLY='=:'
-    DOC_COMMENT_BEGIN='/*'
-    DOC_COMMENT_END='*/'
+    NAT_SPEC_TAG='regexp:@[a-zA-Z_0-9:]*'
 
     // this is a special grammar for "preview only" because grammar-kit seems to not
     // support whitespaces
@@ -94,8 +92,19 @@
   extends(".*TypeName")=TypeName
 }
 
-
-SourceUnit ::= (PragmaDirective | ImportDirective | ContractDefinition | EnumDefinition | StructDefinition | Expression)*
+SourceUnit ::= (
+    PragmaDirective
+    | ImportDirective
+    | UsingForDeclaration
+    | ContractDefinition
+    | FunctionDefinition
+    | ConstantVariableDeclaration
+    | StructDefinition
+    | EnumDefinition
+    | UserDefinedValueTypeDefinition
+    | ErrorDefinition
+    | Expression
+  )*
 
 private UntilSemicolonRecover ::= !(';')
 private UntilBraceRecover ::= !('}')
@@ -116,13 +125,14 @@ ImportAliasedPair ::= UserDefinedTypeName (as ImportAlias)?
 private ImportRuleSet ::= ImportAliasedPair ( ',' ImportAliasedPair )* {
     recoverWhile = ClosedBracketRecover
 }
-ImportPath ::= StringLiteral {
+ImportPath ::= stringLiteral {
     implements = "me.serce.solidity.lang.psi.SolNamedElement"
     mixin = "me.serce.solidity.lang.psi.impl.SolImportPathElement"
     stubClass = "me.serce.solidity.lang.stubs.SolImportPathDefStub"
     elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
 }
-private ImportDirectivePart ::= import ( ImportPath (as ImportAlias)?
+private ImportDirectivePart ::= import
+        ( ImportPath (as ImportAlias)?
         | ('*' | UserDefinedTypeName) (as ImportAlias)? 'from' ImportPath
         | '{' ImportRuleSet '}' 'from' ImportPath ) {
  pin = 1
@@ -142,13 +152,17 @@ ContractDefinition ::= abstract? ( contract | library | interface ) Identifier
 }
 
 private ContractPart ::=
-    FunctionDefinition
-    | StateVariableDeclaration
+    // the of StateVariableDeclaration and FunctionDefinition is important to ensure that
+    // function type state variables are parsed correctly.
+    StateVariableDeclaration
+    | FunctionDefinition
     | UsingForDeclaration
     | StructDefinition
     | ModifierDefinition
     | EventDefinition
+    | ErrorDefinition
     | EnumDefinition
+    | UserDefinedValueTypeDefinition
     | ConstructorDefinition
 
 InheritanceSpecifier ::= UserDefinedTypeName ( '(' Expression ( ',' Expression )* ')' )?
@@ -164,7 +178,17 @@ StateVariableDeclaration ::= TypeName (VisibilityModifier MutationModifier Overr
     elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
 }
 
-UsingForDeclaration ::= using UserDefinedTypeName for ('*' | TypeName) ';' {
+/**
+ * The declaration of a constant variable.
+ */
+ConstantVariableDeclaration ::= TypeName MutationModifier Identifier ('=' Expression)? ';' {
+    implements = "me.serce.solidity.lang.psi.SolConstantVariable"
+    mixin = "me.serce.solidity.lang.psi.impl.SolConstantVariableDeclMixin"
+    stubClass = "me.serce.solidity.lang.stubs.SolConstantVariableDeclStub"
+    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+}
+
+UsingForDeclaration ::= using ( UserDefinedTypeName | '{' UserDefinedTypeName (',' UserDefinedTypeName)* '}' ) for ('*' | TypeName) 'global'? ';' {
     pin=1
     implements = "me.serce.solidity.lang.psi.SolUsingForElement"
     mixin = "me.serce.solidity.lang.psi.impl.SolUsingForMixin"
@@ -190,7 +214,7 @@ ModifierDefinition ::= modifier Identifier ParameterList? ( VirtualSpecifier | O
 VirtualSpecifier ::= virtual {pin=1}
 OverrideSpecifier ::= override ( '(' UserDefinedTypeName (',' UserDefinedTypeName)* ')' )? {pin=1}
 
-FunctionVisibilitySpecifier ::= external | public | internal | 'private' 
+FunctionVisibilitySpecifier ::= external | public | internal | 'private'
                               | VirtualSpecifier | OverrideSpecifier
 ModifierInvocation ::= VarLiteral ('(' ModifierInvocationCallArguments ')')? {
     implements = "me.serce.solidity.lang.psi.SolModifierInvocationElement"
@@ -206,30 +230,31 @@ ConstructorDefinition ::= constructor ParameterList
     mixin = "me.serce.solidity.lang.psi.impl.SolConstructorDefMixin"
 }
 
-FunctionDefinition ::=
-    OrdinaryFunctionDefinition
-    | FallbackFunctionDefinition
-    | UnnamedFunctionDefinition {
+FunctionDefinition ::= (function Identifier? | fallback | receive | 'onBounce')
+                        ParameterList
+                        ( FunctionVisibilitySpecifier | StateMutability | ModifierInvocation)*
+                        ( returns ParameterList )? ( ';' | Block ) {
+    pin = 1
     implements = "me.serce.solidity.lang.psi.SolFunctionDefElement"
     mixin = "me.serce.solidity.lang.psi.impl.SolFunctionDefMixin"
     stubClass = "me.serce.solidity.lang.stubs.SolFunctionDefStub"
     elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
 }
 
-private OrdinaryFunctionDefinition ::= function Identifier ParameterList
-                     ( ModifierInvocation | FunctionVisibilitySpecifier | StateMutability)*
-                     ( returns ParameterList )? ( ';' | Block ) {
-    pin = 2
-}
-
-private FallbackFunctionDefinition ::= function ParameterList (FunctionVisibilitySpecifier | StateMutability)* Block
-private UnnamedFunctionDefinition ::= (fallback | receive | 'onBounce') ParameterList (FunctionVisibilitySpecifier | StateMutability)* Block
-
 EventDefinition ::= event Identifier IndexedParameterList anonymous? ';' {
     pin = 1
     implements = "me.serce.solidity.lang.psi.SolCallableElement"
     mixin = "me.serce.solidity.lang.psi.impl.SolEventDefMixin"
     stubClass = "me.serce.solidity.lang.stubs.SolEventDefStub"
+    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+}
+
+// Note, error can't be a keyword as it could be used as e.g. a variable name
+ErrorDefinition ::= 'error' Identifier IndexedParameterList ';' {
+    pin = 2
+    implements = "me.serce.solidity.lang.psi.SolCallableElement"
+    mixin = "me.serce.solidity.lang.psi.impl.SolErrorDefMixin"
+    stubClass = "me.serce.solidity.lang.stubs.SolErrorDefStub"
     elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
 }
 
@@ -243,6 +268,14 @@ EnumDefinition ::= enum Identifier '{' EnumValue? (',' EnumValue)* '}' {
     implements = "me.serce.solidity.lang.psi.SolEnumDefElement"
     mixin = "me.serce.solidity.lang.psi.impl.SolEnumItemImplMixin"
     stubClass = "me.serce.solidity.lang.stubs.SolEnumDefStub"
+    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+}
+
+UserDefinedValueTypeDefinition ::= type Identifier is ElementaryTypeName ';' {
+    pin = 1
+    implements = "me.serce.solidity.lang.psi.SolUserDefinedValueTypeDefElement"
+    mixin = "me.serce.solidity.lang.psi.impl.SolUserDefinedValueTypeDefMixin"
+    stubClass = "me.serce.solidity.lang.stubs.SolUserDefinedValueTypeDefStub"
     elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
 }
 
@@ -333,13 +366,29 @@ FunctionTypeName ::= function ParameterList ( internal | external | StateMutabil
 StorageLocation ::= memory | storage | calldata
 StateMutability ::= pure | constant | view | 'payable'
 
-private UnfinishedBlock ::= '{' Statement* {
+private UnfinishedUncheckedBlock ::= unchecked '{' Statement* {
+    pin = 1
+    recoverWhile = UntilBraceRecover
+}
+
+private UncheckedBlock ::= UnfinishedUncheckedBlock '}'
+
+private UnfinishedBlock ::= '{' (UncheckedBlock | Statement)* {
     pin = 1
     recoverWhile = UntilBraceRecover
 }
 Block ::= UnfinishedBlock '}'
 
-private FinishedStatement ::= DoWhileStatement | PlaceholderStatement | ContinueSt | BreakSt | ReturnSt | ThrowSt | EmitStatement | SimpleStatement {
+private FinishedStatement ::=
+    DoWhileStatement
+    | PlaceholderStatement
+    | ContinueSt
+    | BreakSt
+    | ReturnSt
+    | ThrowSt
+    | EmitStatement
+    | RevertStatement
+    | SimpleStatement {
     recoverWhile = UntilSemicolonRecover
 }
 Statement ::= IfStatement | TryStatement | WhileStatement | ForStatement | RepeatStatement | Block | InlineAssemblyStatement | TupleStatement | ReturnTupleStatement | FinishedStatement ';'
@@ -361,13 +410,19 @@ PlaceholderStatement ::= '_'
 private SimpleStatement ::= VariableDefinition | ExpressionStatement
 ForStatement ::= for '(' ((SimpleStatement)? ';' (Expression)? ';' (ExpressionStatement)? | SimpleStatement ':' Identifier) ')' Statement {pin=1}
 RepeatStatement ::= repeat '(' (SimpleStatement)? ';' (Expression)? ';' (ExpressionStatement)? ')' Statement {pin=1}
-InlineAssemblyStatement ::= assembly AssemblyBlock {pin=1}
+InlineAssemblyStatement ::= assembly AssemblyDialect? AssemblyFlags? YulBlock {pin=1}
+private AssemblyDialect ::= StringLiteral // "evmasm"
+AssemblyFlags ::= '(' StringLiteral (',' StringLiteral)* ')'
 DoWhileStatement ::= do Statement while '(' Expression ')' {pin=1}
 ContinueSt ::= continue
 BreakSt ::= break
 ReturnSt ::= return MapExpression? Expression? {pin=1}
 ThrowSt ::= throw
+/* An emit statement. The contained expression needs to refer to an event. */
 EmitStatement ::= emit FunctionCallExpression {pin=1}
+/* A revert statement. The contained expression needs to refer to an error. */
+// Note, revert can't be a keyword as it could be used as e.g. a function name
+RevertStatement ::= 'revert' FunctionCallExpression
 SeqExpression ::= '(' ','* (Expression ',')* Expression? ','* ')' {pin=1}
 VariableDefinition ::= VariableDeclaration ( '=' Expression )?
 
@@ -386,6 +441,7 @@ Expression ::=
   | PlusMinExpression
   | MultDivExpression
   | ExponentExpression
+  | MetaTypeExpression
   | UnaryExpression
   | HighestPriorityGroup
   | InlineArrayExpression
@@ -415,6 +471,8 @@ MultDivExpression ::= Expression ('*' | '/' | '%') Expression
 ExponentExpression ::= Expression '**' Expression
 UnaryExpression ::= ('!' | '~' | delete | '++' | '--' | '+' | '-') Expression {pin=1}
 IncrementExpression ::= Expression ('++' | '--')
+// see https://docs.soliditylang.org/en/v0.8.8/units-and-global-variables.html#type-information
+MetaTypeExpression ::= type '(' TypeName ')'
 
 PrimaryExpression ::= VarLiteral
                   | BooleanLiteral
@@ -437,11 +495,11 @@ FunctionCallArguments ::= MapExpression | Expression? ( ',' Expression )*
 private MapExpressionClause ::= Identifier ':' (Expression | MapExpression) {pin=2}
 private MapExpression ::= '{' MapExpressionClause (',' MapExpressionClause )* '}' {pin=1}
 
-NewExpression ::= new ( Identifier | PrimitiveLiteral ) NewExpressionEnd* {
+NewExpression ::= new TypeName {
     implements = "me.serce.solidity.lang.psi.SolReferenceElement"
     mixin = "me.serce.solidity.lang.psi.impl.SolNewExpressionElement"
+    pin = 1
 }
-private NewExpressionEnd ::= FunctionInvocation | '[' Expression? ']'
 
 MemberAccessExpression ::= Expression '.' Identifier {
     pin = 2
@@ -452,15 +510,17 @@ IndexAccessExpression ::= Expression '[' ( Expression? ':' Expression? | Express
 
 BooleanLiteral ::= booleanLiteral
 NumberLiteral ::= ( HexNumber | DecimalNumber | FixedNumber | ScientificNumber) NumberUnit?
-NumberUnit ::= wei | szabo | finney | ether
+NumberUnit ::= wei | gwei | szabo | finney | ether
              | seconds | minutes | hours | days | weeks | years
              | nano | nanoton | nTon | ton | Ton | micro
              | microton | milli | milliton | kiloton | kTon
              | megaton | MTon | gigaton | GTon
 // https://github.com/ethereum/solidity/pull/832
-private HexLiteral ::= hexLiteral
-private StringLiteral ::= stringLiteral
-
+// A full hex string literal that consists of either one or several consecutive hex strings.
+HexLiteral ::= hexLiteral+
+// A full string literal consists of either one or several consecutive quoted strings.
+// A full unicode string literal that consists of either one or several consecutive unicode strings.
+StringLiteral ::= stringLiteral+
 
 private HexNumber ::= hexNumber
 private FixedNumber ::= fixedNumber
@@ -471,7 +531,7 @@ private PrimitiveLiteral ::= intNumType | uIntNumType | byteNumType | bytesNumTy
 
 private ElementaryTypeNameExpression ::= ElementaryTypeName
 
-ElementaryTypeName ::= ( address 'payable' ) | address | bool | string | var 
+ElementaryTypeName ::= ( address 'payable' ) | address | bool | string | var
                      | 'TvmCell' | 'TvmSlice' | 'TvmBuilder' | 'ExtraCurrencyCollection'
 | NumberType {
     stubClass = "me.serce.solidity.lang.stubs.SolTypeRefStub"
@@ -480,43 +540,136 @@ ElementaryTypeName ::= ( address 'payable' ) | address | bool | string | var
 
 NumberType ::= intNumType | uIntNumType | byteNumType | bytesNumType | fixedNumType | uFixedNumType
 
+// Yul Assembly
+//
+private YulLeave ::= 'leave'
+private YulBreak ::= 'break'
+private YulContinue ::= 'continue'
+private YulLBrace ::= '{'
+private YulRBrace ::= '}'
+private YulLet ::= 'let'
+private YulAssign ::= ':='
+private YulComma ::= ','
+private YulIf ::= 'if'
+private YulFor ::= 'for'
+private YulCase ::= 'case'
+private YulSwitch ::= 'switch'
+private YulDefault ::= 'default'
+private YulLParen ::= '('
+private YulRParen ::= ')'
+private YulArrow ::= '->'
+private YulIdentifier ::= Identifier
+// Keep in sync with
+// https://github.com/ethereum/solidity/blob/develop/docs/grammar/SolidityLexer.g4#L274-L288
+private YulEVMBuiltin ::=
+        	'stop' | 'add' | 'sub' | 'mul' | 'div' | 'sdiv' | 'mod' | 'smod' | 'exp' | 'not'
+        	| 'lt' | 'gt' | 'slt' | 'sgt' | 'eq' | 'iszero' | 'and' | 'or' | 'xor' | 'byte'
+        	| 'shl' | 'shr' | 'sar' | 'addmod' | 'mulmod' | 'signextend' | 'keccak256'
+        	| 'pop' | 'mload' | 'mstore' | 'mstore8' | 'sload' | 'sstore' | 'msize' | 'gas'
+        	| 'address' | 'balance' | 'selfbalance' | 'caller' | 'callvalue' | 'calldataload'
+        	| 'calldatasize' | 'calldatacopy' | 'extcodesize' | 'extcodecopy' | 'returndatasize'
+        	| 'returndatacopy' | 'extcodehash' | 'create' | 'create2' | 'call' | 'callcode'
+        	| 'delegatecall' | 'staticcall' | 'return' | 'revert' | 'selfdestruct' | 'invalid'
+        	| 'log0' | 'log1' | 'log2' | 'log3' | 'log4' | 'chainid' | 'origin' | 'gasprice'
+        	| 'blockhash' | 'coinbase' | 'timestamp' | 'number' | 'difficulty' | 'gaslimit'
+        	| 'basefee';
+private YulFunction ::= 'function'
+private YulPeriod ::= '.'
+private YulTrue ::= 'true'
+private YulFalse ::= 'false'
+private YulDecimalNumber ::= DecimalNumber
+private YulStringLiteral ::= StringLiteral
+private YulHexNumber ::= HexNumber
+private YulHexStringLiteral ::= HexLiteral
+
+// exempt from Solidity.bnf
+// replace:
+// 'yul' with 'Yul'
+// ':' with ' ::=', and ';' with ''
+// (cond\=|init\=|body\=|arguments\+\=|variables\+\=|post\=|returnParameters\+\=|\;) with ''
+// add pins everywhere, and reorder the expression priority
+
+
 // http://solidity.readthedocs.io/en/develop/assembly.html#parsing-grammar
+/**
+ * A Yul statement within an inline assembly block.
+ * continue and break statements are only valid within for loops.
+ * leave statements are only valid within function bodies.
+ */
+YulStatement ::=
+	YulBlock
+	| YulVariableDeclaration
+	| YulAssignment
+	| YulFunctionCall
+	| YulIfStatement
+	| YulForStatement
+	| YulSwitchStatement
+	| YulLeave
+	| YulBreak
+	| YulContinue
+	| YulFunctionDefinition
+	// Only support for backwards compatibility
+	| YulLabel
 
-AssemblyBlock ::= '{' AssemblyItem* '}' {pin=1}
+YulBlock ::= YulLBrace YulStatement* YulRBrace { pin=1 }
 
-AssemblyItem ::=
-    AssemblyBlock
-    | FunctionalAssemblyExpression
-    | AssemblyLocalDefinition
-    | FunctionalAssemblyAssignment
-    | AssemblyAssignment
-    | LabelDefinition
-    | AssemblyIf
-    | AssemblySwitch
-    | AssemblyFunctionDefinition
-    | AssemblyFor
-    | SubAssembly
-    | LinkerSymbol
-    | NumberLiteral
-    | StringLiteral
-    | HexLiteral
-    | Identifier
+/**
+ * The declaration of one or more Yul variables with optional initial value.
+ * If multiple variables are declared, only a function call is a valid initial value.
+ */
+YulVariableDeclaration ::= YulLet YulIdentifier
+    (YulAssign YulExpression
+	 | (YulComma YulIdentifier)* (YulAssign YulFunctionCall))?  { pin=1 }
 
-FunctionalAssemblyExpression ::= (AmbiguousAssemblyBytecode | Identifier) '(' AssemblyItem? ( ',' AssemblyItem )* ')'
-AssemblyLocalDefinition ::= let IdentifierOrList ( ':=' FunctionalAssemblyAssignmentOrIdentifier )? {pin=1}
-FunctionalAssemblyAssignment ::= IdentifierOrList ':=' FunctionalAssemblyAssignmentOrIdentifier {pin=2}
-IdentifierOrList ::= IdentifierList | '(' IdentifierList ')'
-private IdentifierList ::= Identifier ( ',' Identifier)*
-AssemblyAssignment ::= '=:' Identifier {pin=1}
-LabelDefinition ::= Identifier ':'
-AssemblyIf ::= 'if' FunctionalAssemblyAssignmentOrIdentifier AssemblyBlock {pin=1}
-AssemblySwitch ::= 'switch' FunctionalAssemblyAssignmentOrIdentifier AssemblyCase* ( 'default' AssemblyBlock )? {pin=1}
-AssemblyCase ::= 'case' FunctionalAssemblyAssignmentOrIdentifier AssemblyBlock {pin=1}
-AssemblyFunctionDefinition ::= 'function' Identifier '(' IdentifierOrList? ')'
-    ( '->' IdentifierOrList )? AssemblyBlock {pin=1}
-AssemblyFor ::= 'for' ( AssemblyBlock | FunctionalAssemblyExpression)
-    FunctionalAssemblyExpression ( AssemblyBlock | FunctionalAssemblyExpression) AssemblyBlock {pin=1}
-SubAssembly ::= 'assembly' Identifier AssemblyBlock {pin=1}
-LinkerSymbol ::= 'linkerSymbol' '(' StringLiteral ')' {pin=1}
-private AmbiguousAssemblyBytecode ::= 'return' | 'address' | 'byte' | 'break' | 'continue' | 'function'
-private FunctionalAssemblyAssignmentOrIdentifier ::= FunctionalAssemblyExpression | NumberLiteral | Identifier
+
+/**
+ * Any expression can be assigned to a single Yul variable, whereas
+ * multi-assignments require a function call on the right-hand side.
+ */
+YulAssignment ::=
+    YulPath YulAssign YulExpression
+    | (YulPath (YulComma YulPath)+) YulAssign YulFunctionCall
+    // Only support =: for backwards compatibility
+    | '=:' YulIdentifier
+
+YulIfStatement ::= YulIf YulExpression YulBlock { pin=1 }
+
+YulForStatement ::= YulFor YulBlock YulExpression YulBlock YulBlock { pin=1 }
+
+//@doc ::=inline
+YulSwitchCase ::= YulCase YulLiteral YulBlock { pin=1 }
+/**
+ * A Yul switch statement can consist of only a default-case (deprecated) or
+ * one or more non-default cases optionally followed by a default-case.
+ */
+YulSwitchStatement ::=
+	YulSwitch YulExpression
+	(
+		(YulSwitchCase+ (YulDefault YulBlock)?)
+		| (YulDefault YulBlock)
+	) { pin=1 }
+
+YulFunctionDefinition ::=
+	YulFunction YulIdentifier
+	YulLParen (YulIdentifier (YulComma YulIdentifier)*)? YulRParen
+	(YulArrow YulIdentifier (YulComma YulIdentifier)*)?
+	YulBlock { pin=1 }
+
+// TODO: remove as lables have been deprecated, and removed, see
+// https://docs.soliditylang.org/en/v0.5.6/assembly.html#labels
+YulLabel ::= Identifier ':'
+
+/**
+ * While only identifiers without dots can be declared within inline assembly,
+ * paths containing dots can refer to declarations outside the inline assembly block.
+ */
+YulPath ::= YulIdentifier (YulPeriod (YulIdentifier | YulEVMBuiltin))*
+/**
+ * A call to a function with return values can only occur as right-hand side of an assignment or
+ * a variable declaration.
+ */
+YulFunctionCall ::= (YulIdentifier | YulEVMBuiltin) YulLParen (YulExpression (YulComma YulExpression)*)? YulRParen { pin=2 }
+YulBoolean ::= YulTrue | YulFalse
+YulLiteral ::= YulDecimalNumber | YulStringLiteral | YulHexNumber | YulBoolean | YulHexStringLiteral
+// note the parsing order YulPath will match anything
+YulExpression ::= YulFunctionCall | YulLiteral | YulPath

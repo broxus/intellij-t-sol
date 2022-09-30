@@ -36,8 +36,11 @@ interface SolStateVarElement : SolMember, SolCallableElement {
   val visibility: Visibility
 }
 
+interface SolConstantVariable : SolNamedElement {}
+
 interface SolFunctionDefElement : SolHasModifiersElement, SolMember, SolCallableElement {
-  val contract: SolContractDefinition
+  /** The contract can be null in the case of free functions. */
+  val contract: SolContractDefinition?
   val modifiers: List<SolModifierInvocation>
   val parameters: List<SolParameterDef>
   val returns: SolParameterList?
@@ -51,8 +54,6 @@ inline fun <reified T : Enum<*>> safeValueOf(name: String): T? =
 interface SolFunctionCallElement : SolReferenceElement {
   val expression: SolExpression?
   val functionCallArguments: SolFunctionCallArguments
-
-  fun getBaseAndReferenceNameElement(): Pair<SolExpression?, PsiElement>
 }
 
 interface SolModifierInvocationElement : SolReferenceElement {
@@ -63,6 +64,8 @@ interface SolModifierInvocationElement : SolReferenceElement {
 interface SolEnumDefElement : SolNamedElement {
   val contract: SolContractDefinition
 }
+
+interface SolUserDefinedValueTypeDefElement : SolNamedElement
 
 interface SolEnumItemElement : SolEnumDefElement, SolMember
 
@@ -90,6 +93,6 @@ interface SolHasModifiersElement : SolReferenceElement
 
 interface SolUsingForElement : PsiElement {
   val type: SolType?
-  val library: SolContractDefinition
+  val library: SolContractDefinition?
   fun getTypeNameList(): List<SolTypeName>
 }

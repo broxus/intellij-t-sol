@@ -1,4 +1,4 @@
-= link:https://solidity.readthedocs.io/[Solidity] plugin for IntelliJ (FreeTON TVM Edition)
+= link:https://solidity.readthedocs.io/[Solidity] plugin for IntelliJ (Everscale TVM Edition)
 
 image:https://api.travis-ci.com/intellij-solidity/intellij-solidity.svg?branch=master["Build Status", link="https://travis-ci.org/intellij-solidity/intellij-solidity"]
 image:https://img.shields.io/jetbrains/plugin/d/9475-intellij-solidity.svg[JetBrains plugins]

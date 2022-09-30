@@ -134,6 +134,8 @@ NumberUnit = 'wei' | 'szabo' | 'finney' | 'ether'
            | 'nano' | 'nanoton' | 'nTon' | 'ton' | 'Ton' | 'micro'
            | 'microton' | 'milli' | 'milliton' | 'kiloton' | 'kTon'
            | 'megaton' | 'MTon' | 'gigaton' | 'GTon'
+           | 'nanoever' | 'ever' | 'Ever' | 'microever' | 'milliever'
+           | 'kiloever' | 'kEver' | 'megaever' | 'MEver' | 'gigaever' | 'GEver'
 HexLiteral = 'hex' ('"' ([0-9a-fA-F]{2})* '"' | '\'' ([0-9a-fA-F]{2})* '\'')
 StringLiteral = '"' ([^"\r\n\\] | '\\' .)* '"'
 Identifier = [a-zA-Z_$] [a-zA-Z_$0-9]*

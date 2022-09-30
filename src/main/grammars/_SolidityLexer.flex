@@ -40,7 +40,7 @@ DECIMALNUMBER=[0-9][_0-9]*
 FIXEDNUMBER=(([0-9][_0-9]*)+\.[_0-9]*|([0-9][_0-9]*)*\.([0-9][_0-9]*))
 SCIENTIFICNUMBER=((([0-9][_0-9]*)+|([0-9][_0-9]*)+\.[_0-9]*|([0-9][_0-9]*|[0-9])*\.([0-9][_0-9]*))[Ee][+-]?[_0-9]+)
 HEXNUMBER=(0[xX][_0-9a-fA-F]+)
-NUMBERUNIT=(wei|gwei|szabo|finney|ether|seconds|minutes|hours|days|weeks|years|nano|nanoton|nTon|ton|Ton|micro|microton|milli|milliton|kiloton|kTon|megaton|MTon|gigaton|GTon)
+NUMBERUNIT=(wei|gwei|szabo|finney|ether|seconds|minutes|hours|days|weeks|years|nano|nanoton|nTon|ton|Ton|micro|microton|milli|milliton|kiloton|kTon|megaton|MTon|gigaton|GTon|nanoever|ever|Ever|microever|milliever|kiloever|kEver|megaever|MEver|gigaever|GEver)
 INTNUMTYPE=int(8|16|24|32|40|48|56|64|72|80|88|96|104|112|120|128|136|144|152|160|168|176|184|192|200|208|216|224|232|240|248|256)?
 UINTNUMTYPE=uint(8|16|24|32|40|48|56|64|72|80|88|96|104|112|120|128|136|144|152|160|168|176|184|192|200|208|216|224|232|240|248|256)?
 BYTENUMTYPE=byte(1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32)?
@@ -195,6 +195,17 @@ PRAGMAALL=[^ ][^;]*
   "MTon"                  { return MTON; }
   "gigaton"               { return GIGATON; }
   "GTon"                  { return GTON; }
+  "nanoever"              { return NANOEVER; }
+  "ever"                  { return EVER; }
+  "Ever"                  { return EVER; }
+  "microever"             { return MICROEVER; }
+  "milliever"             { return MILLIEVER; }
+  "kiloever"              { return KILOEVER; }
+  "kEver"                 { return KEVER; }
+  "megaever"              { return MEGAEVER; }
+  "MEver"                 { return MEVER; }
+  "gigaever"              { return GIGAEVER; }
+  "GEver"                 { return GEVER; }
   "address"               { return ADDRESS; }
   "string"                { return STRING; }
   "bool"                  { return BOOL; }

@@ -4,7 +4,7 @@ Solidity File
   SolPragmaDirectiveImpl(PRAGMA_DIRECTIVE)
     PsiElement(pragma)('pragma')
     PsiWhiteSpace(' ')
-    PsiElement(Identifier)('solidity')
+    PsiElement(pragmaIdentifier)('solidity')
     PsiWhiteSpace(' ')
     PsiElement(pragmaAll)('>=0.8.2 < 0.9.0')
     PsiElement(;)(';')

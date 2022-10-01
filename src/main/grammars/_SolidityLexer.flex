@@ -50,6 +50,7 @@ UFIXEDNUMTYPE=ufixed(0x8|0x16|0x24|0x32|0x40|0x48|0x56|0x64|0x72|0x80|0x88|0x96|
 BOOLEANLITERAL=true|false
 SPACE=[ \t\n\x0B\f\r]+
 IDENTIFIER=[a-zA-Z_$][a-zA-Z_$0-9]*
+PRAGMAIDENTIFIER=[a-zA-Z_$][a-zA-Z_$0-9-]*
 // Pragma parses anything up to the trailing ';' to be fully forward-compatible.
 PRAGMAALL=[^ ][^;]*
 
@@ -228,6 +229,7 @@ PRAGMAALL=[^ ][^;]*
   {BOOLEANLITERAL}        { return BOOLEANLITERAL; }
   {SPACE}                 { return SPACE; }
   {IDENTIFIER}            { return IDENTIFIER; }
+  {PRAGMAIDENTIFIER}     { return PRAGMAIDENTIFIER; }
 }
 
 // nested block comments are not supported, so don't track the occurrences of /*
@@ -286,9 +288,9 @@ PRAGMAALL=[^ ][^;]*
 <PRAGMA_OPEN> {
   {WHITE_SPACE}           { return WHITE_SPACE; }
 
-  {IDENTIFIER}            {
+  {PRAGMAIDENTIFIER}     {
                             yybegin(PRAGMA_REST);
-                            return IDENTIFIER;
+                            return PRAGMAIDENTIFIER;
                           }
 
   <<EOF>>                 { yybegin(YYINITIAL); }

@@ -32,6 +32,7 @@
     space='regexp:\s+'
 
     Identifier='regexp:[a-zA-Z_$][a-zA-Z_$0-9]*'
+    pragmaIdentifier='regexp:[a-zA-Z_$][a-zA-Z_$0-9-]*'
 
     DOT='.'
     COLON=':'
@@ -110,7 +111,7 @@ private UntilSemicolonRecover ::= !(';')
 private UntilBraceRecover ::= !('}')
 
 // Pragma actually parses anything up to the trailing ';' to be fully forward-compatible.
-private PragmaPart ::= pragma Identifier pragmaAll {
+private PragmaPart ::= pragma pragmaIdentifier pragmaAll {
     pin = 2
     recoverWhile = UntilSemicolonRecover
 }

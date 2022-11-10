@@ -23,6 +23,10 @@ class SolidityAnnotator : Annotator {
     when (element) {
       is SolNumberType -> applyColor(holder, element, SolColor.TYPE)
       is SolElementaryTypeName -> applyColor(holder, element, SolColor.TYPE)
+      is SolStateMutability -> if (element.text == "payable") {
+        applyColor(holder, element, SolColor.KEYWORD)
+      }
+      is SolEnumValue -> applyColor(holder, element, SolColor.ENUM_VALUE)
       is SolMemberAccessExpression -> when(element.expression.firstChild.text) {
         "super" -> applyColor(holder, element.expression.firstChild, SolColor.KEYWORD)
         "msg", "block", "abi" -> applyColor(holder, element.expression.firstChild, SolColor.GLOBAL)
@@ -49,6 +53,7 @@ class SolidityAnnotator : Annotator {
       is SolStructDefinition -> element.identifier?.let { applyColor(holder, it, SolColor.STRUCT_NAME) }
       is SolEnumDefinition -> element.identifier?.let { applyColor(holder, it, SolColor.ENUM_NAME) }
       is SolEventDefinition -> element.identifier?.let { applyColor(holder, it, SolColor.EVENT_NAME) }
+      is SolUserDefinedValueTypeDefinition -> element.identifier?.let { applyColor(holder, it, SolColor.USER_DEFINED_VALUE_TYPE) }
       is SolConstantVariableDeclaration -> applyColor(holder, element.identifier, SolColor.CONSTANT)
       is SolStateVariableDeclaration -> {
         if (element.mutationModifier?.textMatches("constant") == true) {
@@ -57,7 +62,17 @@ class SolidityAnnotator : Annotator {
           applyColor(holder, element.identifier, SolColor.STATE_VARIABLE)
         }
       }
-      is SolFunctionDefinition -> element.identifier?.let { applyColor(holder, it, SolColor.FUNCTION_DECLARATION) }
+      is SolFunctionDefinition -> {
+        val identifier = element.identifier
+        if (identifier !== null) {
+          applyColor(holder, identifier, SolColor.FUNCTION_DECLARATION)
+        } else {
+          val firstChildNode = element.node.firstChildNode
+          if (firstChildNode.text == "receive" || firstChildNode.text == "fallback") {
+            applyColor(holder, firstChildNode.textRange, SolColor.RECEIVE_FALLBACK_DECLARATION)
+          }
+        }
+      }
       is SolModifierDefinition -> element.identifier?.let { applyColor(holder, it, SolColor.FUNCTION_DECLARATION) }
       is SolModifierInvocation -> applyColor(holder, element.varLiteral.identifier, SolColor.FUNCTION_CALL)
       is SolUserDefinedTypeName -> {
@@ -71,10 +86,17 @@ class SolidityAnnotator : Annotator {
       is SolFunctionCallElement -> when(element.firstChild.text) {
         "keccak256" -> applyColor(holder, element.firstChild, SolColor.GLOBAL_FUNCTION_CALL)
         "require" -> applyColor(holder, element.firstChild, SolColor.KEYWORD)
+        "assert" -> applyColor(holder, element.firstChild, SolColor.KEYWORD)
         else -> when(SolResolver.resolveTypeNameUsingImports(element).firstOrNull()) {
           is SolErrorDefinition -> applyColor(holder, element.referenceNameElement, SolColor.ERROR_NAME)
           is SolEventDefinition -> applyColor(holder, element.referenceNameElement, SolColor.EVENT_NAME)
-          else -> applyColor(holder, element.referenceNameElement, SolColor.FUNCTION_CALL)
+          else -> element.firstChild.let {
+            if (it is SolPrimaryExpression && SolResolver.resolveTypeNameUsingImports(element.firstChild).filterIsInstance<SolStructDefinition>().isNotEmpty()) {
+              applyColor(holder, element.referenceNameElement, SolColor.STRUCT_NAME)
+            } else {
+              applyColor(holder, element.referenceNameElement, SolColor.FUNCTION_CALL)
+            }
+          }
         }
       }
     }

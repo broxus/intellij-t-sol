@@ -172,7 +172,11 @@ VisibilityModifier ::= ( public | internal | private )
 MutationModifier ::= (constant | immutable)
 StaticModifier ::= static
 
-StateVariableDeclaration ::= TypeName (VisibilityModifier MutationModifier OverrideSpecifier? StaticModifier? | MutationModifier? VisibilityModifier? OverrideSpecifier? StaticModifier? ) Identifier ('=' Expression)? ';'  {
+StateVariableDeclaration ::= TypeName (
+      VisibilityModifier MutationModifier OverrideSpecifier? StaticModifier?
+    | VisibilityModifier OverrideSpecifier MutationModifier? StaticModifier?
+    | MutationModifier? VisibilityModifier? OverrideSpecifier? StaticModifier?
+    ) Identifier ('=' Expression)? ';'  {
     implements = "me.serce.solidity.lang.psi.SolStateVarElement"
     mixin = "me.serce.solidity.lang.psi.impl.SolStateVarDeclMixin"
     stubClass = "me.serce.solidity.lang.stubs.SolStateVarDeclStub"

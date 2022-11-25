@@ -444,7 +444,7 @@ ifStatement: If LParen expression RParen statement (Else statement)?;
 /**
  * For statement with optional init, condition and post-loop part.
  */
-forStatement: For LParen (simpleStatement | Semicolon) (expressionStatement | Semicolon) expression? RParen statement;
+forStatement: For LParen (simpleStatement | Semicolon) (expressionStatement | Semicolon | COLON) expression? RParen statement;
 whileStatement: While LParen expression RParen statement;
 doWhileStatement: Do statement While LParen expression RParen Semicolon;
 /**

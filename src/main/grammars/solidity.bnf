@@ -399,7 +399,7 @@ TupleStatement ::= VariableDeclaration '=' SeqExpression ';'
     | SeqExpression '=' Expression ';'
 
 // intentionally not pinned
-ReturnTupleStatement ::= return SeqExpression ';'
+ReturnTupleStatement ::= return MapExpression? SeqExpression ';'
 
 private ExpressionStatement ::= Expression
 IfStatement ::= if '(' Expression ')' Statement ( else Statement )? {pin = 1}
@@ -416,7 +416,7 @@ AssemblyFlags ::= '(' StringLiteral (',' StringLiteral)* ')'
 DoWhileStatement ::= do Statement while '(' Expression ')' {pin=1}
 ContinueSt ::= continue
 BreakSt ::= break
-ReturnSt ::= return Expression? {pin=1}
+ReturnSt ::= return MapExpression? Expression? {pin=1}
 ThrowSt ::= throw
 /* An emit statement. The contained expression needs to refer to an event. */
 EmitStatement ::= emit FunctionCallExpression {pin=1}

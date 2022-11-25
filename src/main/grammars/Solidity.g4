@@ -320,7 +320,7 @@ usingDirective: Using (identifierPath | (LBrace identifierPath (Comma identifier
  * A type name can be an elementary type, a function type, a mapping type, a user-defined type
  * (e.g. a contract or struct) or an array type.
  */
-typeName: elementaryTypeName[true] | functionTypeName | mappingType | identifierPath | typeName LBrack expression? RBrack;
+typeName: elementaryTypeName[true] | functionTypeName | mappingType | optionalTypeName | identifierPath | typeName LBrack expression? RBrack;
 elementaryTypeName[boolean allowAddressPayable]: Address | {$allowAddressPayable}? Address Payable | Bool | String | Bytes | SignedIntegerType | UnsignedIntegerType | FixedBytes | Fixed | Ufixed;
 functionTypeName
 locals [boolean visibilitySet = false, boolean mutabilitySet = false]
@@ -503,6 +503,9 @@ variableDeclarationTuple:
  */
 variableDeclarationStatement: ((variableDeclaration (Assign expression)?) | (variableDeclarationTuple Assign expression)) Semicolon;
 expressionStatement: expression Semicolon;
+
+optionalTypeName: 'optional' LParen typeName RParen ;
+
 
 mappingType: Mapping LParen key=mappingKeyType DoubleArrow value=typeName RParen;
 /**

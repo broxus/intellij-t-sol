@@ -198,6 +198,8 @@ PRAGMAALL=[^ ][^;]*
   "address"               { return ADDRESS; }
   "string"                { return STRING; }
   "bool"                  { return BOOL; }
+  "optional"              { return OPTIONAL; }
+
 
   {HEXLITERAL}            { return HEXLITERAL; }
   {STRINGLITERAL}         { return STRINGLITERAL; }

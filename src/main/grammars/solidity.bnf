@@ -213,7 +213,8 @@ ModifierDefinition ::= modifier Identifier ParameterList? ( VirtualSpecifier | O
 VirtualSpecifier ::= virtual {pin=1}
 OverrideSpecifier ::= override ( '(' UserDefinedTypeName (',' UserDefinedTypeName)* ')' )? {pin=1}
 
-FunctionVisibilitySpecifier ::= external | public | internal | 'private' | VirtualSpecifier | OverrideSpecifier
+FunctionVisibilitySpecifier ::= external | public | internal | 'private'
+                              | VirtualSpecifier | OverrideSpecifier
 ModifierInvocation ::= VarLiteral ('(' ModifierInvocationCallArguments ')')? {
     implements = "me.serce.solidity.lang.psi.SolModifierInvocationElement"
     mixin = "me.serce.solidity.lang.psi.impl.SolModifierInvocationMixin"
@@ -228,7 +229,7 @@ ConstructorDefinition ::= constructor ParameterList
     mixin = "me.serce.solidity.lang.psi.impl.SolConstructorDefMixin"
 }
 
-FunctionDefinition ::= (function Identifier? | fallback | receive )
+FunctionDefinition ::= (function Identifier? | fallback | receive)
                         ParameterList
                         ( FunctionVisibilitySpecifier | StateMutability | ModifierInvocation)*
                         ( returns ParameterList )? ( ';' | Block ) {
@@ -309,6 +310,7 @@ VariableDeclaration ::=
 
 TypeName ::= MappingTypeName
          | UserDefinedLocationTypeName
+		 | OptionalTypeName
          | BytesArrayTypeName
          | ArrayTypeName
          | ElementaryTypeName
@@ -341,6 +343,12 @@ UserDefinedTypeName ::= Identifier ( '.' Identifier )* {
 }
 
 MappingTypeName ::= mapping '(' (BytesArrayTypeName | ElementaryTypeName | UserDefinedTypeName ) '=>' TypeName ')' {
+    pin = 1
+    stubClass = "me.serce.solidity.lang.stubs.SolTypeRefStub"
+    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+}
+
+OptionalTypeName ::= optional '(' TypeName (',' TypeName)* ')' {
     pin = 1
     stubClass = "me.serce.solidity.lang.stubs.SolTypeRefStub"
     elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"

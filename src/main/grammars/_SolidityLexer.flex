@@ -199,6 +199,7 @@ PRAGMAALL=[^ ][^;]*
   "string"                { return STRING; }
   "bool"                  { return BOOL; }
   "optional"              { return OPTIONAL; }
+  "static"                { return STATIC; }
 
 
   {HEXLITERAL}            { return HEXLITERAL; }

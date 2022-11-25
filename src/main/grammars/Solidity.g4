@@ -270,6 +270,7 @@ locals [boolean constantnessSet = false, boolean visibilitySet = false, boolean 
 		| {!$constantnessSet}? Constant {$constantnessSet = true;}
 		| {!$overrideSpecifierSet}? overrideSpecifier {$overrideSpecifierSet = true;}
 		| {!$constantnessSet}? Immutable {$constantnessSet = true;}
+		| Static
 	)*
 	name=identifier
 	(Assign initialValue=expression)?

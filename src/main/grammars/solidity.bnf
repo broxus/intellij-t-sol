@@ -364,7 +364,7 @@ FunctionTypeName ::= function ParameterList ( internal | external | StateMutabil
 }
 
 StorageLocation ::= memory | storage | calldata
-StateMutability ::= pure | constant | view | 'payable'
+StateMutability ::= pure | constant | view | 'payable' | responsible
 
 private UnfinishedUncheckedBlock ::= unchecked '{' Statement* {
     pin = 1

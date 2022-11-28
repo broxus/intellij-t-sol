@@ -156,6 +156,7 @@ PRAGMAALL=[^ ][^;]*
   "calldata"              { return CALLDATA; }
   "pure"                  { return PURE; }
   "view"                  { return VIEW; }
+  "responsible"           { return RESPONSIBLE; }
   "unchecked"             { return UNCHECKED; }
   "return"                { return RETURN; }
   "if"                    { return IF; }

@@ -1,16 +1,11 @@
 <idea-plugin>
-    <id>me.serce.solidity</id>
-    <name>Solidity</name>
-    <vendor email="sergeicelov@gmail.com" url="https://github.com/intellij-solidity">Intellij Solidity</vendor>
+    <id>com.broxus.ever-solidity</id>
+    <name>Everscale Solidity</name>
+    <vendor email="hello@broxus.com" url="https://broxus.com">Broxus</vendor>
 
     <description><![CDATA[
-      Solidity support for IntelliJ.
+      Ever Solidity support for IntelliJ.
 
-      <p>
-        You can support the plugin development by <a href="https://github.com/intellij-solidity/intellij-solidity">sponsoring</a> ❤️ the plugin on Github,
-        supporting the project on <a href="https://gitcoin.co/grants/1047/intellij-solidity">GitCoin</a>, or by clicking star on <a href="https://github.com/intellij-solidity/intellij-solidity">GitHub</a>
-        and rating it on the <a href="https://plugins.jetbrains.com/plugin/9475-intellij-solidity">plugin page</a>.
-      </p>
       <p>
         Contributions are always welcome!
       </p>
@@ -18,24 +13,9 @@
 
     <change-notes><![CDATA[
       <p>
-        Thank you for your support!
-        <p>Huge thank you to all participants of the last GitCoin round, Yenwen Feng (@tempofeng), and LevX (@LevxApp) in particular! https://gitcoin.co/grants/1047/intellij-solidity!❤️</p>
-        <p>Huge thank you to all of you who sponsor the plugin development on GitHub, and Tyler Smith (@tyler-smith) and Kevin Upton (@kevupton) in particular!❤️</p>
-
-        <b>v2.3.10</b>
-        In this release:
+        <b>v0.9.0</b>
         <ul>
-          <li>Support returns in fallback functions, yours @SerCeMan</li>
-          <li>Support single-quoted unicode strings, yours @SerCeMan</li>
-          <li>Resolve the infinite recursion issue on resolve. The fix also provides performance improvements, yours @SerCeMan</li>
-        </ul>
-        <b>v2.3.9</b>
-        In this release:
-        <ul>
-          <li>Adding basic support for foundry, thanks @dyzz<!/li>
-          <li>Improve syntax highlighting, thanks @apottere!</li>
-          <li>Run find implementation under a progress, yours @SerCeMan</li>
-          <li>Tooling upgrades to keep up with IJ releases</li>
+          <li>Basic support for Ever Solidity</li>
         </ul>
       </p>
     ]]>

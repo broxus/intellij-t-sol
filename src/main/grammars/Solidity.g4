@@ -89,6 +89,8 @@ contractBodyElement:
 	| modifierDefinition
 	| fallbackFunctionDefinition
 	| receiveFunctionDefinition
+	| onBounceFunctionDefinition
+	| onTickTockFunctionDefinition
 	| structDefinition
 	| enumDefinition
 	| userDefinedValueTypeDefinition
@@ -237,6 +239,42 @@ locals[
 		| {!$overrideSpecifierSet}? overrideSpecifier {$overrideSpecifierSet = true;}
 	 )*
 	(Semicolon | body=block);
+
+onBounceFunctionDefinition
+locals[
+    boolean visibilitySet = false,
+    boolean mutabilitySet = false,
+    boolean virtualSet = false,
+    boolean overrideSpecifierSet = false
+]
+:
+    kind=OnBounce LParen RParen
+    (
+        {!$visibilitySet}? External {$visibilitySet = true;}
+        | {!$mutabilitySet}? Payable {$mutabilitySet = true;}
+        | modifierInvocation
+        | {!$virtualSet}? Virtual {$virtualSet = true;}
+        | {!$overrideSpecifierSet}? overrideSpecifier {$overrideSpecifierSet = true;}
+     )*
+    (Semicolon | body=block);
+onTickTockFunctionDefinition
+locals[
+    boolean visibilitySet = false,
+    boolean mutabilitySet = false,
+    boolean virtualSet = false,
+    boolean overrideSpecifierSet = false
+]
+:
+    kind=OnTickTock LParen RParen
+    (
+        {!$visibilitySet}? External {$visibilitySet = true;}
+        | {!$mutabilitySet}? Payable {$mutabilitySet = true;}
+        | modifierInvocation
+        | {!$virtualSet}? Virtual {$virtualSet = true;}
+        | {!$overrideSpecifierSet}? overrideSpecifier {$overrideSpecifierSet = true;}
+     )*
+    (Semicolon | body=block);
+
 
 /**
  * Definition of a struct. Can occur at top-level within a source unit or within a contract, library or interface.

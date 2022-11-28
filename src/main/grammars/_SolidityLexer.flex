@@ -142,6 +142,8 @@ PRAGMAALL=[^ ][^;]*
   "returns"               { return RETURNS; }
   "fallback"              { return FALLBACK; }
   "receive"               { return RECEIVE; }
+  "onBounce"              { return ONBOUNCE; }
+  "onTickTock"            { return ONTICKTOCK; }
   "event"                 { return EVENT; }
   "anonymous"             { return ANONYMOUS; }
   "enum"                  { return ENUM; }

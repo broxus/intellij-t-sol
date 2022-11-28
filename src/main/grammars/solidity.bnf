@@ -230,7 +230,7 @@ ConstructorDefinition ::= constructor ParameterList
     mixin = "me.serce.solidity.lang.psi.impl.SolConstructorDefMixin"
 }
 
-FunctionDefinition ::= (function Identifier? | fallback | receive)
+FunctionDefinition ::= (function Identifier? | fallback | receive | onbounce | onticktock)
                         ParameterList
                         ( FunctionVisibilitySpecifier | StateMutability | ModifierInvocation)*
                         ( returns ParameterList )? ( ';' | Block ) {

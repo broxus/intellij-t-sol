@@ -18,28 +18,45 @@ class SolInternalTypeFactory(project: Project) {
     listOf(
       msgType,
       txType,
-      blockType
+      blockType,
+      abiType
     ).associateBy { it.toString() }
   }
 
   fun byName(name: String): SolType? = registry[name]
 
-  val msgType: SolType by lazy {
-    SolStruct(psiFactory.createStruct("""
-      struct ${internalise("Msg")} {
-          bytes data;
-          uint gas;
-          address sender;
-          uint value;
+  val msgType: SolContract by lazy {
+    SolContract(psiFactory.createContract("""
+      contract ${internalise("Msg")} {
+          bytes public data;
+          uint public gas;
+          address public sender;
+          uint public value;
+          
+          ExtraCurrencyCollection currencies;
+          
+          uint32 createdAt;
+          
+          TvmSlice data;
+          
+          bool hasStateInit; 
+          
+          function pubkey() returns (uint256);
+          
+          
       }
-    """))
+    """), true)
   }
 
   val txType: SolType by lazy {
     SolStruct(psiFactory.createStruct("""
       struct ${internalise("Tx")} {
-          uint gasprice;
-          address origin;
+          uint public gasprice;
+          address public origin;
+          
+          uint64 public timestamp;
+           
+          uint64 public storageFee; 
       }
     """))
   }
@@ -47,11 +64,37 @@ class SolInternalTypeFactory(project: Project) {
   val addressType: SolContract by lazy {
     SolContract(psiFactory.createContract("""
       contract ${internalise("Address")} {
-          function transfer(uint value);
+          int8 public wid;
+          
+          uint public value;
+          
+          uint128 public balance;
+          
+          ExtraCurrencyCollection public currencies;
+      
+          function transfer(uint128 value, bool bounce, uint16 flag, TvmCell body, ExtraCurrencyCollection currencies, TvmCell stateInit);
           
           function send(uint value) returns (bool);
+          
+          function makeAddrStd(int8 wid, uint _address) returns (address);
+          
+          function makeAddrNone() returns (address);
+          
+          function makeAddrExtern() returns (address);
+          
+          function getType() returns (uint8);
+          
+          function isStdZero() returns (bool);
+          
+          function isStdAddrWithoutAnyCast() returns (bool);
+          
+          function isExternZero() returns (bool);
+          
+          function isNone() returns (bool);
+          
+          function unpack() returns (int8 /*wid*/, uint256 /*value*/);
       }
-    """))
+    """), true)
   }
 
   val arrayType: SolContract by lazy {
@@ -59,7 +102,18 @@ class SolInternalTypeFactory(project: Project) {
       contract ${internalise("Array")} {
           function push(uint value);
       }
-    """))
+    """), true)
+  }
+
+  val abiType: SolContract by lazy {
+    SolContract(psiFactory.createContract("""
+      contract ${internalise("Abi")} {
+          // todo varargs
+          function encode(TypeA a) returns (TvmCell /*cell*/);
+          
+          function decode(TvmCell cell) returns (TypeA);
+      }
+    """), true)
   }
 
   val blockType: SolType by lazy {
@@ -79,6 +133,7 @@ class SolInternalTypeFactory(project: Project) {
           $blockType block;
           $msgType msg;
           $txType tx;
+          $abiType abi;
           uint now;
 
           function assert(bool condition) private {}
@@ -95,6 +150,6 @@ class SolInternalTypeFactory(project: Project) {
           function mulmod(uint x, uint y, uint k) returns (uint) private returns (uint) {}
           function selfdestruct(address recipient) private {};
       }
-    """))
+    """), true)
   }
 }

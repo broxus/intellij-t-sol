@@ -16,7 +16,8 @@ import java.util.*
 
 enum class ContextType {
   SUPER,
-  EXTERNAL
+  EXTERNAL,
+  BUILTIN
 }
 
 enum class Usage {
@@ -72,7 +73,7 @@ object SolAddress : SolPrimitiveType {
   override fun toString() = "address"
 
   override fun getMembers(project: Project): List<SolMember> {
-    return SolInternalTypeFactory.of(project).addressType.ref.functionDefinitionList
+    return SolInternalTypeFactory.of(project).addressType.ref.let { it.functionDefinitionList + it.stateVariableDeclarationList }
   }
 }
 
@@ -161,7 +162,7 @@ data class SolInteger(val unsigned: Boolean, val size: Int) : SolNumeric {
   override fun toString() = "${if (unsigned) "u" else ""}int$size"
 }
 
-data class SolContract(val ref: SolContractDefinition) : SolType, Linearizable<SolContract> {
+data class SolContract(val ref: SolContractDefinition, val builtin: Boolean = false) : SolType, Linearizable<SolContract> {
   override fun linearize(): List<SolContract> {
     return RecursionManager.doPreventingRecursion(ref, true) {
       CachedValuesManager.getCachedValue(ref) {

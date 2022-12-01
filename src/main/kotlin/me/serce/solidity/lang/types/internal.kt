@@ -2,6 +2,8 @@ package me.serce.solidity.lang.types
 
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
+import me.serce.solidity.lang.psi.SolContractDefinition
+import me.serce.solidity.lang.psi.SolNamedElement
 import me.serce.solidity.lang.psi.SolPsiFactory
 import me.serce.solidity.lang.types.SolInteger.Companion.UINT_256
 
@@ -24,6 +26,89 @@ class SolInternalTypeFactory(project: Project) {
   }
 
   fun byName(name: String): SolType? = registry[name]
+
+  private val everBuiltinTypes: Map<String, SolNamedElement> by lazy {
+    listOf(
+      tvmCell,
+      tvmSlice,
+      tvmBuilder,
+      extraCurrencyCollection
+    ).associateBy { it.name!! }
+  }
+
+  fun builtinByName(name: String): SolNamedElement? = everBuiltinTypes[name]
+
+  val tvmCell: SolContractDefinition by lazy {
+    psiFactory.createContract("""
+          contract TvmCell {
+              function depth() returns(uint16);
+              function dataSize(uint n) returns (uint /*cells*/, uint /*bits*/, uint /*refs*/);
+//              function dataSizeQ(uint n) returns (optional(uint /*cells*/, uint /*bits*/, uint /*refs*/)); 
+              function toSlice() returns (TvmSlice); 
+          }
+        """)
+  }
+
+  val tvmSlice: SolContractDefinition by lazy {
+    psiFactory.createContract("""
+          contract TvmSlice {
+              function empty() returns (bool);
+              function size() returns (uint16 /*bits*/, uint8 /*refs*/);
+              function bits() returns (uint16);
+              function refs() returns (uint8);
+              function dataSize(uint n) returns (uint /*cells*/, uint /*bits*/, uint /*refs*/);
+              function depth() returns (uint16);
+              function hasNBits(uint16 bits) returns (bool); 
+              function hasNRefs(uint8 refs) returns (bool); 
+              function hasNBitsAndRefs(uint16 bits, uint8 refs) returns (bool);
+              function compare(TvmSlice other) returns (int8);
+              function decode(TypeA a, TypeB b) returns (TypeA /*a*/, TypeB /*b*/);
+//              function decodeQ(TypeA a, TypeB b) returns (optional(TypeA, TypeB)); 
+              function loadRef() returns (TvmCell);
+              function loadRefAsSlice() returns (TvmSlice);
+              function loadSigned(uint16 bitSize) returns (int); 
+              function loadUnsigned(uint16 bitSize) returns (uint); 
+              function loadTons() returns (uint128); 
+              function loadSlice(uint length) returns (TvmSlice);
+              function loadSlice(uint length, uint refs) returns (TvmSlice);
+              function skip(uint length);
+              function skip(uint length, uint refs);
+          }
+        """)
+  }
+
+  val tvmBuilder: SolContractDefinition by lazy {
+      psiFactory.createContract("""
+            contract TvmBuilder {
+                function toSlice() returns (TvmSlice);
+                function toCell() returns (TvmCell);
+                function size() returns (uint16 /*bits*/, uint8 /*refs*/); 
+                function bits() returns (uint16); 
+                function refs() returns (uint8); 
+                function remBits() returns (uint16); 
+                function remRefs() returns (uint8); 
+                function remBitsAndRefs() returns (uint16 /*bits*/, uint8 /*refs*/); 
+                function depth() returns (uint16); 
+                function store(/*list_of_values*/); 
+                function storeOnes(uint n); 
+                function storeZeroes(uint n); 
+                function storeSigned(int256 value, uint16 bitSize); 
+                function storeUnsigned(uint256 value, uint16 bitSize); 
+                function storeRef(TvmBuilder b); 
+                function storeRef(TvmCell c); 
+                function storeRef(TvmSlice s); 
+                function storeTons(uint128 value); 
+            }
+          """)
+    }
+
+  val extraCurrencyCollection: SolContractDefinition by lazy {
+      psiFactory.createContract("""
+            contract ExtraCurrencyCollection {
+            }
+          """)
+    }
+
 
   val msgType: SolContract by lazy {
     SolContract(psiFactory.createContract("""

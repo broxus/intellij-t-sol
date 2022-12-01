@@ -31,10 +31,12 @@ object SolResolver {
         resolveContract(element) +
           resolveEnum(element) +
           resolveStruct(element) +
-          resolveUserDefinedValueType(element)
+          resolveUserDefinedValueType(element) +
+          resolveBuiltinValueType(element)
       }
       CachedValueProvider.Result.create(result, PsiModificationTracker.MODIFICATION_COUNT)
     }
+
 
   /**
    * @param withAliases aliases are not recursive, so count them only at the first level of recursion
@@ -91,6 +93,13 @@ object SolResolver {
     resolveInnerType<SolUserDefinedValueTypeDefinition>(
       element,
       { it.userDefinedValueTypeDefinitionList }) + resolveUsingImports(SolUserDefinedValueTypeDefinition::class.java, element, element.containingFile, true)
+
+  private fun resolveBuiltinValueType(element: PsiElement): Set<SolNamedElement> {
+    if (element !is SolUserDefinedTypeNameElement) return emptySet()
+    val ids = element.findIdentifiers().firstOrNull() ?: return emptySet()
+    return setOf(SolInternalTypeFactory.of(element.project).builtinByName(ids.nameOrText ?: return emptySet()) ?: return emptySet())
+  }
+
 
   private fun resolveEvent(element: PsiElement): Set<SolNamedElement> =
     resolveInnerType<SolEventDefinition>(element) { it.eventDefinitionList }

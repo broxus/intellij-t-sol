@@ -37,6 +37,9 @@ interface SolType {
   fun getMembers(project: Project): List<SolMember> {
     return emptyList()
   }
+
+  val isBuiltin: Boolean
+    get() = true
 }
 
 interface SolPrimitiveType : SolType
@@ -199,6 +202,8 @@ data class SolContract(val ref: SolContractDefinition, val builtin: Boolean = fa
   override fun getMembers(project: Project): List<SolMember> {
     return SolResolver.resolveContractMembers(ref, false)
   }
+
+  override val isBuiltin get() = builtin
 
   override fun toString() = ref.name ?: ref.text ?: "$ref"
 }

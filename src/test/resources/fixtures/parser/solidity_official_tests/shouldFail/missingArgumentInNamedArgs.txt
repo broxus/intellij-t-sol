@@ -141,21 +141,21 @@ Solidity File
                 PsiElement({)('{')
                 PsiElement(Identifier)('a')
                 PsiElement(:)(':')
-                PsiErrorElement:<expression> expected, got ','
+                PsiErrorElement:<expression> or '{' expected, got ','
                   <empty list>
                 PsiWhiteSpace(' ')
                 PsiElement(,)(',')
                 PsiWhiteSpace(' ')
                 PsiElement(Identifier)('b')
                 PsiElement(:)(':')
-                PsiErrorElement:<expression> expected, got ','
+                PsiErrorElement:<expression> or '{' expected, got ','
                   <empty list>
                 PsiWhiteSpace(' ')
                 PsiElement(,)(',')
                 PsiWhiteSpace(' ')
                 PsiElement(Identifier)('c')
                 PsiElement(:)(':')
-                PsiErrorElement:<expression> expected, got '}'
+                PsiErrorElement:<expression> or '{' expected, got '}'
                   <empty list>
                 PsiWhiteSpace(' ')
                 PsiElement(})('}')

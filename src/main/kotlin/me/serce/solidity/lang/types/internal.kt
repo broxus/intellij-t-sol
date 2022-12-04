@@ -21,7 +21,9 @@ class SolInternalTypeFactory(project: Project) {
       msgType,
       txType,
       blockType,
-      abiType
+      abiType,
+      mathType,
+      tvmType
     ).associateBy { it.toString() }
   }
 
@@ -43,7 +45,7 @@ class SolInternalTypeFactory(project: Project) {
           contract TvmCell {
               function depth() returns(uint16);
               function dataSize(uint n) returns (uint /*cells*/, uint /*bits*/, uint /*refs*/);
-//              function dataSizeQ(uint n) returns (optional(uint /*cells*/, uint /*bits*/, uint /*refs*/)); 
+              function dataSizeQ(uint n) returns (optional(uint /*cells*/, uint /*bits*/, uint /*refs*/)); 
               function toSlice() returns (TvmSlice); 
           }
         """)
@@ -63,7 +65,7 @@ class SolInternalTypeFactory(project: Project) {
               function hasNBitsAndRefs(uint16 bits, uint8 refs) returns (bool);
               function compare(TvmSlice other) returns (int8);
               function decode(TypeA a, TypeB b) returns (TypeA /*a*/, TypeB /*b*/);
-//              function decodeQ(TypeA a, TypeB b) returns (optional(TypeA, TypeB)); 
+              function decodeQ(TypeA a, TypeB b) returns (optional(TypeA, TypeB)); 
               function loadRef() returns (TvmCell);
               function loadRefAsSlice() returns (TvmSlice);
               function loadSigned(uint16 bitSize) returns (int); 
@@ -127,7 +129,6 @@ class SolInternalTypeFactory(project: Project) {
           bool hasStateInit; 
           
           function pubkey() returns (uint256);
-          
           
       }
     """), true)
@@ -201,6 +202,159 @@ class SolInternalTypeFactory(project: Project) {
     """), true)
   }
 
+  val tvmType: SolContract by lazy {
+    SolContract(psiFactory.createContract("""
+      contract ${internalise("Tvm")} {
+          // todo varargs
+          function accept();
+          
+          function setGasLimit(uint g);
+
+          function buyGas(uint value);
+          
+          function commit();
+
+          function rawCommit();
+          
+          function getData() returns (TvmCell);
+
+          function setData(TvmCell data);
+          
+          function log(string log);
+
+          function hexdump(T a);
+          
+          function bindump(T a);
+
+          function setcode(TvmCell newCode);
+          
+          function configParam(uint8 paramNumber) returns (TypeA a, TypeB b);
+           
+          function rawConfigParam(uint8 paramNumber) returns (TvmCell cell, bool status); 
+
+          function rawReserve(uint value, uint8 flag);
+          
+          function rawReserve(uint value, ExtraCurrencyCollection currency, uint8 flag);
+          
+          function initCodeHash() returns (uint256 hash) 
+
+          function hash(TvmCell cellTree) returns (uint256); 
+          
+          function hash(string data) returns (uint256); 
+
+          function hash(bytes data) returns (uint256); 
+          
+          function hash(TvmSlice data) returns (uint256); 
+
+          function checkSign(uint256 hash, uint256 SignHighPart, uint256 SignLowPart, uint256 pubkey) returns (bool); 
+          
+          function checkSign(uint256 hash, TvmSlice signature, uint256 pubkey) returns (bool); 
+
+          function checkSign(TvmSlice data, TvmSlice signature, uint256 pubkey) returns (bool); 
+          
+          function insertPubkey(TvmCell stateInit, uint256 pubkey) returns (TvmCell); 
+
+          function buildStateInit(TvmCell code, TvmCell data) returns (TvmCell stateInit); 
+          
+          function buildStateInit(TvmCell code, TvmCell data, uint8 splitDepth) returns (TvmCell stateInit); 
+
+           function stateInitHash(uint256 codeHash, uint256 dataHash, uint16 codeDepth, uint16 dataDepth) returns (uint256);
+           
+           function code() returns (TvmCell);
+            
+           function codeSalt(TvmCell code) returns (optional(TvmCell) optSalt);
+           
+           function setCodeSalt(TvmCell code, TvmCell salt) returns (TvmCell newCode); 
+           
+           function pubkey() returns (uint256);
+            
+           function setPubkey(uint256 newPubkey); 
+           
+           function setCurrentCode(TvmCell newCode); 
+           
+           function resetStorage();
+            
+           function functionId(Function functionName) returns (uint32);
+           
+           function functionId(Contract ContractName) returns (uint32); 
+           
+           function encodeBody(function, arg0, arg1, arg2) returns (TvmCell);
+            
+           function encodeBody(function, callbackFunction, arg0, arg1, arg2) returns (TvmCell);
+           
+           function encodeBody(contract, arg0, arg1, arg2) returns (TvmCell);
+           
+           function exit();
+           
+           function exit1();
+           
+//          function buildStateInit({code: TvmCell code, data: TvmCell data, splitDepth: uint8 splitDepth,
+//              pubkey: uint256 pubkey, contr: contract Contract, varInit: {VarName0: varValue0}}); 
+         
+//          function buildDataInit({pubkey: uint256 pubkey, contr: contract Contract, varInit: {VarName0: varValue0}});
+           
+//           function buildExtMsg({
+//               dest: address,
+//               time: uint64,
+//               expire: uint32,
+//               call: {functionIdentifier [, list of function arguments]},
+//               sign: bool,
+//               pubkey: optional(uint256),
+//               callbackId: (uint32 | functionIdentifier),
+//               onErrorId: (uint32 | functionIdentifier),
+//               stateInit: TvmCell,
+//               signBoxHandle: optional(uint32),
+//               abiVer: uint8,
+//               flags: uint8
+//           }) returns (TvmCell);
+           
+//           function buildIntMsg({
+//               dest: address,
+//               value: uint128,
+//               call: {function, [callbackFunction,] arg0, arg1, arg2, ...},
+//               bounce: bool,
+//               currencies: ExtraCurrencyCollection
+//               stateInit: TvmCell
+//           })
+//           returns (TvmCell);
+           
+           function sendrawmsg(TvmCell msg, uint8 flag);
+           
+      }
+    """), true)
+  }
+
+
+  val mathType: SolContract by lazy {
+    SolContract(psiFactory.createContract("""
+      contract ${internalise("Abi")} {
+           // todo varargs
+           function min(T a, T b) returns (T);
+          
+           function max(T a, T b) returns (T);
+          
+           function minmax(T a, T b) returns (T /*min*/, T /*max*/);
+           
+           function abs(intM val) returns (intM);
+            
+           function abs(fixedMxN val) returns (fixedMxN);
+             
+           function modpow2(uint value, uint power) returns (uint);
+            
+           function divc(T a, T b) returns (T);
+           
+           function divr(T a, T b) returns (T);
+           
+           function muldivmod(T a, T b, T c) returns (T /*result*/, T /*remainder*/);
+           
+           function divmod(T a, T b) returns (T /*result*/, T /*remainder*/);
+           
+           function sign(int val) returns (int8);
+           
+      }
+    """), true)
+  }
+
   val blockType: SolType by lazy {
     BuiltinType(internalise("Block"), listOf(
       BuiltinCallable(listOf(), SolAddress, "coinbase", null, Usage.VARIABLE),
@@ -219,6 +373,9 @@ class SolInternalTypeFactory(project: Project) {
           $msgType msg;
           $txType tx;
           $abiType abi;
+          $mathType math;
+          $tvmType tvm;
+          
           uint now;
 
           function assert(bool condition) private {}
@@ -234,6 +391,8 @@ class SolInternalTypeFactory(project: Project) {
           function addmod(uint x, uint y, uint k) returns (uint) private {}
           function mulmod(uint x, uint y, uint k) returns (uint) private returns (uint) {}
           function selfdestruct(address recipient) private {};
+          
+          logtvm(string log);
       }
     """), true)
   }

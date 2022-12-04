@@ -65,6 +65,20 @@ object SolString : SolPrimitiveType {
   override fun toString() = "string"
 }
 
+data class SolOptional(val types: List<SolType>) : SolType {
+  override fun isAssignableFrom(other: SolType): Boolean =
+    when (other) {
+      is SolOptional -> other.types.size == this.types.size && other.types.mapIndexed { index, solType -> types[index].isAssignableFrom(solType) }.all { it }
+      else -> false
+    }
+
+  override fun toString() = "optional(${types.joinToString { it.toString() }})"
+
+  override fun getMembers(project: Project): List<SolMember> {
+    return SolInternalTypeFactory.of(project).addressType.ref.let { it.functionDefinitionList + it.stateVariableDeclarationList }
+  }
+}
+
 object SolAddress : SolPrimitiveType {
   override fun isAssignableFrom(other: SolType): Boolean =
     when (other) {

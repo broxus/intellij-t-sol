@@ -56,6 +56,7 @@ fun getSolType(type: SolTypeName?): SolType {
         else -> SolUnknown
       }
     }
+    is SolOptionalTypeName -> SolOptional(type.typeNameList.map { getSolType(it) })
     else -> SolUnknown
   }
 }

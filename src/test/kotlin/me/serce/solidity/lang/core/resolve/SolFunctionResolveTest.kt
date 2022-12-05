@@ -375,7 +375,10 @@ class SolFunctionResolveTest : SolResolveTestBase() {
     checkIsResolved("""
         contract B {
             function doit(address some) {
-                some.transfer(100);
+                TvmCell body;
+                ExtraCurrencyCollection currencies;
+                TvmCell stateInit;
+                some.transfer(1, true, 0, body, currencies, stateInit);
                        //^
             }
         }

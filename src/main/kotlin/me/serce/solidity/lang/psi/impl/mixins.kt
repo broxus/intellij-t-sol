@@ -218,7 +218,7 @@ abstract class SolStateVarDeclMixin : SolStubbedNamedElementImpl<SolStateVarDecl
   override fun getPossibleUsage(contextType: ContextType): Usage? {
     val visibility = this.visibility
     return when {
-        contextType == ContextType.SUPER || contextType == ContextType.BUILTIN -> Usage.VARIABLE
+        contextType == ContextType.SUPER || contextType == ContextType.BUILTIN || mutability == Mutability.CONSTANT -> Usage.VARIABLE
         contextType == ContextType.EXTERNAL && visibility == Visibility.PUBLIC -> Usage.CALLABLE
         else -> null
     }
@@ -229,7 +229,11 @@ abstract class SolStateVarDeclMixin : SolStubbedNamedElementImpl<SolStateVarDecl
   override fun resolveElement() = this
 
   override val visibility
-    get() = visibilityModifier?.text?.let { safeValueOf<Visibility>(it.uppercase()) } ?: Visibility.INTERNAL
+    get() = visibilityModifier?.text?.let { safeValueOf(it.uppercase()) } ?: Visibility.INTERNAL
+
+  override val mutability: Mutability?
+    get() = mutationModifier?.text?.let { safeValueOf(it.uppercase()) }
+
 }
 
 abstract class SolConstantVariableDeclMixin : SolStubbedNamedElementImpl<SolConstantVariableDeclStub>, SolConstantVariableDeclaration {

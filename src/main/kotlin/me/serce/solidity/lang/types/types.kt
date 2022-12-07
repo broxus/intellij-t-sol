@@ -72,11 +72,10 @@ data class SolOptional(val types: List<SolType>) : SolType {
       else -> false
     }
 
+  override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).optionalType)
+
   override fun toString() = "optional(${types.joinToString { it.toString() }})"
 
-  override fun getMembers(project: Project): List<SolMember> {
-    return SolInternalTypeFactory.of(project).addressType.ref.let { it.functionDefinitionList + it.stateVariableDeclarationList }
-  }
 }
 
 object SolAddress : SolPrimitiveType {
@@ -87,11 +86,10 @@ object SolAddress : SolPrimitiveType {
       else -> UINT_160.isAssignableFrom(other)
     }
 
+  override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).addressType)
+
   override fun toString() = "address"
 
-  override fun getMembers(project: Project): List<SolMember> {
-    return SolInternalTypeFactory.of(project).addressType.ref.let { it.functionDefinitionList + it.stateVariableDeclarationList }
-  }
 }
 
 data class SolInteger(val unsigned: Boolean, val size: Int) : SolNumeric {
@@ -261,6 +259,8 @@ data class SolMapping(val from: SolType, val to: SolType) : SolType {
   override fun isAssignableFrom(other: SolType): Boolean =
     other is SolMapping && from == other.from && to == other.to
 
+  override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).mappingType)
+
   override fun toString(): String {
     return "mapping($from => $to)"
   }
@@ -386,4 +386,8 @@ data class BuiltinCallable(
   override fun resolveElement(): SolNamedElement? = resolvedElement
   override fun getName(): String? = memberName
   override fun getPossibleUsage(contextType: ContextType) = possibleUsage
+}
+
+private fun getSdkMembers(solContract: SolContract): List<SolMember> {
+    return solContract.ref.let { it.functionDefinitionList + it.stateVariableDeclarationList }
 }

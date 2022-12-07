@@ -23,7 +23,9 @@ class SolInternalTypeFactory(project: Project) {
       blockType,
       abiType,
       mathType,
-      tvmType
+      tvmType,
+      mappingType,
+      optionalType
     ).associateBy { it.toString() }
   }
 
@@ -34,7 +36,7 @@ class SolInternalTypeFactory(project: Project) {
       tvmCell,
       tvmSlice,
       tvmBuilder,
-      extraCurrencyCollection
+      extraCurrencyCollection,
     ).associateBy { it.name!! }
   }
 
@@ -181,12 +183,75 @@ class SolInternalTypeFactory(project: Project) {
           function unpack() returns (int8 /*wid*/, uint256 /*value*/);
       }
     """), true)
+
+  }
+
+  val mappingType: SolContract by lazy {
+    SolContract(
+      psiFactory.createContract(
+        """
+      contract ${internalise("Mapping")} {
+      
+          function at(KeyType index) returns (ValueType);
+          
+          function min() returns (optional(KeyType, ValueType));
+          
+          function max() returns (optional(KeyType, ValueType));
+          
+          function next(KeyType key) returns (optional(KeyType, ValueType));
+          
+          function prev(KeyType key) returns (optional(KeyType, ValueType));
+          
+          function nextOrEq(KeyType key) returns (optional(KeyType, ValueType));
+          
+          function prevOrEq(KeyType key) returns (optional(KeyType, ValueType));
+          
+          function delMin() returns (optional(KeyType, ValueType));
+          
+          function delMax() returns (optional(KeyType, ValueType));
+          
+          function fetch(KeyType key) returns (optional(ValueType));
+          
+          function exists(KeyType key) returns (bool);
+          
+          function empty() returns (bool);
+           
+          function replace(KeyType key, ValueType value) returns (bool);
+          
+          function add(KeyType key, ValueType value) returns (bool);
+          
+          function getSet(KeyType key, ValueType value) returns (optional(ValueType));
+           
+          function getAdd(KeyType key, ValueType value) returns (optional(ValueType));
+          
+          function getReplace(KeyType key, ValueType value) returns (optional(ValueType));
+          
+          function keys() returns (KeyType[]);
+           
+          function values() returns (ValueType[]);
+      }
+    """), true)
   }
 
   val arrayType: SolContract by lazy {
     SolContract(psiFactory.createContract("""
       contract ${internalise("Array")} {
           function push(uint value);
+      }
+    """), true)
+  }
+
+  val optionalType: SolContract by lazy {
+    SolContract(psiFactory.createContract("""
+      contract ${internalise("Optional")} {
+
+          function hasValue() returns (bool);
+          
+          function get() returns (Type);
+            
+          function set(Type value);
+
+          function reset();
       }
     """), true)
   }

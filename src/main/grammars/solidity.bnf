@@ -493,7 +493,12 @@ FunctionCallExpression ::= Expression FunctionInvocation {
 FunctionInvocation ::= MapExpression? '(' FunctionCallArguments? ')'
 FunctionCallArguments ::= MapExpression | Expression? ( ',' Expression )*
 MapExpressionClause ::= Identifier ':' (Expression | MapExpression) {pin=2}
-MapExpression ::= '{' MapExpressionClause (',' MapExpressionClause )* '}' {pin=1}
+private UnfinishedMapExpression ::= '{' MapExpressionClause (',' MapExpressionClause )* {
+    pin=1
+    recoverWhile = UntilBraceRecover
+}
+
+MapExpression ::= UnfinishedMapExpression '}'
 
 NewExpression ::= new TypeName {
     implements = "me.serce.solidity.lang.psi.SolReferenceElement"

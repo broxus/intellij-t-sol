@@ -83,13 +83,16 @@ class SolContextCompletionContributor : CompletionContributor(), DumbAware {
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
           val descriptions = SolArgumentsDescription.findDescriptions(parameters.originalPosition?.parentOfType() ?: return)
           val defined = (parameters.originalPosition?.parentOfType<SolMapExpression>())?.mapExpressionClauseList?.map { it.identifier.text }?.toSet() ?: emptySet()
+          val needComma = parameters.originalPosition?.elementType != SolidityTokenTypes.RBRACE
           val elements = (descriptions.flatMap { it.arguments.map { it.split(" ").last() }.toList() }.toSet() - defined)
             .map {
               LookupElementBuilder.create(it).withIcon(SolidityIcons.STATE_VAR).withInsertHandler { context, item ->
-                if (parameters.originalPosition?.parent !is SolMapExpressionClause) {
-                  val insert = " : "
+                val originalPosition = parameters.originalPosition
+                val parent = originalPosition?.parent
+                if (parent !is SolMapExpressionClause) {
+                  val insert = " : ${if (needComma) "," else ""}"
                   context.document.insertString(context.selectionEndOffset, insert)
-                  context.editor.caretModel.currentCaret.moveToOffset(context.selectionEndOffset + insert.length)
+                  context.editor.caretModel.currentCaret.moveToOffset(context.selectionEndOffset - 1)
                 }
               }
             }
@@ -103,7 +106,7 @@ class SolContextCompletionContributor : CompletionContributor(), DumbAware {
     override fun accepts(o: Any?, context: ProcessingContext?): Boolean {
       val element = o as? LeafPsiElement ?: return false
       if (element.elementType != SolidityTokenTypes.IDENTIFIER) return false
-      return element.parent is SolStatement || element.parent is SolMapExpressionClause
+      return element.parent is SolMapExpression || element.parent is SolMapExpressionClause
     }
   })
 

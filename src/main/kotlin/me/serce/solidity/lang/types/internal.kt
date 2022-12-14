@@ -75,6 +75,9 @@ class SolInternalTypeFactory(project: Project) {
               function loadTons() returns (uint128); 
               function loadSlice(uint length) returns (TvmSlice);
               function loadSlice(uint length, uint refs) returns (TvmSlice);
+              function decodeFunctionParams(functionName) returns (TypeA /*a*/, TypeB /*b*/, ...)
+              function decodeFunctionParams(ContractName) returns (TypeA /*a*/, TypeB /*b*/, ...);
+              function decodeStateVars(ContractName) returns (uint256 /*pubkey*/, uint64 /*timestamp*/, bool /*constructorFlag*/, Type1 /*var1*/, Type2 /*var2*/); 
               function skip(uint length);
               function skip(uint length, uint refs);
           }
@@ -301,7 +304,7 @@ class SolInternalTypeFactory(project: Project) {
           
           function rawReserve(uint value, ExtraCurrencyCollection currency, uint8 flag);
           
-          function initCodeHash() returns (uint256 hash) 
+          function initCodeHash() returns (uint256 hash); 
 
           function hash(TvmCell cellTree) returns (uint256); 
           
@@ -321,8 +324,10 @@ class SolInternalTypeFactory(project: Project) {
 
           function buildStateInit(TvmCell code, TvmCell data) returns (TvmCell stateInit); 
           
-          function buildStateInit(TvmCell code, TvmCell data, uint8 splitDepth) returns (TvmCell stateInit); 
-
+          function buildStateInit(TvmCell code, TvmCell data, uint8 splitDepth) returns (TvmCell stateInit);
+           
+          function buildStateInit(TvmCell code, TvmCell data, uint8 splitDepth, uint256 pubkey, Contract contr, VarInit varInit);
+           
            function stateInitHash(uint256 codeHash, uint256 dataHash, uint16 codeDepth, uint16 dataDepth) returns (uint256);
            
            function code() returns (TvmCell);
@@ -343,45 +348,43 @@ class SolInternalTypeFactory(project: Project) {
            
            function functionId(Contract ContractName) returns (uint32); 
            
-           function encodeBody(function, arg0, arg1, arg2) returns (TvmCell);
+           function encodeBody(functionName, arg0, arg1, arg2) returns (TvmCell);
             
-           function encodeBody(function, callbackFunction, arg0, arg1, arg2) returns (TvmCell);
+           function encodeBody(functionName, callbackFunction, arg0, arg1, arg2) returns (TvmCell);
            
-           function encodeBody(contract, arg0, arg1, arg2) returns (TvmCell);
+           function encodeBody(contractName, arg0, arg1, arg2) returns (TvmCell);
            
            function exit();
            
            function exit1();
            
-//          function buildStateInit({code: TvmCell code, data: TvmCell data, splitDepth: uint8 splitDepth,
-//              pubkey: uint256 pubkey, contr: contract Contract, varInit: {VarName0: varValue0}}); 
          
-//          function buildDataInit({pubkey: uint256 pubkey, contr: contract Contract, varInit: {VarName0: varValue0}});
+          function buildDataInit(uint256 pubkey, contractName, VarInit varInit);
            
-//           function buildExtMsg({
-//               dest: address,
-//               time: uint64,
-//               expire: uint32,
-//               call: {functionIdentifier [, list of function arguments]},
-//               sign: bool,
-//               pubkey: optional(uint256),
-//               callbackId: (uint32 | functionIdentifier),
-//               onErrorId: (uint32 | functionIdentifier),
-//               stateInit: TvmCell,
-//               signBoxHandle: optional(uint32),
-//               abiVer: uint8,
-//               flags: uint8
-//           }) returns (TvmCell);
+           function buildExtMsg(
+               address dest,
+               uint64 time,
+               uint32 expire,
+               FunctionIdentifier /*[, list of function arguments]}*/ call,
+               bool sign,
+               optional(uint256) pubkey,
+               uint32 /*| functionIdentifier*/ callbackId,
+               uint32 /*| functionIdentifier*/ onErrorId,
+               TvmCell stateInit,
+               optional(uint32) signBoxHandle,
+               uint8 abiVer,
+               uint8 flags
+           ) returns (TvmCell);
            
-//           function buildIntMsg({
-//               dest: address,
-//               value: uint128,
-//               call: {function, [callbackFunction,] arg0, arg1, arg2, ...},
-//               bounce: bool,
-//               currencies: ExtraCurrencyCollection
-//               stateInit: TvmCell
-//           })
-//           returns (TvmCell);
+           function buildIntMsg(
+               address dest,
+               uint128 value,
+               functionName/*, [callbackFunction,] arg0, arg1, arg2, ...}*/ call,
+               bool bounce,
+               ExtraCurrencyCollection currencies, 
+               TvmCell stateInit 
+           )
+           returns (TvmCell);
            
            function sendrawmsg(TvmCell msg, uint8 flag);
            
@@ -411,6 +414,12 @@ class SolInternalTypeFactory(project: Project) {
            function divr(T a, T b) returns (T);
            
            function muldivmod(T a, T b, T c) returns (T /*result*/, T /*remainder*/);
+           
+           function muldiv(T a, T b, T c) returns (T);
+
+           function muldivr(T a, T b, T c) returns (T);
+                      
+           function muldivc(T a, T b, T c) returns (T);
            
            function divmod(T a, T b) returns (T /*result*/, T /*remainder*/);
            

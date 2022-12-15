@@ -1,10 +1,10 @@
 <idea-plugin>
     <id>com.broxus.ever-solidity</id>
-    <name>Everscale Solidity</name>
+    <name>T-Sol</name>
     <vendor email="hello@broxus.com" url="https://broxus.com">Broxus</vendor>
 
     <description><![CDATA[
-      Ever Solidity support for IntelliJ.
+      Threaded Solidity language used in fifth-generation asynchronous blockchains with dynamic sharding support, built on Everscale engine.
 
       <p>
         Contributions are always welcome!

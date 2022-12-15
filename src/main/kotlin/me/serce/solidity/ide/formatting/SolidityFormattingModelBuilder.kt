@@ -53,6 +53,7 @@ class SolidityFormattingModelBuilder : FormattingModelBuilder {
         .beforeInside(SEMICOLON, FOR_STATEMENT).none()
         .beforeInside(PARAMETER_LIST, FUNCTION_DEFINITION).none()
         .beforeInside(IDENTIFIER, FUNCTION_DEFINITION).spaces(1)
+        .around(FUNCTION_INVOCATION).spaces(0)
         .aroundInside(MODIFIER_INVOCATION, FUNCTION_DEFINITION).spaces(1)
         .around(FUNCTION_VISIBILITY_SPECIFIER).spaces(1)
         .around(STATE_MUTABILITY).spaces(1)

@@ -3,7 +3,7 @@ package me.serce.solidity.lang.completion
 class SolKeywordCompletion : SolCompletionTestBase() {
 
   fun testRootCompletion() = checkCompletion(
-    hashSetOf("pragma solidity", "pragma ", "library ", "contract "), """
+    hashSetOf("pragma ever-solidity", "pragma ", "library ", "contract "), """
       /*caret*/
   """
   )

@@ -30,7 +30,7 @@ class SolCreateFileActionTest: SolLightPlatformCodeInsightFixtureTestCase() {
     @Language("Solidity")
     val content = """
       // SPDX-License-Identifier: UNLICENSED
-      pragma solidity ^0.8.0;
+      pragma ever-solidity >= 0.62.0;
       
       contract myContract {
           constructor(){

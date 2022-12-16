@@ -46,7 +46,7 @@ clean.doFirst {
 }
 
 intellij {
-    pluginName = 'IntelliJ-Ever-Solidity'
+    pluginName = 'IntelliJ-T-Sol'
 
     version = '2021.1.3'
     downloadSources = true

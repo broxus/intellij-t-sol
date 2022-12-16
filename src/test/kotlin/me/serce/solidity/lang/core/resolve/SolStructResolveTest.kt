@@ -87,11 +87,11 @@ class SolStructResolveTest : SolResolveTestBase() {
             uint256 id;
         }
       """.trimIndent(),
-      name = "Abc.sol"
+      name = "Abc.tsol"
     )
 
     val file2 = InlineFile("""
-        import "./Abc.sol";
+        import "./Abc.tsol";
         contract B { 
             function doit(uint256[] storage array) {
                 Proposal prop = Proposal(1);

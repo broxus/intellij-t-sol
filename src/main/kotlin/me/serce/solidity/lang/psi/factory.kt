@@ -5,7 +5,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiParserFacade
 import com.intellij.psi.impl.source.tree.LeafPsiElement
-import me.serce.solidity.lang.SolidityFileType
+import me.serce.solidity.lang.TSolidityFileType
 import me.serce.solidity.lang.core.SolidityTokenTypes
 import org.intellij.lang.annotations.Language
 
@@ -31,12 +31,12 @@ class SolPsiFactory(val project: Project) {
     return PsiParserFacade.SERVICE.getInstance(project).createWhiteSpaceFromText("\n")
   }
 
-  fun createContract(@Language("Solidity") contractBody: String): SolContractDefinition {
+  fun createContract(@Language("T-Sol") contractBody: String): SolContractDefinition {
     return createFromText(contractBody) ?: error("Failed to create contract: `$contractBody`")
   }
 
   private inline fun <reified T : SolElement> createFromText(code: String): T? =
     PsiFileFactory.getInstance(project)
-      .createFileFromText("DUMMY.sol", SolidityFileType, code)
+      .createFileFromText("DUMMY.tsol", TSolidityFileType, code)
       .childOfType()
 }

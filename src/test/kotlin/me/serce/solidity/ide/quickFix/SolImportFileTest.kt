@@ -8,12 +8,12 @@ class SolImportFileTest : SolQuickFixTestBase() {
 
     InlineFile(
       code = "contract a {}",
-      name = "a.sol"
+      name = "a.tsol"
     )
 
     testQuickFix(
       "contract b is a {}",
-      "\nimport \"./a.sol\";contract b is a {}"
+      "\nimport \"./a.tsol\";contract b is a {}"
     )
   }
 
@@ -27,21 +27,21 @@ class SolImportFileTest : SolQuickFixTestBase() {
           struct MyStruct {}
         }
       """,
-      name = "A.sol"
+      name = "A.tsol"
     )
 
     InlineFile(
       code = """
-        import "A.sol";
+        import "A.tsol";
 
         contract B is A {
         }
       """,
-      name = "B.sol"
+      name = "B.tsol"
     )
 
     assertNoQuickFix("""
-      import "B.sol";
+      import "B.tsol";
 
       contract C is B {
          MyStruct A; //My struct is correctly imported as its part of B

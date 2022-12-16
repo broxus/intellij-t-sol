@@ -64,7 +64,7 @@ class SolModifierResolveTest : SolResolveTestBase() {
         }
   """)
 
-  override fun checkByCode(@Language("Solidity") code: String) {
+  override fun checkByCode(@Language("T-Sol") code: String) {
     super.checkByCodeInternal<SolModifierInvocation, SolNamedElement>(code)
   }
 }

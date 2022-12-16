@@ -7,7 +7,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.psi.tree.TokenSet
-import me.serce.solidity.lang.SolidityLanguage
+import me.serce.solidity.lang.TSolidityLanguage
 import me.serce.solidity.lang.core.SolidityParserDefinition.Companion.BINARY_OPERATORS
 import me.serce.solidity.lang.core.SolidityParserDefinition.Companion.CONTROL_STRUCTURES
 import me.serce.solidity.lang.core.SolidityTokenTypes.*
@@ -32,7 +32,7 @@ class SolidityFormattingModelBuilder : FormattingModelBuilder {
 
   companion object {
     fun createSpacingBuilder(settings: CodeStyleSettings): SpacingBuilder {
-      return SpacingBuilder(settings, SolidityLanguage)
+      return SpacingBuilder(settings, TSolidityLanguage)
         .after(TokenSet.create(LPAREN, LBRACE, LBRACKET)).none()
         // Some old versions do not support .before(TokenSet), so we use more verbose form
         // https://github.com/JetBrains/intellij-community/commit/fd4c8224c17d041bf53d556f5c74ffaf20acffe3

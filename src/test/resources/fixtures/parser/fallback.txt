@@ -1,4 +1,4 @@
-Solidity File
+T-Sol File
   SolPragmaDirectiveImpl(PRAGMA_DIRECTIVE)
     PsiElement(pragma)('pragma')
     PsiWhiteSpace(' ')

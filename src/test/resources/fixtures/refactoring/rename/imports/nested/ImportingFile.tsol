@@ -1,4 +1,4 @@
-import "../Lab.sol";
+import "../Lab.tsol";
 
 contract IUseLab {
   Lab lab;

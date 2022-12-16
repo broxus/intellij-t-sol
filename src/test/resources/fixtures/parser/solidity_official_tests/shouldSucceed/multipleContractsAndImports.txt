@@ -1,4 +1,4 @@
-Solidity File
+T-Sol File
   SolImportDirectiveImpl(IMPORT_DIRECTIVE)
     PsiElement(import)('import')
     PsiWhiteSpace(' ')

@@ -6,18 +6,18 @@ import com.intellij.openapi.vfs.VirtualFile
 import me.serce.solidity.ide.SolidityIcons
 import java.nio.charset.StandardCharsets.UTF_8
 
-object SolidityLanguage : Language("Solidity", "text/solidity") {
+object TSolidityLanguage : Language("T-Sol", "text/T-Sol") {
   override fun isCaseSensitive() = true
 }
 
-object SolidityFileType : LanguageFileType(SolidityLanguage) {
+object TSolidityFileType : LanguageFileType(TSolidityLanguage) {
   object DEFAULTS {
-    const val DESCRIPTION = "Solidity file"
+    const val DESCRIPTION = "T-Sol File"
   }
 
   override fun getName() = DEFAULTS.DESCRIPTION
   override fun getDescription() = DEFAULTS.DESCRIPTION
-  override fun getDefaultExtension() = "sol"
+  override fun getDefaultExtension() = "tsol"
   override fun getIcon() = SolidityIcons.FILE_ICON
   override fun getCharset(file: VirtualFile, content: ByteArray): String = UTF_8.name()
 }

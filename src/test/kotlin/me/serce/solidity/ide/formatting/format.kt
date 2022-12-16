@@ -21,10 +21,10 @@ class SolidityFormattingTest : SolLightPlatformCodeInsightFixtureTestCase() {
   }
 
   private val inputFileName: String
-    get() = this.getTestName(true) + ".sol"
+    get() = this.getTestName(true) + ".tsol"
 
   private val expectedOutputFileName: String
-    get() = this.getTestName(true) + "-after.sol"
+    get() = this.getTestName(true) + "-after.tsol"
 
   fun testAssembly() = this.doTest()
   fun testInsideParens() = this.doTest()

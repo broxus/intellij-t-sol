@@ -4,7 +4,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.StubBuilder
 import com.intellij.psi.stubs.*
 import com.intellij.psi.tree.IStubFileElementType
-import me.serce.solidity.lang.SolidityLanguage
+import me.serce.solidity.lang.TSolidityLanguage
 import me.serce.solidity.lang.core.SolidityFile
 import me.serce.solidity.lang.psi.*
 import me.serce.solidity.lang.psi.impl.*
@@ -12,7 +12,7 @@ import me.serce.solidity.lang.psi.impl.*
 class SolidityFileStub(file: SolidityFile?) : PsiFileStubImpl<SolidityFile>(file) {
   override fun getType() = Type
 
-  object Type : IStubFileElementType<SolidityFileStub>(SolidityLanguage) {
+  object Type : IStubFileElementType<SolidityFileStub>(TSolidityLanguage) {
     // bump version every time stub tree changes
     override fun getStubVersion() = 16
 

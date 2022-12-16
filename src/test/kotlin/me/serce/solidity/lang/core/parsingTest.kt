@@ -5,7 +5,7 @@ import com.intellij.lang.LanguageExtensionPoint
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.testFramework.ParsingTestCase
 
-abstract class SolidityParsingTestBase(baseDir: String) : ParsingTestCase(baseDir, "sol", true, SolidityParserDefinition()) {
+abstract class SolidityParsingTestBase(baseDir: String) : ParsingTestCase(baseDir, "tsol", true, SolidityParserDefinition()) {
 
   override fun setUp() {
     super.setUp()

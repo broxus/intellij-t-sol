@@ -401,11 +401,11 @@ class SolFunctionResolveTest : SolResolveTestBase() {
         error XyzError(uint x);
                 //x
       """,
-      name = "Xyz.sol"
+      name = "Xyz.tsol"
     )
 
     val file2 = InlineFile("""
-        import "./Xyz.sol";
+        import "./Xyz.tsol";
         contract B { 
             function doit(uint256[] storage array) {
                 revert XyzError(1);
@@ -417,12 +417,12 @@ class SolFunctionResolveTest : SolResolveTestBase() {
     testResolveBetweenFiles(file1, file2)
   }
 
-  fun checkIsResolved(@Language("Solidity") code: String) {
+  fun checkIsResolved(@Language("T-Sol") code: String) {
     val (refElement, _) = resolveInCode<SolFunctionCallExpression>(code)
     assertNotNull(refElement.reference?.resolve())
   }
 
-  override fun checkByCode(@Language("Solidity") code: String) {
+  override fun checkByCode(@Language("T-Sol") code: String) {
     checkByCodeInternal<SolFunctionCallExpression, SolNamedElement>(code)
   }
 }

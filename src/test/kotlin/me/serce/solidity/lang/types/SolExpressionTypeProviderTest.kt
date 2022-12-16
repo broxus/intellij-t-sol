@@ -5,7 +5,7 @@ import me.serce.solidity.utils.SolTestBase
 import org.intellij.lang.annotations.Language
 
 class SolExpressionTypeProviderTest : SolTestBase() {
-  private fun checkPrimitiveTypes(inference: Boolean = false, @Language("Solidity") codeProvider: (String, String) -> String) {
+  private fun checkPrimitiveTypes(inference: Boolean = false, @Language("T-Sol") codeProvider: (String, String) -> String) {
     var cases = listOf(
       "true" to "bool",
       "1000" to "uint16",
@@ -147,7 +147,7 @@ class SolExpressionTypeProviderTest : SolTestBase() {
     }
   }
 
-  private fun testContractTypes(@Language("Solidity") codeProvider: (String, String) -> String) {
+  private fun testContractTypes(@Language("T-Sol") codeProvider: (String, String) -> String) {
     val cases = listOf(
       "B" to "B"
     )
@@ -312,7 +312,7 @@ class SolExpressionTypeProviderTest : SolTestBase() {
     """)
   }
 
-  private fun checkExpr(@Language("Solidity") code: String, msg: String = "") {
+  private fun checkExpr(@Language("T-Sol") code: String, msg: String = "") {
     InlineFile(code)
     val (expr, expectedType) = findElementAndDataInEditor<SolExpression>()
     assertEquals(msg, expectedType, deInternalise(expr.type.toString()))

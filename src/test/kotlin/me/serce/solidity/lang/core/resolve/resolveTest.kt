@@ -7,19 +7,19 @@ import me.serce.solidity.utils.SolTestBase
 import org.intellij.lang.annotations.Language
 
 abstract class SolResolveTestBase : SolTestBase() {
-  protected fun checkFunctionByCode(@Language("Solidity") code: String) {
+  protected fun checkFunctionByCode(@Language("T-Sol") code: String) {
     checkByCodeInternal<SolFunctionCallExpression, SolNamedElement>(code)
   }
 
-  protected open fun checkByCode(@Language("Solidity") code: String) {
+  protected open fun checkByCode(@Language("T-Sol") code: String) {
     checkByCodeSearchType<SolNamedElement>(code)
   }
 
-  protected inline fun <reified T : PsiElement> checkByCodeSearchType(@Language("Solidity") code: String) {
+  protected inline fun <reified T : PsiElement> checkByCodeSearchType(@Language("T-Sol") code: String) {
     checkByCodeInternal<SolNamedElement, T>(code)
   }
 
-  protected inline fun <reified F : PsiElement, reified T : PsiElement> checkByCodeInternal(@Language("Solidity") code: String) {
+  protected inline fun <reified F : PsiElement, reified T : PsiElement> checkByCodeInternal(@Language("T-Sol") code: String) {
     val (refElement, data) = resolveInCode<F>(code)
 
     if (data == "unresolved") {
@@ -41,7 +41,7 @@ abstract class SolResolveTestBase : SolTestBase() {
     }
   }
 
-  protected inline fun <reified T : PsiElement> resolveInCode(@Language("Solidity") code: String): Pair<T, String> {
+  protected inline fun <reified T : PsiElement> resolveInCode(@Language("T-Sol") code: String): Pair<T, String> {
     InlineFile(code)
     return findElementAndDataInEditor("^")
   }

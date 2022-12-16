@@ -10,9 +10,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiDirectory
 import me.serce.solidity.ide.SolidityIcons
 
-private const val CAPTION = "New Solidity File"
-
-const val SMART_CONTRACT_TEMPLATE = "Solidity Contract"
+private const val CAPTION = "New T-Sol File"
 
 class SolCreateFileAction : CreateFileFromTemplateAction(CAPTION, "", SolidityIcons.FILE_ICON), DumbAware {
 
@@ -24,9 +22,10 @@ class SolCreateFileAction : CreateFileFromTemplateAction(CAPTION, "", SolidityIc
     builder: CreateFileFromTemplateDialog.Builder
   ) {
     builder.setTitle(CAPTION)
-      .addKind("Smart contract", SolidityIcons.FILE_ICON, SMART_CONTRACT_TEMPLATE)
-      .addKind("Smart contract interface", SolidityIcons.FILE_ICON, "Solidity Contract Interface")
-      .addKind("Solidity library", SolidityIcons.FILE_ICON, "Solidity Library")
+      .addKind("Smart contract", SolidityIcons.FILE_ICON, "T-Sol Contract")
+      .addKind("Smart abstract contract", SolidityIcons.FILE_ICON, "T-Sol Abstract Contract")
+      .addKind("Smart contract interface", SolidityIcons.FILE_ICON, "T-Sol Interface")
+      .addKind("Smart contract library", SolidityIcons.FILE_ICON, "T-Sol Library")
       .setValidator(object : InputValidatorEx {
         override fun checkInput(inputString: String): Boolean {
           return getErrorText(inputString) == null

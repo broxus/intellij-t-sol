@@ -8,7 +8,7 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.intellij.lang.annotations.Language
 
 abstract class SolTestBase : SolLightPlatformCodeInsightFixtureTestCase() {
-  inner class InlineFile(@Language("Solidity") private val code: String, val name: String = "ctr.sol") {
+  inner class InlineFile(@Language("T-Sol") private val code: String, val name: String = "ctr.tsol") {
     val psiFile: PsiFile
     private val hasCaretMarker = "/*caret*/" in code
 
@@ -24,7 +24,7 @@ abstract class SolTestBase : SolLightPlatformCodeInsightFixtureTestCase() {
   }
 
   protected val fileName: String
-    get() = "${getTestName(true)}.sol"
+    get() = "${getTestName(true)}.tsol"
 
   val fixture: CodeInsightTestFixture
     get() = super.myFixture
@@ -62,13 +62,13 @@ abstract class SolTestBase : SolLightPlatformCodeInsightFixtureTestCase() {
   }
 
   protected fun checkByFile(ignoreTrailingWhitespace: Boolean = true, action: () -> Unit) {
-    val (before, after) = (fileName to fileName.replace(".sol", "After.sol"))
+    val (before, after) = (fileName to fileName.replace(".tsol", "After.tsol"))
     myFixture.configureByFile(before)
     action()
     myFixture.checkResultByFile(after, ignoreTrailingWhitespace)
   }
 
-  protected fun checkResult(@Language("Solidity") text: String) {
+  protected fun checkResult(@Language("T-Sol") text: String) {
     myFixture.checkResult(text)
   }
 }

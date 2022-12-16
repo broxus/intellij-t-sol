@@ -87,10 +87,10 @@ class SolContractResolveTest : SolResolveTestBase() {
           contract a {}
                  //x
       """,
-      name = "a.sol"
+      name = "a.tsol"
     ),
     InlineFile("""
-          import {a as A} from "./a.sol";
+          import {a as A} from "./a.tsol";
 
           contract b is A {}
                       //^
@@ -102,26 +102,26 @@ class SolContractResolveTest : SolResolveTestBase() {
       code = """
             contract d {}
         """,
-      name = "d.sol"
+      name = "d.tsol"
     )
     InlineFile(
       code = """
-            import {d as a} from "./d.sol";
+            import {d as a} from "./d.tsol";
             contract b {}
         """,
-      name = "b.sol"
+      name = "b.tsol"
     )
     testResolveBetweenFiles(
       InlineFile(
         code = """
-            import {b as B} from "./b.sol";
+            import {b as B} from "./b.tsol";
             contract a {}
                    //x
         """,
-        name = "a.sol"
+        name = "a.tsol"
       ),
       InlineFile("""
-            import {a as A} from "./a.sol";
+            import {a as A} from "./a.tsol";
                   //^
       """)
     )
@@ -133,10 +133,10 @@ class SolContractResolveTest : SolResolveTestBase() {
           contract a {}
                  //x
       """,
-      name = "a.sol"
+      name = "a.tsol"
     ),
     InlineFile("""
-          import "./a.sol";
+          import "./a.tsol";
 
           contract b is a {}
                       //^
@@ -145,12 +145,12 @@ class SolContractResolveTest : SolResolveTestBase() {
 
   fun testNotImported() {
     InlineFile(
-      name = "a.sol",
+      name = "a.tsol",
       code = "contract a {}"
     )
 
     InlineFile("""
-          import "./error.sol";
+          import "./error.tsol";
 
           contract b is a {}
                       //^

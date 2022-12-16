@@ -1,4 +1,4 @@
-import "util/TestImport.sol";
+import "util/TestImport.tsol";
        //^
 
 contract ImportUsage {}

@@ -28,7 +28,7 @@ class GoToImplementationTest : SolTestBase() {
       contract C is B { }
   """, setOf("B", "C"))
 
-  private fun testImplementations(@Language("Solidity") code: String, options: Set<String>) {
+  private fun testImplementations(@Language("T-Sol") code: String, options: Set<String>) {
     InlineFile(code).withCaret()
     val handler = GotoImplementationHandler()
 

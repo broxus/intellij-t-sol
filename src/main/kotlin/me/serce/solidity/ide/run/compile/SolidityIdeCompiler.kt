@@ -7,7 +7,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StubIndex
 import com.intellij.util.io.lastModified
 import me.serce.solidity.ide.settings.SoliditySettings
-import me.serce.solidity.lang.SolidityFileType
+import me.serce.solidity.lang.TSolidityFileType
 import me.serce.solidity.lang.psi.impl.SolImportPathElement
 import me.serce.solidity.lang.stubs.SolImportIndex
 import java.io.DataInput
@@ -43,7 +43,7 @@ object SolidityIdeCompiler : Validator {
 
   fun collectProcessingItems(context: CompileContext): Array<FileProcessingCompiler.ProcessingItem> {
     val scope = context.compileScope
-    val files = scope.getFiles(SolidityFileType, true).asSequence().filterNotNull()
+    val files = scope.getFiles(TSolidityFileType, true).asSequence().filterNotNull()
     return runReadAction {
       val importKeys = StubIndex.getInstance().getAllKeys(SolImportIndex.KEY, context.project)
       val imports = importKeys.asSequence()

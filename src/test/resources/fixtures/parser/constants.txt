@@ -1,4 +1,4 @@
-Solidity File
+T-Sol File
   SolConstantVariableDeclarationImpl(CONSTANT_VARIABLE_DECLARATION)
     SolBytesArrayTypeNameImpl(BYTES_ARRAY_TYPE_NAME)
       PsiElement(bytesNumType)('bytes32')

@@ -13,7 +13,7 @@ import com.intellij.openapi.roots.FileIndex
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import me.serce.solidity.ide.settings.SoliditySettings
-import me.serce.solidity.lang.SolidityFileType
+import me.serce.solidity.lang.TSolidityFileType
 import java.util.*
 
 class SolCompileAction : AnAction() {
@@ -46,7 +46,7 @@ class SolFileIterator(private val myFileIndex: FileIndex, private val myFiles: M
   override fun processFile(fileOrDir: VirtualFile): Boolean {
     if (!fileOrDir.isDirectory &&
       fileOrDir.isInLocalFileSystem &&
-      SolidityFileType === fileOrDir.fileType
+      TSolidityFileType === fileOrDir.fileType
 //      &&
 //      myFileIndex.isInSourceContent(fileOrDir)
     ) {

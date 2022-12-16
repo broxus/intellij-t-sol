@@ -34,7 +34,7 @@ abstract class SolReferenceBase<T : SolReferenceElement>(element: T) : PsiPolyVa
 
   protected open fun doRename(identifier: PsiElement, newName: String) {
     check(identifier.elementType == IDENTIFIER)
-    identifier.replace(SolPsiFactory(identifier.project).createIdentifier(newName.replace(".sol", "")))
+    identifier.replace(SolPsiFactory(identifier.project).createIdentifier(newName.replace(".tsol", "")))
   }
 
   override fun equals(other: Any?): Boolean {

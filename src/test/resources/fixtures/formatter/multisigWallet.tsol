@@ -2,9 +2,9 @@ pragma  solidity  ^0.4.8;
 
 
 
-import  "./ownership/Multisig.sol";
-import  "./ownership/Shareable.sol";
-import  "./DayLimit.sol";
+import  "./ownership/Multisig.tsol";
+import  "./ownership/Shareable.tsol";
+import  "./DayLimit.tsol";
 
 
 

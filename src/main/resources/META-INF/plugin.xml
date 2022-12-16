@@ -1,5 +1,5 @@
 <idea-plugin>
-    <id>com.broxus.ever-solidity</id>
+    <id>com.broxus.t-sol</id>
     <name>T-Sol</name>
     <vendor email="hello@broxus.com" url="https://broxus.com">Broxus</vendor>
 
@@ -35,59 +35,61 @@
     <depends optional="true" config-file="solRunnerPlugin.xml">com.intellij.modules.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <fileType name="Solidity file"
-                  language="Solidity"
-                  implementationClass="me.serce.solidity.lang.SolidityFileType"
-                  extensions="sol"
+        <fileType name="T-Sol File"
+                  language="T-Sol"
+                  implementationClass="me.serce.solidity.lang.TSolidityFileType"
+                  extensions="tsol"
                   fieldName="INSTANCE"/>
         <projectService serviceImplementation="me.serce.solidity.lang.types.SolInternalTypeFactory"/>
 
-        <lang.parserDefinition language="Solidity"
+        <lang.parserDefinition language="T-Sol"
                                implementationClass="me.serce.solidity.lang.core.SolidityParserDefinition"/>
 
-        <lang.syntaxHighlighterFactory language="Solidity"
+        <lang.syntaxHighlighterFactory language="T-Sol"
                                        implementationClass="me.serce.solidity.ide.SolHighlighterFactory"/>
 
-        <annotator language="Solidity" implementationClass="me.serce.solidity.ide.annotation.SolidityAnnotator"/>
+        <annotator language="T-Sol" implementationClass="me.serce.solidity.ide.annotation.SolidityAnnotator"/>
 
         <renamePsiElementProcessor implementation="me.serce.solidity.ide.refactoring.RenameContractProcessor"/>
         <renamePsiElementProcessor implementation="me.serce.solidity.ide.refactoring.RenameConstructorProcessor"/>
 
         <!-- Commenter -->
-        <lang.commenter language="Solidity" implementationClass="me.serce.solidity.ide.SolCommenter"/>
+        <lang.commenter language="T-Sol" implementationClass="me.serce.solidity.ide.SolCommenter"/>
 
         <!-- Brace Matcher -->
-        <lang.braceMatcher language="Solidity" implementationClass="me.serce.solidity.ide.SolBraceMatcher"/>
+        <lang.braceMatcher language="T-Sol" implementationClass="me.serce.solidity.ide.SolBraceMatcher"/>
 
         <!-- Quote Handlers -->
-        <lang.quoteHandler language="Solidity" implementationClass="me.serce.solidity.ide.SolQuoteTokenHandler"/>
+        <lang.quoteHandler language="T-Sol" implementationClass="me.serce.solidity.ide.SolQuoteTokenHandler"/>
 
         <!-- Hints -->
-        <codeInsight.typeInfo language="Solidity"
+        <codeInsight.typeInfo language="T-Sol"
                               implementationClass="me.serce.solidity.ide.hints.SolExpressionTypeProvider"/>
-        <codeInsight.parameterInfo language="Solidity"
+        <codeInsight.parameterInfo language="T-Sol"
                                    implementationClass="me.serce.solidity.ide.hints.SolParameterInfoHandler"/>
 
-        <completion.contributor language="Solidity"
+        <completion.contributor language="T-Sol"
                                 implementationClass="me.serce.solidity.lang.completion.SolBaseTypesCompletionContributor"/>
-        <completion.contributor language="Solidity"
+        <completion.contributor language="T-Sol"
                                 implementationClass="me.serce.solidity.lang.completion.SolKeywordCompletionContributor"/>
-        <completion.contributor language="Solidity"
+        <completion.contributor language="T-Sol"
                                 implementationClass="me.serce.solidity.lang.completion.SolFunctionCompletionContributor"/>
-        <completion.contributor language="Solidity"
+        <completion.contributor language="T-Sol"
                                 implementationClass="me.serce.solidity.lang.completion.SolContextCompletionContributor"/>
-        <completion.contributor language="Solidity"
+        <completion.contributor language="T-Sol"
                                 implementationClass="me.serce.solidity.lang.completion.SolNatSpecCompletionContributor"/>
 
-        <lang.formatter language="Solidity"
+        <lang.formatter language="T-Sol"
                         implementationClass="me.serce.solidity.ide.formatting.SolidityFormattingModelBuilder"/>
 
-        <codeInsight.lineMarkerProvider language="Solidity"
+        <codeInsight.lineMarkerProvider language="T-Sol"
                                         implementationClass="me.serce.solidity.ide.annotation.SolidityLineMarkerProvider"/>
 
 
-        <internalFileTemplate name="Solidity Contract"/>
-        <internalFileTemplate name="Solidity Library"/>
+        <internalFileTemplate name="T-Sol Contract"/>
+        <internalFileTemplate name="T-Sol Abstract Contract"/>
+        <internalFileTemplate name="T-Sol Library"/>
+        <internalFileTemplate name="T-Sol Interface"/>
 
         <stubIndex implementation="me.serce.solidity.lang.stubs.SolNamedElementIndex"/>
         <stubIndex implementation="me.serce.solidity.lang.stubs.SolGotoClassIndex"/>
@@ -101,11 +103,11 @@
         <gotoSymbolContributor implementation="me.serce.solidity.ide.navigation.SolSymbolNavigationContributor"/>
         <definitionsScopedSearch implementation="me.serce.solidity.ide.navigation.SolContractImplementationSearcher"/>
 
-        <lang.foldingBuilder language="Solidity" implementationClass="me.serce.solidity.ide.SolidityFoldingBuilder"/>
+        <lang.foldingBuilder language="T-Sol" implementationClass="me.serce.solidity.ide.SolidityFoldingBuilder"/>
 
-        <lang.findUsagesProvider language="Solidity" implementationClass="me.serce.solidity.ide.SolFindUsagesProvider"/>
+        <lang.findUsagesProvider language="T-Sol" implementationClass="me.serce.solidity.ide.SolFindUsagesProvider"/>
 
-        <spellchecker.support language="Solidity" implementationClass="me.serce.solidity.ide.SolSpellcheckingStrategy"/>
+        <spellchecker.support language="T-Sol" implementationClass="me.serce.solidity.ide.SolSpellcheckingStrategy"/>
 
         <!-- Code style -->
 
@@ -117,37 +119,37 @@
         <colorSettingsPage implementation="me.serce.solidity.ide.colors.SolColorSettingsPage"/>
 
 
-        <lang.psiStructureViewFactory language="Solidity"
+        <lang.psiStructureViewFactory language="T-Sol"
                                       implementationClass="me.serce.solidity.ide.SolPsiStructureViewFactory"/>
 
-        <lang.inspectionSuppressor language="Solidity"
+        <lang.inspectionSuppressor language="T-Sol"
                                    implementationClass="me.serce.solidity.ide.inspections.SolInspectionSuppressor"/>
 
-        <localInspection language="Solidity" groupName="Solidity"
+        <localInspection language="T-Sol" groupName="Solidity"
                          displayName="Suicide is deprecated. Use selfdestruct instead EIP 6"
                          enabledByDefault="true"
                          level="WARNING"
                          implementationClass="me.serce.solidity.ide.inspections.SelfdestructRenameInspection"/>
 
-        <localInspection language="Solidity" groupName="Solidity"
+        <localInspection language="T-Sol" groupName="Solidity"
                          displayName="Function has no modifiers and might modify owners of the contract"
                          enabledByDefault="true"
                          level="WARNING"
                          implementationClass="me.serce.solidity.ide.inspections.UnprotectedFunctionInspection"/>
 
-        <localInspection language="Solidity" groupName="Solidity"
+        <localInspection language="T-Sol" groupName="Solidity"
                          displayName="Name can not be resolved"
                          enabledByDefault="true"
                          level="WARNING"
                          implementationClass="me.serce.solidity.ide.inspections.ResolveNameInspection"/>
 
-        <localInspection language="Solidity" groupName="Solidity"
+        <localInspection language="T-Sol" groupName="Solidity"
                          displayName="No return statement"
                          enabledByDefault="true"
                          level="WARNING"
                          implementationClass="me.serce.solidity.ide.inspections.NoReturnInspection"/>
 
-        <localInspection language="Solidity" groupName="Solidity"
+        <localInspection language="T-Sol" groupName="Solidity"
                          displayName="Linearization impossible"
                          enabledByDefault="true"
                          level="WARNING"

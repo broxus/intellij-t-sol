@@ -87,18 +87,18 @@ class RenameTest : SolTestBase() {
     """)
 
   fun testFileRename() {
-    val labFile = myFixture.configureByFile("imports/Lab.sol")
-    val importingFile = myFixture.configureByFile("imports/nested/ImportingFile.sol")
+    val labFile = myFixture.configureByFile("imports/Lab.tsol")
+    val importingFile = myFixture.configureByFile("imports/nested/ImportingFile.tsol")
 
-    myFixture.renameElement(labFile, "AssetGatewayToken.sol")
+    myFixture.renameElement(labFile, "AssetGatewayToken.tsol")
     myFixture.openFileInEditor(importingFile.virtualFile)
-    myFixture.checkResultByFile("imports/nested/ImportingFile_after.sol")
+    myFixture.checkResultByFile("imports/nested/ImportingFile_after.tsol")
   }
 
   private fun doTest(
     newName: String,
-    @Language("Solidity") before: String,
-    @Language("Solidity") after: String
+    @Language("T-Sol") before: String,
+    @Language("T-Sol") after: String
   ) {
     InlineFile(before).withCaret()
     myFixture.renameElementAtCaret(newName)

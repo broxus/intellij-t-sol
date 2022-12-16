@@ -9,12 +9,12 @@ abstract class SolInspectionsTestBase(private val inspection: LocalInspectionToo
   protected fun enableInspection() = myFixture.enableInspections(inspection.javaClass)
 
   protected fun checkByText(
-    @Language("Solidity") text: String,
+    @Language("T-Sol") text: String,
     checkWarn: Boolean = true,
     checkInfo: Boolean = false,
     checkWeakWarn: Boolean = false
   ) {
-    myFixture.configureByText("main.sol", prepare(text))
+    myFixture.configureByText("main.tsol", prepare(text))
     enableInspection()
     myFixture.checkHighlighting(checkWarn, checkInfo, checkWeakWarn)
   }
@@ -27,7 +27,7 @@ abstract class SolInspectionsTestBase(private val inspection: LocalInspectionToo
     checkInfo: Boolean = false,
     checkWeakWarn: Boolean = false
   ) {
-    myFixture.configureByText("main.sol", before)
+    myFixture.configureByText("main.tsol", before)
     enableInspection()
     myFixture.checkHighlighting(checkWarn, checkInfo, checkWeakWarn)
     applyQuickFix(fixName)

@@ -24,7 +24,7 @@ class SolFindUsagesTest : SolTestBase() {
       }
     """, 3)
 
-  private fun doTest(@Language("Solidity") code: String, expectedUsages: Int) {
+  private fun doTest(@Language("T-Sol") code: String, expectedUsages: Int) {
     InlineFile(code)
     val source = findElementInEditor<SolNamedElement>()
     val usages = myFixture.findUsages(source)

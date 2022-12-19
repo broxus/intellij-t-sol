@@ -1,4 +1,4 @@
-Solidity File
+T-Sol File
   PsiComment(comment)('// SPDX-License-Identifier: GPL-3.0')
   PsiWhiteSpace('\n')
   SolPragmaDirectiveImpl(PRAGMA_DIRECTIVE)

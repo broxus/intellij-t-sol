@@ -3,7 +3,7 @@ package me.serce.solidity.lang.completion
 class SolKeywordCompletion : SolCompletionTestBase() {
 
   fun testRootCompletion() = checkCompletion(
-    hashSetOf("pragma solidity", "pragma ", "library ", "contract "), """
+    hashSetOf("pragma ever-solidity", "pragma ", "library ", "contract "), """
       /*caret*/
   """
   )
@@ -36,7 +36,7 @@ class SolKeywordCompletion : SolCompletionTestBase() {
   """)
 
   fun testThisKeywordNotInMemberAccess() = checkCompletion(
-    hashSetOf("send", "transfer"), """
+    hashSetOf("isNone", "makeAddrExtern", "isExternZero", "makeAddrStd", "wid", "transfer", "balance", "isStdAddrWithoutAnyCast", "getType", "isStdZero", "unpack", "value", "send", "currencies", "makeAddrNone"), """
         contract A {
             address a;
         

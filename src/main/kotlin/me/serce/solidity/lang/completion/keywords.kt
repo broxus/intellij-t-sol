@@ -28,11 +28,11 @@ class SolKeywordCompletionContributor : CompletionContributor(), DumbAware {
     extend(CompletionType.BASIC, rootDeclaration(), object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val pragmaBuilder = LookupElementBuilder
-          .create("pragma solidity")
+          .create("pragma ever-solidity")
           .bold()
-          .withTailText(" ^...")
+          .withTailText(" >= ...")
           .withInsertHandler { ctx, _ ->
-            ctx.document.insertString(ctx.selectionEndOffset, " ^0.5.4;")
+            ctx.document.insertString(ctx.selectionEndOffset, " 0.62.0;")
             EditorModificationUtil.moveCaretRelatively(ctx.editor, 9)
           }
         result.addElement(PrioritizedLookupElement.withPriority(pragmaBuilder, KEYWORD_PRIORITY - 5))

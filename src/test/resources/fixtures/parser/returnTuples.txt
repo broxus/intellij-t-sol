@@ -1,4 +1,4 @@
-Solidity File
+T-Sol File
   SolContractDefinitionImpl(CONTRACT_DEFINITION)
     PsiElement(contract)('contract')
     PsiWhiteSpace(' ')
@@ -113,10 +113,11 @@ Solidity File
               SolPrimaryExpressionImpl(PRIMARY_EXPRESSION)
                 SolVarLiteralImpl(VAR_LITERAL)
                   PsiElement(Identifier)('aaa')
-              PsiElement(()('(')
-              SolFunctionCallArgumentsImpl(FUNCTION_CALL_ARGUMENTS)
-                <empty list>
-              PsiElement())(')')
+              SolFunctionInvocationImpl(FUNCTION_INVOCATION)
+                PsiElement(()('(')
+                SolFunctionCallArgumentsImpl(FUNCTION_CALL_ARGUMENTS)
+                  <empty list>
+                PsiElement())(')')
             PsiElement(;)(';')
         PsiWhiteSpace('\n    ')
         PsiElement(})('}')

@@ -152,12 +152,12 @@ class SolParameterInfoHandlerTest : SolTestBase() {
         }
     """, "string a, int256 b, address c", 0)
 
-  private fun checkByText(@Language("Solidity") code: String, hint: String, index: Int) {
+  private fun checkByText(@Language("T-Sol") code: String, hint: String, index: Int) {
     checkByText(code, listOf(hint), index)
   }
 
-  private fun checkByText(@Language("Solidity") code: String, hints: List<String>, index: Int) {
-    myFixture.configureByText("main.sol", code.replace("/*caret*/", "<caret>"))
+  private fun checkByText(@Language("T-Sol") code: String, hints: List<String>, index: Int) {
+    myFixture.configureByText("main.tsol", code.replace("/*caret*/", "<caret>"))
     val handler = SolParameterInfoHandler()
     val createContext = MockCreateParameterInfoContext(myFixture.editor, myFixture.file)
 

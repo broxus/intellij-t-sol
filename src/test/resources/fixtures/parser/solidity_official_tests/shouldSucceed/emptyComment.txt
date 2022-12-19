@@ -1,4 +1,4 @@
-Solidity File
+T-Sol File
   PsiComment(comment)('//')
   PsiWhiteSpace('\n')
   SolContractDefinitionImpl(CONTRACT_DEFINITION)

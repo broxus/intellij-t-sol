@@ -1,4 +1,4 @@
-Solidity File
+T-Sol File
   SolContractDefinitionImpl(CONTRACT_DEFINITION)
     PsiElement(library)('library')
     PsiWhiteSpace(' ')

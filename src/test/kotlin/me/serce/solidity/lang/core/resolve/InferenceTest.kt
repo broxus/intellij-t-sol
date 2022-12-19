@@ -12,23 +12,23 @@ class InferenceTest : SolResolveTestBase() {
   fun testCyclicImportsDontCrashIDE() {
     InlineFile(
       code = """
-         import "./base2.sol";
+         import "./base2.tsol";
          contract Contract1 {
                   //x
 
          }
       """,
-      name = "base1.sol"
+      name = "base1.tsol"
     )
     InlineFile(
       code = """
-         import "./base1.sol";
+         import "./base1.tsol";
          contract Contract2 {
                   //x
 
          }
       """,
-      name = "base2.sol"
+      name = "base2.tsol"
     )
 
     checkType(SolAddress, """
@@ -50,12 +50,12 @@ class InferenceTest : SolResolveTestBase() {
 
          }
       """,
-      name = "base.sol"
+      name = "base.tsol"
     )
 
     val (contract, _) = findElementAndDataInEditor<SolContractDefinition>("x")
     checkType(SolContract(contract), """
-        import './base.sol';
+        import './base.tsol';
         contract Test  {
             function test() {
                 var test = Contract(address(this));
@@ -95,12 +95,12 @@ class InferenceTest : SolResolveTestBase() {
                   //x
          }
       """,
-      name = "base.sol"
+      name = "base.tsol"
     )
 
     val (struct, _) = findElementAndDataInEditor<SolStructDefinition>("x")
     checkType(SolStruct(struct), """
-        import './base.sol';
+        import './base.tsol';
         contract Contract is StructBase {
             function test() {
                 Struct storage s;
@@ -110,7 +110,7 @@ class InferenceTest : SolResolveTestBase() {
         }""")
   }
 
-  private fun checkType(type: SolType, @Language("Solidity") code: String) {
+  private fun checkType(type: SolType, @Language("T-Sol") code: String) {
     val (refElement, _) = resolveInCode<SolExpression>(code)
     TestCase.assertEquals(type, refElement.type)
   }

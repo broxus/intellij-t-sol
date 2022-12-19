@@ -1,4 +1,4 @@
-Solidity File
+T-Sol File
   SolEnumDefinitionImpl(ENUM_DEFINITION)
     PsiElement(enum)('enum')
     PsiWhiteSpace(' ')

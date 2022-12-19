@@ -5,7 +5,7 @@ import com.intellij.openapi.options.colors.ColorDescriptor
 import com.intellij.openapi.options.colors.ColorSettingsPage
 import me.serce.solidity.ide.SolHighlighter
 import me.serce.solidity.ide.SolidityIcons
-import me.serce.solidity.lang.SolidityLanguage
+import me.serce.solidity.lang.TSolidityLanguage
 import me.serce.solidity.loadCodeSampleResource
 
 class SolColorSettingsPage : ColorSettingsPage {
@@ -13,10 +13,10 @@ class SolColorSettingsPage : ColorSettingsPage {
   private val ANNOTATOR_TAGS = SolColor.values().associateBy({ it.name }, { it.textAttributesKey })
 
   private val DEMO_TEXT by lazy {
-    loadCodeSampleResource(this, "me/serce/solidity/ide/colors/highlighter_example.sol")
+    loadCodeSampleResource(this, "me/serce/solidity/ide/colors/highlighter_example.tsol")
   }
 
-  override fun getDisplayName() = SolidityLanguage.displayName
+  override fun getDisplayName() = TSolidityLanguage.displayName
   override fun getIcon() = SolidityIcons.FILE_ICON
   override fun getAttributeDescriptors() = ATTRIBUTES
   override fun getColorDescriptors(): Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY

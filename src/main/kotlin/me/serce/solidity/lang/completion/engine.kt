@@ -88,6 +88,7 @@ object SolCompleter {
     val expr = element.expression
     val contextType = when {
       expr is SolPrimaryExpression && expr.varLiteral?.name == "super" -> ContextType.SUPER
+      expr.type.isBuiltin -> ContextType.BUILTIN
       else -> ContextType.EXTERNAL
     }
     return element.expression.getMembers()

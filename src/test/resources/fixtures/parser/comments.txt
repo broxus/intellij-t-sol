@@ -1,4 +1,4 @@
-Solidity File
+T-Sol File
   PsiComment(comment)('/**\n * This is even multiline\n * /* /* /*\n */')
   PsiWhiteSpace('\n')
   SolContractDefinitionImpl(CONTRACT_DEFINITION)

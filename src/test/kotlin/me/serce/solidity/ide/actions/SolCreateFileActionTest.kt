@@ -2,7 +2,6 @@ package me.serce.solidity.ide.actions
 
 import com.intellij.ide.IdeView
 import com.intellij.ide.actions.TestDialogBuilder
-import com.intellij.ide.fileTemplates.FileTemplateManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -21,16 +20,16 @@ class SolCreateFileActionTest: SolLightPlatformCodeInsightFixtureTestCase() {
     val ctx = MapDataContext(mapOf(
       LangDataKeys.IDE_VIEW to TestIdeView(dir),
       CommonDataKeys.PROJECT to project,
-      TestDialogBuilder.TestAnswers.KEY to TestDialogBuilder.TestAnswers("myContract", SMART_CONTRACT_TEMPLATE)
+      TestDialogBuilder.TestAnswers.KEY to TestDialogBuilder.TestAnswers("myContract", "T-Sol Contract")
     ))
     val event = AnActionEvent.createFromDataContext("", null, ctx)
     ActionManager.getInstance().getAction("solidity.file.create")!!.actionPerformed(event)
 
-    val file = dir.findFile("myContract.sol")!!
-    @Language("Solidity")
+    val file = dir.findFile("myContract.tsol")!!
+    @Language("T-Sol")
     val content = """
       // SPDX-License-Identifier: UNLICENSED
-      pragma solidity ^0.8.0;
+      pragma ever-solidity >= 0.62.0;
       
       contract myContract {
           constructor(){

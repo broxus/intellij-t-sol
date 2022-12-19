@@ -7,7 +7,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.psi.tree.TokenSet
-import me.serce.solidity.lang.SolidityLanguage
+import me.serce.solidity.lang.TSolidityLanguage
 import me.serce.solidity.lang.core.SolidityParserDefinition.Companion.BINARY_OPERATORS
 import me.serce.solidity.lang.core.SolidityParserDefinition.Companion.CONTROL_STRUCTURES
 import me.serce.solidity.lang.core.SolidityTokenTypes.*
@@ -32,7 +32,7 @@ class SolidityFormattingModelBuilder : FormattingModelBuilder {
 
   companion object {
     fun createSpacingBuilder(settings: CodeStyleSettings): SpacingBuilder {
-      return SpacingBuilder(settings, SolidityLanguage)
+      return SpacingBuilder(settings, TSolidityLanguage)
         .after(TokenSet.create(LPAREN, LBRACE, LBRACKET)).none()
         // Some old versions do not support .before(TokenSet), so we use more verbose form
         // https://github.com/JetBrains/intellij-community/commit/fd4c8224c17d041bf53d556f5c74ffaf20acffe3
@@ -53,6 +53,7 @@ class SolidityFormattingModelBuilder : FormattingModelBuilder {
         .beforeInside(SEMICOLON, FOR_STATEMENT).none()
         .beforeInside(PARAMETER_LIST, FUNCTION_DEFINITION).none()
         .beforeInside(IDENTIFIER, FUNCTION_DEFINITION).spaces(1)
+        .around(FUNCTION_INVOCATION).spaces(0)
         .aroundInside(MODIFIER_INVOCATION, FUNCTION_DEFINITION).spaces(1)
         .around(FUNCTION_VISIBILITY_SPECIFIER).spaces(1)
         .around(STATE_MUTABILITY).spaces(1)
@@ -65,7 +66,8 @@ class SolidityFormattingModelBuilder : FormattingModelBuilder {
         .after(CONTROL_STRUCTURES).spaces(1)
         .beforeInside(STATEMENT, TokenSet.create(IF_STATEMENT, WHILE_STATEMENT, FOR_STATEMENT, DO_WHILE_STATEMENT)).spaces(1)
         .after(CONTRACT).spaces(1)
-        .aroundInside(IDENTIFIER, TokenSet.create(CONTRACT_DEFINITION, PRAGMA_DIRECTIVE, STRUCT_DEFINITION, PARAMETER_DEF)).spaces(1)
+        .aroundInside(IDENTIFIER, TokenSet.create(CONTRACT_DEFINITION, STRUCT_DEFINITION, PARAMETER_DEF)).spaces(1)
+        .aroundInside(IDENTIFIER, TokenSet.create(PRAGMA_DIRECTIVE)).spacing(0, 1, 0, true, 2)
         .afterInside(TYPE_NAME, TokenSet.create(VARIABLE_DECLARATION, PARAMETER_LIST, INDEXED_PARAMETER_LIST)).spaces(1)
         .beforeInside(IDENTIFIER, TokenSet.create(VARIABLE_DECLARATION, PARAMETER_LIST, INDEXED_PARAMETER_LIST)).spaces(1)
         .after(COMMA).spaces(1)

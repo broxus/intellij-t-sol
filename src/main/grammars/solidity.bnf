@@ -21,7 +21,7 @@
     fixedNumber='regexp:(([0-9][_0-9]*)+\.[_0-9]*|([0-9][_0-9]*)*\.([0-9][_0-9]*))'
     scientificNumber='regexp:((([0-9][_0-9]*)+|([0-9][_0-9]*)+\.[_0-9]*|([0-9][_0-9]*|[0-9])*\.[_0-9]+)[Ee][+-]?[_0-9]+)'
     hexNumber='regexp:(0[xX][_0-9a-fA-F]+)'
-    numberUnit='regexp:(wei|szabo|finney|ether|seconds|minutes|hours|days|weeks|years)'
+    numberUnit='regexp:(wei|szabo|finney|ether|seconds|minutes|hours|days|weeks|years|nano|nanoever|nEver|ever|Ever|micro|microever|milli|milliever|kiloever|kEver|megaever|MEver|gigaever|GEver|ever)'
     intNumType='regexp:int(8|16|24|32|40|48|56|64|72|80|88|96|104|112|120|128|136|144|152|160|168|176|184|192|200|208|216|224|232|240|248|256)?'
     uIntNumType='regexp:uint(8|16|24|32|40|48|56|64|72|80|88|96|104|112|120|128|136|144|152|160|168|176|184|192|200|208|216|224|232|240|248|256)?'
     byteNumType='regexp:byte(1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32)?'
@@ -169,8 +169,9 @@ InheritanceSpecifier ::= UserDefinedTypeName ( '(' Expression ( ',' Expression )
 
 VisibilityModifier ::= ( public | internal | private )
 MutationModifier ::= (constant | immutable)
+StaticModifier ::= static
 
-StateVariableDeclaration ::= TypeName (VisibilityModifier MutationModifier OverrideSpecifier? | MutationModifier? VisibilityModifier? OverrideSpecifier? ) Identifier ('=' Expression)? ';'  {
+StateVariableDeclaration ::= TypeName (VisibilityModifier MutationModifier OverrideSpecifier? StaticModifier? | MutationModifier? VisibilityModifier? OverrideSpecifier? StaticModifier? ) Identifier ('=' Expression)? ';'  {
     implements = "me.serce.solidity.lang.psi.SolStateVarElement"
     mixin = "me.serce.solidity.lang.psi.impl.SolStateVarDeclMixin"
     stubClass = "me.serce.solidity.lang.stubs.SolStateVarDeclStub"
@@ -213,7 +214,8 @@ ModifierDefinition ::= modifier Identifier ParameterList? ( VirtualSpecifier | O
 VirtualSpecifier ::= virtual {pin=1}
 OverrideSpecifier ::= override ( '(' UserDefinedTypeName (',' UserDefinedTypeName)* ')' )? {pin=1}
 
-FunctionVisibilitySpecifier ::= external | public | internal | 'private' | VirtualSpecifier | OverrideSpecifier
+FunctionVisibilitySpecifier ::= external | public | internal | 'private'
+                              | VirtualSpecifier | OverrideSpecifier
 ModifierInvocation ::= VarLiteral ('(' ModifierInvocationCallArguments ')')? {
     implements = "me.serce.solidity.lang.psi.SolModifierInvocationElement"
     mixin = "me.serce.solidity.lang.psi.impl.SolModifierInvocationMixin"
@@ -228,7 +230,7 @@ ConstructorDefinition ::= constructor ParameterList
     mixin = "me.serce.solidity.lang.psi.impl.SolConstructorDefMixin"
 }
 
-FunctionDefinition ::= (function Identifier? | fallback | receive )
+FunctionDefinition ::= (function Identifier? | fallback | receive | onbounce | onticktock)
                         ParameterList
                         ( FunctionVisibilitySpecifier | StateMutability | ModifierInvocation)*
                         ( returns ParameterList )? ( ';' | Block ) {
@@ -309,6 +311,7 @@ VariableDeclaration ::=
 
 TypeName ::= MappingTypeName
          | UserDefinedLocationTypeName
+		 | OptionalTypeName
          | BytesArrayTypeName
          | ArrayTypeName
          | ElementaryTypeName
@@ -346,6 +349,12 @@ MappingTypeName ::= mapping '(' (BytesArrayTypeName | ElementaryTypeName | UserD
     elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
 }
 
+OptionalTypeName ::= optional '(' TypeName (',' TypeName)* ')' {
+    pin = 1
+    stubClass = "me.serce.solidity.lang.stubs.SolTypeRefStub"
+    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+}
+
 // According to grammar.txt, it should be only TypeNameList after function, but according to reality ...
 FunctionTypeName ::= function ParameterList ( internal | external | StateMutability )*
                    ( returns ParameterList )? {
@@ -355,7 +364,7 @@ FunctionTypeName ::= function ParameterList ( internal | external | StateMutabil
 }
 
 StorageLocation ::= memory | storage | calldata
-StateMutability ::= pure | constant | view | 'payable'
+StateMutability ::= pure | constant | view | 'payable' | responsible
 
 private UnfinishedUncheckedBlock ::= unchecked '{' Statement* {
     pin = 1
@@ -382,7 +391,7 @@ private FinishedStatement ::=
     | SimpleStatement {
     recoverWhile = UntilSemicolonRecover
 }
-Statement ::= IfStatement | TryStatement | WhileStatement | ForStatement | Block | InlineAssemblyStatement | TupleStatement | ReturnTupleStatement | FinishedStatement ';'
+Statement ::= IfStatement | TryStatement | WhileStatement | ForStatement | RepeatStatement | Block | InlineAssemblyStatement | TupleStatement | ReturnTupleStatement | FinishedStatement ';'
 
 // intentionally not pinned
 TupleStatement ::= VariableDeclaration '=' SeqExpression ';'
@@ -390,7 +399,7 @@ TupleStatement ::= VariableDeclaration '=' SeqExpression ';'
     | SeqExpression '=' Expression ';'
 
 // intentionally not pinned
-ReturnTupleStatement ::= return SeqExpression ';'
+ReturnTupleStatement ::= return MapExpression? SeqExpression ';'
 
 private ExpressionStatement ::= Expression
 IfStatement ::= if '(' Expression ')' Statement ( else Statement )? {pin = 1}
@@ -399,14 +408,15 @@ CatchClause ::= catch ( Identifier? ParameterList )? Block {pin = 1}
 WhileStatement ::= while '(' Expression ')' Statement {pin = 1}
 PlaceholderStatement ::= '_'
 private SimpleStatement ::= VariableDefinition | ExpressionStatement
-ForStatement ::= for '(' (SimpleStatement)? ';' (Expression)? ';' (ExpressionStatement)? ')' Statement {pin=1}
+ForStatement ::= for '(' ((SimpleStatement)? ';' (Expression)? ';' (ExpressionStatement)? | SimpleStatement ':' Expression) ')' Statement {pin=1}
+RepeatStatement ::= repeat '(' (SimpleStatement)? ';' (Expression)? ';' (ExpressionStatement)? ')' Statement {pin=1}
 InlineAssemblyStatement ::= assembly AssemblyDialect? AssemblyFlags? YulBlock {pin=1}
 private AssemblyDialect ::= StringLiteral // "evmasm"
 AssemblyFlags ::= '(' StringLiteral (',' StringLiteral)* ')'
 DoWhileStatement ::= do Statement while '(' Expression ')' {pin=1}
 ContinueSt ::= continue
 BreakSt ::= break
-ReturnSt ::= return Expression? {pin=1}
+ReturnSt ::= return MapExpression? Expression? {pin=1}
 ThrowSt ::= throw
 /* An emit statement. The contained expression needs to refer to an event. */
 EmitStatement ::= emit FunctionCallExpression {pin=1}
@@ -480,10 +490,15 @@ FunctionCallExpression ::= Expression FunctionInvocation {
     mixin = "me.serce.solidity.lang.psi.impl.SolFunctionCallMixin"
 }
 
-private FunctionInvocation ::= MapExpression? '(' FunctionCallArguments? ')'
+FunctionInvocation ::= MapExpression? '(' FunctionCallArguments? ')'
 FunctionCallArguments ::= MapExpression | Expression? ( ',' Expression )*
-private MapExpressionClause ::= Identifier ':' Expression {pin=2}
-private MapExpression ::= '{' MapExpressionClause (',' MapExpressionClause )* '}' {pin=1}
+MapExpressionClause ::= Identifier ':' (Expression | MapExpression) {pin=2}
+private UnfinishedMapExpression ::= '{' MapExpressionClause (',' MapExpressionClause )* {
+    pin=1
+    recoverWhile = UntilBraceRecover
+}
+
+MapExpression ::= UnfinishedMapExpression '}'
 
 NewExpression ::= new TypeName {
     implements = "me.serce.solidity.lang.psi.SolReferenceElement"
@@ -502,6 +517,9 @@ BooleanLiteral ::= booleanLiteral
 NumberLiteral ::= ( HexNumber | DecimalNumber | FixedNumber | ScientificNumber) NumberUnit?
 NumberUnit ::= wei | gwei | szabo | finney | ether
              | seconds | minutes | hours | days | weeks | years
+             | nano | nanoever | nEver | ever | Ever | micro
+             | microever | milli | milliever | kiloever | kEver
+             | megaever | MEver | gigaever | GEver
 // https://github.com/ethereum/solidity/pull/832
 // A full hex string literal that consists of either one or several consecutive hex strings.
 HexLiteral ::= hexLiteral+
@@ -518,7 +536,9 @@ private PrimitiveLiteral ::= intNumType | uIntNumType | byteNumType | bytesNumTy
 
 private ElementaryTypeNameExpression ::= ElementaryTypeName
 
-ElementaryTypeName ::= ( address 'payable' ) | address | bool | string | var | NumberType {
+ElementaryTypeName ::= ( address 'payable' ) | address | bool | string | var
+                     | 'TvmCell' | 'TvmSlice' | 'TvmBuilder' | 'ExtraCurrencyCollection'
+| NumberType {
     stubClass = "me.serce.solidity.lang.stubs.SolTypeRefStub"
     elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
 }

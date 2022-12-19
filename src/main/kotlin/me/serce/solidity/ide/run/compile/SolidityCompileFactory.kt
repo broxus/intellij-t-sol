@@ -5,11 +5,11 @@ import com.intellij.openapi.compiler.CompilerFactory
 import com.intellij.openapi.compiler.CompilerManager
 import me.serce.solidity.ide.interop.DependencyConfigurator
 import me.serce.solidity.ide.interop.JavaStubProcessor
-import me.serce.solidity.lang.SolidityFileType
+import me.serce.solidity.lang.TSolidityFileType
 
 class SolidityCompileFactory : CompilerFactory {
   override fun createCompilers(compilerManager: CompilerManager): Array<Compiler> {
-    compilerManager.addCompilableFileType(SolidityFileType)
+    compilerManager.addCompilableFileType(TSolidityFileType)
     DependencyConfigurator // to initialize the object and set a project listener
     return arrayOf(SolidityIdeCompiler, JavaStubProcessor)
   }

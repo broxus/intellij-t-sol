@@ -6,11 +6,11 @@ class SolImportResolveTest : SolResolveTestBase() {
   fun testImportPathResolve() {
     val file1 = InlineFile(
       code = "contract a {}",
-      name = "Ownable.sol"
+      name = "Ownable.tsol"
     )
 
     InlineFile("""
-          import "./Ownable.sol";
+          import "./Ownable.tsol";
                       //^
 
           contract b {}
@@ -26,8 +26,8 @@ class SolImportResolveTest : SolResolveTestBase() {
   }
 
   fun testImportPathResolveNpm() {
-    val file1 = myFixture.configureByFile("node_modules/util/contracts/TestImport.sol")
-    myFixture.configureByFile("contracts/ImportUsage.sol")
+    val file1 = myFixture.configureByFile("node_modules/util/contracts/TestImport.tsol")
+    myFixture.configureByFile("contracts/ImportUsage.tsol")
 
     val (refElement) = findElementAndDataInEditor<SolNamedElement>("^")
 
@@ -39,8 +39,8 @@ class SolImportResolveTest : SolResolveTestBase() {
   }
 
   fun testImportPathResolveEthPM() {
-    val file1 = myFixture.configureByFile("installed_contracts/util/contracts/TestImport.sol")
-    myFixture.configureByFile("contracts/ImportUsageEthPM.sol")
+    val file1 = myFixture.configureByFile("installed_contracts/util/contracts/TestImport.tsol")
+    myFixture.configureByFile("contracts/ImportUsageEthPM.tsol")
 
     val (refElement) = findElementAndDataInEditor<SolNamedElement>("^")
 
@@ -52,8 +52,8 @@ class SolImportResolveTest : SolResolveTestBase() {
   }
 
   fun testImportPathResolveFoundry() {
-    val file1 = myFixture.configureByFile("lib/util/src/TestImport.sol")
-    myFixture.configureByFile("contracts/ImportUsageFoundry.sol")
+    val file1 = myFixture.configureByFile("lib/util/src/TestImport.tsol")
+    myFixture.configureByFile("contracts/ImportUsageFoundry.tsol")
 
     val (refElement) = findElementAndDataInEditor<SolNamedElement>("^")
 
@@ -67,11 +67,11 @@ class SolImportResolveTest : SolResolveTestBase() {
   fun testResolveFrom() {
     val file1 = InlineFile(
       code = "contract A {}",
-      name = "Ownable.sol"
+      name = "Ownable.tsol"
     )
 
     InlineFile("""
-          import A from "./Ownable.sol";
+          import A from "./Ownable.tsol";
                //^
 
           contract b {}

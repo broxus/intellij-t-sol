@@ -16,7 +16,8 @@ import java.util.*
 
 enum class ContextType {
   SUPER,
-  EXTERNAL
+  EXTERNAL,
+  BUILTIN
 }
 
 enum class Usage {
@@ -36,6 +37,9 @@ interface SolType {
   fun getMembers(project: Project): List<SolMember> {
     return emptyList()
   }
+
+  val isBuiltin: Boolean
+    get() = true
 }
 
 interface SolPrimitiveType : SolType
@@ -61,6 +65,19 @@ object SolString : SolPrimitiveType {
   override fun toString() = "string"
 }
 
+data class SolOptional(val types: List<SolType>) : SolType {
+  override fun isAssignableFrom(other: SolType): Boolean =
+    when (other) {
+      is SolOptional -> other.types.size == this.types.size && other.types.mapIndexed { index, solType -> types[index].isAssignableFrom(solType) }.all { it }
+      else -> false
+    }
+
+  override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).optionalType)
+
+  override fun toString() = "optional(${types.joinToString { it.toString() }})"
+
+}
+
 object SolAddress : SolPrimitiveType {
   override fun isAssignableFrom(other: SolType): Boolean =
     when (other) {
@@ -69,11 +86,10 @@ object SolAddress : SolPrimitiveType {
       else -> UINT_160.isAssignableFrom(other)
     }
 
+  override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).addressType)
+
   override fun toString() = "address"
 
-  override fun getMembers(project: Project): List<SolMember> {
-    return SolInternalTypeFactory.of(project).addressType.ref.functionDefinitionList
-  }
 }
 
 data class SolInteger(val unsigned: Boolean, val size: Int) : SolNumeric {
@@ -161,7 +177,7 @@ data class SolInteger(val unsigned: Boolean, val size: Int) : SolNumeric {
   override fun toString() = "${if (unsigned) "u" else ""}int$size"
 }
 
-data class SolContract(val ref: SolContractDefinition) : SolType, Linearizable<SolContract> {
+data class SolContract(val ref: SolContractDefinition, val builtin: Boolean = false) : SolType, Linearizable<SolContract> {
   override fun linearize(): List<SolContract> {
     return RecursionManager.doPreventingRecursion(ref, true) {
       CachedValuesManager.getCachedValue(ref) {
@@ -198,6 +214,8 @@ data class SolContract(val ref: SolContractDefinition) : SolType, Linearizable<S
   override fun getMembers(project: Project): List<SolMember> {
     return SolResolver.resolveContractMembers(ref, false)
   }
+
+  override val isBuiltin get() = builtin
 
   override fun toString() = ref.name ?: ref.text ?: "$ref"
 }
@@ -240,6 +258,8 @@ data class SolEnum(val ref: SolEnumDefinition) : SolType {
 data class SolMapping(val from: SolType, val to: SolType) : SolType {
   override fun isAssignableFrom(other: SolType): Boolean =
     other is SolMapping && from == other.from && to == other.to
+
+  override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).mappingType)
 
   override fun toString(): String {
     return "mapping($from => $to)"
@@ -366,4 +386,8 @@ data class BuiltinCallable(
   override fun resolveElement(): SolNamedElement? = resolvedElement
   override fun getName(): String? = memberName
   override fun getPossibleUsage(contextType: ContextType) = possibleUsage
+}
+
+private fun getSdkMembers(solContract: SolContract): List<SolMember> {
+    return solContract.ref.let { it.functionDefinitionList + it.stateVariableDeclarationList }
 }

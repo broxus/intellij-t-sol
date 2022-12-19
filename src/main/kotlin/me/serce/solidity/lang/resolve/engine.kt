@@ -8,6 +8,7 @@ import com.intellij.psi.stubs.StubIndex
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
+import com.intellij.psi.util.PsiTreeUtil
 import me.serce.solidity.lang.core.SolidityFile
 import me.serce.solidity.lang.psi.*
 import me.serce.solidity.lang.psi.impl.SolNewExpressionElement
@@ -31,10 +32,12 @@ object SolResolver {
         resolveContract(element) +
           resolveEnum(element) +
           resolveStruct(element) +
-          resolveUserDefinedValueType(element)
+          resolveUserDefinedValueType(element) +
+          resolveBuiltinValueType(element)
       }
       CachedValueProvider.Result.create(result, PsiModificationTracker.MODIFICATION_COUNT)
     }
+
 
   /**
    * @param withAliases aliases are not recursive, so count them only at the first level of recursion
@@ -91,6 +94,13 @@ object SolResolver {
     resolveInnerType<SolUserDefinedValueTypeDefinition>(
       element,
       { it.userDefinedValueTypeDefinitionList }) + resolveUsingImports(SolUserDefinedValueTypeDefinition::class.java, element, element.containingFile, true)
+
+  private fun resolveBuiltinValueType(element: PsiElement): Set<SolNamedElement> {
+    if (element !is SolUserDefinedTypeNameElement) return emptySet()
+    val ids = element.findIdentifiers().firstOrNull() ?: return emptySet()
+    return setOf(SolInternalTypeFactory.of(element.project).builtinByName(ids.nameOrText ?: return emptySet()) ?: return emptySet())
+  }
+
 
   private fun resolveEvent(element: PsiElement): Set<SolNamedElement> =
     resolveInnerType<SolEventDefinition>(element) { it.eventDefinitionList }
@@ -167,7 +177,7 @@ object SolResolver {
 
   fun resolveModifier(modifier: SolModifierInvocationElement): List<SolModifierDefinition> = StubIndex.getElements(
     SolModifierIndex.KEY,
-    modifier.text,
+    modifier.firstChild.text,
     modifier.project,
     null,
     SolNamedElement::class.java
@@ -289,6 +299,7 @@ object SolResolver {
         scope.parameterList?.parameterDefList?.asSequence() ?: emptySequence()
       }
       is SolEnumDefinition -> sequenceOf(scope)
+      is SolForStatement -> if (PsiTreeUtil.isAncestor(scope, place, false)) scope.children.firstOrNull()?.let { lexicalDeclarations(it, place) } ?: emptySequence() else emptySequence()
 
       is SolStatement -> {
         scope.children.asSequence()

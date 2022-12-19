@@ -1,0 +1,4 @@
+import "util/contracts/TestImport.tsol";
+       //^
+
+contract ImportUsage {}

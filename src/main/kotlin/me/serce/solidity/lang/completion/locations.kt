@@ -9,6 +9,8 @@ import me.serce.solidity.lang.core.SolidityFile
 import me.serce.solidity.lang.core.SolidityTokenTypes
 import me.serce.solidity.lang.psi.SolFunctionCallArguments
 import me.serce.solidity.lang.psi.SolFunctionCallExpression
+import me.serce.solidity.lang.psi.SolMapExpression
+import me.serce.solidity.lang.psi.SolPragmaDirective
 import me.serce.solidity.lang.psi.SolPrimaryExpression
 import me.serce.solidity.lang.psi.SolRevertStatement
 
@@ -44,4 +46,10 @@ fun primaryExpression(): ElementPattern<PsiElement> =
 
 fun functionCallArguments(): ElementPattern<PsiElement> =
   psiElement(SolidityTokenTypes.IDENTIFIER).inside(SolFunctionCallArguments::class.java)
+
+fun pragma(): ElementPattern<PsiElement> =
+  psiElement(SolidityTokenTypes.IDENTIFIER).inside(SolPragmaDirective::class.java)
+
+fun mapExpression(): ElementPattern<PsiElement> =
+  psiElement(SolidityTokenTypes.IDENTIFIER).inside(SolMapExpression::class.java)
 

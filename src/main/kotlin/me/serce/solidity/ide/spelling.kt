@@ -8,11 +8,11 @@ import com.intellij.spellchecker.tokenizer.EscapeSequenceTokenizer
 import com.intellij.spellchecker.tokenizer.SpellcheckingStrategy
 import com.intellij.spellchecker.tokenizer.TokenConsumer
 import com.intellij.spellchecker.tokenizer.Tokenizer
-import me.serce.solidity.lang.SolidityLanguage
+import me.serce.solidity.lang.TSolidityLanguage
 import me.serce.solidity.lang.core.SolidityTokenTypes
 
 class SolSpellcheckingStrategy : SpellcheckingStrategy() {
-  override fun isMyContext(element: PsiElement) = SolidityLanguage.`is`(element.language)
+  override fun isMyContext(element: PsiElement) = TSolidityLanguage.`is`(element.language)
 
   override fun getTokenizer(element: PsiElement?): Tokenizer<*> = when {
     element?.node?.elementType == SolidityTokenTypes.STRINGLITERAL -> StringExpressionTokenizer

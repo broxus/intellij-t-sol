@@ -21,6 +21,10 @@ enum class Visibility {
   EXTERNAL
 }
 
+enum class Mutability {
+  PURE, CONSTANT, VIEW, PAYABLE, RESPONSIBLE;
+}
+
 interface SolCallable {
   val callablePriority: Int
   fun getName(): String?
@@ -34,6 +38,9 @@ interface SolCallableElement : SolCallable, SolNamedElement
 interface SolStateVarElement : SolMember, SolCallableElement {
   val visibilityModifier: SolVisibilityModifier?
   val visibility: Visibility
+
+  val mutationModifier: SolMutationModifier?
+  val mutability: Mutability?
 }
 
 interface SolConstantVariable : SolNamedElement {}

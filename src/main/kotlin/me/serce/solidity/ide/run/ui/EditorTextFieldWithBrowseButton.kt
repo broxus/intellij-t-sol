@@ -6,7 +6,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComponentWithBrowseButton
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.TextAccessor
-import me.serce.solidity.lang.SolidityFileType
+import me.serce.solidity.lang.TSolidityFileType
 
 class EditorTextFieldWithBrowseButton(project: Project) : ComponentWithBrowseButton<EditorTextField>(createEditorTextField(project), null), TextAccessor {
 
@@ -20,7 +20,7 @@ class EditorTextFieldWithBrowseButton(project: Project) : ComponentWithBrowseBut
 }
 
 private fun createEditorTextField(project: Project): EditorTextField {
-  return if (project.isDefault) EditorTextField() else EditorTextField(createDocument(""), project, SolidityFileType)
+  return if (project.isDefault) EditorTextField() else EditorTextField(createDocument(""), project, TSolidityFileType)
 }
 
 private fun createDocument(text: String): Document? {

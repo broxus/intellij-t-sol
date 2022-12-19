@@ -8,6 +8,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.refactoring.suggested.endOffset
 import me.serce.solidity.ide.colors.SolColor
 import me.serce.solidity.ide.hints.startOffset
+import me.serce.solidity.lang.core.SolidityTokenTypes
+import me.serce.solidity.lang.core.SolidityTokenTypes.*
 import me.serce.solidity.lang.psi.*
 import me.serce.solidity.lang.psi.impl.SolErrorDefMixin
 import me.serce.solidity.lang.resolve.SolResolver
@@ -18,6 +20,8 @@ class SolidityAnnotator : Annotator {
       highlight(element, holder)
     }
   }
+
+  private val specialFunctionNames = setOf("receive", "fallback", "onBounce", "onTickTock")
 
   private fun highlight(element: SolElement, holder: AnnotationHolder) {
     when (element) {
@@ -68,7 +72,7 @@ class SolidityAnnotator : Annotator {
           applyColor(holder, identifier, SolColor.FUNCTION_DECLARATION)
         } else {
           val firstChildNode = element.node.firstChildNode
-          if (firstChildNode.text == "receive" || firstChildNode.text == "fallback") {
+          if (firstChildNode.text in specialFunctionNames) {
             applyColor(holder, firstChildNode.textRange, SolColor.RECEIVE_FALLBACK_DECLARATION)
           }
         }
@@ -87,7 +91,7 @@ class SolidityAnnotator : Annotator {
         "keccak256" -> applyColor(holder, element.firstChild, SolColor.GLOBAL_FUNCTION_CALL)
         "require" -> applyColor(holder, element.firstChild, SolColor.KEYWORD)
         "assert" -> applyColor(holder, element.firstChild, SolColor.KEYWORD)
-        else -> when(SolResolver.resolveTypeNameUsingImports(element).firstOrNull()) {
+        else -> when(val typeName = SolResolver.resolveTypeNameUsingImports(element).firstOrNull()) {
           is SolErrorDefinition -> applyColor(holder, element.referenceNameElement, SolColor.ERROR_NAME)
           is SolEventDefinition -> applyColor(holder, element.referenceNameElement, SolColor.EVENT_NAME)
           else -> element.firstChild.let {

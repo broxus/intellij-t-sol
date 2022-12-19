@@ -5,7 +5,7 @@ import me.serce.solidity.utils.SolTestBase
 import org.intellij.lang.annotations.Language
 
 abstract class SolQuickFixTestBase : SolTestBase() {
-  fun testQuickFix(@Language("Solidity") code: String, expected: String) {
+  fun testQuickFix(@Language("T-Sol") code: String, expected: String) {
     InlineFile(code)
     val errors = myFixture.doHighlighting(HighlightSeverity.WARNING)
     assertEquals(1, errors.size)
@@ -15,7 +15,7 @@ abstract class SolQuickFixTestBase : SolTestBase() {
     myFixture.checkResult(expected)
   }
 
-  fun assertNoQuickFix(@Language("Solidity") code: String) {
+  fun assertNoQuickFix(@Language("T-Sol") code: String) {
     InlineFile(code)
     val errors = myFixture.doHighlighting(HighlightSeverity.WARNING)
     assertEquals(0, errors.size)

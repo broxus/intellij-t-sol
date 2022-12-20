@@ -83,17 +83,6 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     implementation("io.sentry:sentry:$sentry_version")
 
-    // https://mvnrepository.com/artifact/org.ethereum/ethereumj-core
-    compileOnly( group: 'org.ethereum', name: 'ethereumj-core', version: '1.7.0-RELEASE') {
-        exclude group: 'org.ethereum', module: 'solcJ-all'
-        exclude group: 'org.ethereum', module: 'rocksdbjni'
-    }
-
-    def web3jVersion = "4.0.1"
-    implementation group: 'org.web3j', name: 'core', version: web3jVersion
-    implementation group: 'org.web3j', name: 'codegen', version: web3jVersion
-    implementation group: 'org.web3j', name: 'abi', version: web3jVersion
-
     testImplementation group: 'junit', name: 'junit', version: '4.11'
 }
 
@@ -110,7 +99,7 @@ tasks.compileKotlin.dependsOn codegen
 task lexer(type: org.jetbrains.grammarkit.tasks.GenerateLexer) {
     def lexerName = "_SolidityLexer"
     source = "$project.projectDir/src/main/grammars/${lexerName}.flex"
-    targetDir = "gen/me/serce/solidity"
+    targetDir = "gen/com/broxus/solidity"
     targetClass = "$lexerName"
     skeleton = 'src/main/grammars/idea-flex.skeleton'
     purgeOldFiles = true
@@ -119,7 +108,7 @@ task lexer(type: org.jetbrains.grammarkit.tasks.GenerateLexer) {
 task parser(type: org.jetbrains.grammarkit.tasks.GenerateParser) {
     dependsOn lexer
 
-    def pkg = 'me/serce/solidity'
+    def pkg = 'com/broxus/solidity'
     source = "$project.projectDir/src/main/grammars/solidity.bnf"
     targetRoot = 'gen'
     pathToParser = "$pkg/SolidityParser.java"
@@ -140,3 +129,7 @@ jacocoTestReport {
 }
 
 check.dependsOn jacocoTestReport
+
+publishPlugin {
+    token = System.getenv("PUBLISH_TOKEN")
+}

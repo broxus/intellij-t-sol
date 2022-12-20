@@ -1,11 +1,11 @@
-package me.serce.solidity;
+package com.broxus.solidity;
 
 import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
 
 import static com.intellij.psi.TokenType.BAD_CHARACTER;
 import static com.intellij.psi.TokenType.WHITE_SPACE;
-import static me.serce.solidity.lang.core.SolidityTokenTypes.*;
+import static com.broxus.solidity.lang.core.SolidityTokenTypes.*;
 
 %%
 

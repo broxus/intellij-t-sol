@@ -1,6 +1,9 @@
 # [T-Sol (Threaded Solidity)](https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md) plugin for JetBrains IDEs
 
-![[JetBrains plugins]](https://img.shields.io/jetbrains/plugin/d/20696-t-sol.svg)
+[![Latest version](https://img.shields.io/jetbrains/plugin/v/20696)](https://plugins.jetbrains.com/plugin/20696-t-sol/versions)
+[![JetBrains plugins](https://img.shields.io/jetbrains/plugin/d/20696-t-sol.svg)](https://plugins.jetbrains.com/plugin/20696-t-sol/versions)
+[![JetBrains rating](https://img.shields.io/jetbrains/plugin/r/rating/20696)](https://plugins.jetbrains.com/plugin/20696-t-sol/reviews)
+[![License](https://img.shields.io/github/license/broxus/intellij-t-sol)](https://github.com/broxus/intellij-t-sol/blob/master/LICENSE)
 
 [![T-Sol badge](./logo/logo_256.png)](https://plugins.jetbrains.com/idea/plugin/20696-t-sol)
 

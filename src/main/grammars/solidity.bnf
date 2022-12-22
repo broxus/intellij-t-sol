@@ -1,17 +1,17 @@
 {
-  parserClass="me.serce.solidity.SolidityParser"
+  parserClass="com.broxus.solidity.SolidityParser"
 
   psiClassPrefix="Sol"
   psiImplClassSuffix="Impl"
-  psiPackage="me.serce.solidity.lang.psi"
-  psiImplPackage="me.serce.solidity.lang.psi.impl"
-  implements="me.serce.solidity.lang.psi.SolElement"
+  psiPackage="com.broxus.solidity.lang.psi"
+  psiImplPackage="com.broxus.solidity.lang.psi.impl"
+  implements="com.broxus.solidity.lang.psi.SolElement"
 
-  elementTypeHolderClass="me.serce.solidity.lang.core.SolidityTokenTypes"
+  elementTypeHolderClass="com.broxus.solidity.lang.core.SolidityTokenTypes"
   elementTypePrefix=""
-  elementTypeClass="me.serce.solidity.lang.core.SolElementType"
-  tokenTypeClass="me.serce.solidity.lang.core.SolElementType"
-  tokenTypeClass="me.serce.solidity.lang.core.SolidityTokenTypes"
+  elementTypeClass="com.broxus.solidity.lang.core.SolElementType"
+  tokenTypeClass="com.broxus.solidity.lang.core.SolElementType"
+  tokenTypeClass="com.broxus.solidity.lang.core.SolidityTokenTypes"
 
   tokens = [
     comment='regexp:(//.*)|(/\\*(?:.|[\\n\\r])*?\\*/)'
@@ -118,18 +118,18 @@ PragmaDirective ::= PragmaPart ';'
 
 private ClosedBracketRecover ::= !('}')
 ImportAlias ::= Identifier {
-    implements = "me.serce.solidity.lang.psi.SolNamedElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolImportAliasMixin"
+    implements = "com.broxus.solidity.lang.psi.SolNamedElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolImportAliasMixin"
 }
 ImportAliasedPair ::= UserDefinedTypeName (as ImportAlias)?
 private ImportRuleSet ::= ImportAliasedPair ( ',' ImportAliasedPair )* {
     recoverWhile = ClosedBracketRecover
 }
 ImportPath ::= stringLiteral {
-    implements = "me.serce.solidity.lang.psi.SolNamedElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolImportPathElement"
-    stubClass = "me.serce.solidity.lang.stubs.SolImportPathDefStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    implements = "com.broxus.solidity.lang.psi.SolNamedElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolImportPathElement"
+    stubClass = "com.broxus.solidity.lang.stubs.SolImportPathDefStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 private ImportDirectivePart ::= import
         ( ImportPath (as ImportAlias)?
@@ -145,10 +145,10 @@ ContractDefinition ::= abstract? ( contract | library | interface ) Identifier
                      ( is InheritanceSpecifier (',' InheritanceSpecifier )* )?
                      '{' ContractPart* '}' {
     pin = 2
-    implements = "me.serce.solidity.lang.psi.SolContractOrLibElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolContractOrLibMixin"
-    stubClass = "me.serce.solidity.lang.stubs.SolContractOrLibDefStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    implements = "com.broxus.solidity.lang.psi.SolContractOrLibElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolContractOrLibMixin"
+    stubClass = "com.broxus.solidity.lang.stubs.SolContractOrLibDefStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 private ContractPart ::=
@@ -172,43 +172,43 @@ MutationModifier ::= (constant | immutable)
 StaticModifier ::= static
 
 StateVariableDeclaration ::= TypeName (VisibilityModifier MutationModifier OverrideSpecifier? StaticModifier? | MutationModifier? VisibilityModifier? OverrideSpecifier? StaticModifier? ) Identifier ('=' Expression)? ';'  {
-    implements = "me.serce.solidity.lang.psi.SolStateVarElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolStateVarDeclMixin"
-    stubClass = "me.serce.solidity.lang.stubs.SolStateVarDeclStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    implements = "com.broxus.solidity.lang.psi.SolStateVarElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolStateVarDeclMixin"
+    stubClass = "com.broxus.solidity.lang.stubs.SolStateVarDeclStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 /**
  * The declaration of a constant variable.
  */
 ConstantVariableDeclaration ::= TypeName MutationModifier Identifier ('=' Expression)? ';' {
-    implements = "me.serce.solidity.lang.psi.SolConstantVariable"
-    mixin = "me.serce.solidity.lang.psi.impl.SolConstantVariableDeclMixin"
-    stubClass = "me.serce.solidity.lang.stubs.SolConstantVariableDeclStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    implements = "com.broxus.solidity.lang.psi.SolConstantVariable"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolConstantVariableDeclMixin"
+    stubClass = "com.broxus.solidity.lang.stubs.SolConstantVariableDeclStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 UsingForDeclaration ::= using ( UserDefinedTypeName | '{' UserDefinedTypeName (',' UserDefinedTypeName)* '}' ) for ('*' | TypeName) 'global'? ';' {
     pin=1
-    implements = "me.serce.solidity.lang.psi.SolUsingForElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolUsingForMixin"
+    implements = "com.broxus.solidity.lang.psi.SolUsingForElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolUsingForMixin"
 }
 
 StructDefinition ::= struct Identifier '{'
                      ( VariableDeclaration ';' (VariableDeclaration ';')* )? '}' {
     pin=1
-    implements = "me.serce.solidity.lang.psi.SolCallableElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolStructDefMixin"
-    stubClass = "me.serce.solidity.lang.stubs.SolStructDefStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    implements = "com.broxus.solidity.lang.psi.SolCallableElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolStructDefMixin"
+    stubClass = "com.broxus.solidity.lang.stubs.SolStructDefStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 ModifierDefinition ::= modifier Identifier ParameterList? ( VirtualSpecifier | OverrideSpecifier )* Block {
     pin = 1
-    implements = "me.serce.solidity.lang.psi.SolModifierElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolModifierDefMixin"
-    stubClass = "me.serce.solidity.lang.stubs.SolModifierDefStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    implements = "com.broxus.solidity.lang.psi.SolModifierElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolModifierDefMixin"
+    stubClass = "com.broxus.solidity.lang.stubs.SolModifierDefStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 VirtualSpecifier ::= virtual {pin=1}
@@ -217,8 +217,8 @@ OverrideSpecifier ::= override ( '(' UserDefinedTypeName (',' UserDefinedTypeNam
 FunctionVisibilitySpecifier ::= external | public | internal | 'private'
                               | VirtualSpecifier | OverrideSpecifier
 ModifierInvocation ::= VarLiteral ('(' ModifierInvocationCallArguments ')')? {
-    implements = "me.serce.solidity.lang.psi.SolModifierInvocationElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolModifierInvocationMixin"
+    implements = "com.broxus.solidity.lang.psi.SolModifierInvocationElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolModifierInvocationMixin"
 }
 private ModifierInvocationCallArguments ::= FunctionCallArguments
 
@@ -226,8 +226,8 @@ ConstructorDefinition ::= constructor ParameterList
                          ( ModifierInvocation | FunctionVisibilitySpecifier | StateMutability)*
                          Block {
     pin = 1
-    implements = "me.serce.solidity.lang.psi.SolHasModifiersElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolConstructorDefMixin"
+    implements = "com.broxus.solidity.lang.psi.SolHasModifiersElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolConstructorDefMixin"
 }
 
 FunctionDefinition ::= (function Identifier? | fallback | receive | onbounce | onticktock)
@@ -235,54 +235,54 @@ FunctionDefinition ::= (function Identifier? | fallback | receive | onbounce | o
                         ( FunctionVisibilitySpecifier | StateMutability | ModifierInvocation)*
                         ( returns ParameterList )? ( ';' | Block ) {
     pin = 1
-    implements = "me.serce.solidity.lang.psi.SolFunctionDefElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolFunctionDefMixin"
-    stubClass = "me.serce.solidity.lang.stubs.SolFunctionDefStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    implements = "com.broxus.solidity.lang.psi.SolFunctionDefElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolFunctionDefMixin"
+    stubClass = "com.broxus.solidity.lang.stubs.SolFunctionDefStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 EventDefinition ::= event Identifier IndexedParameterList anonymous? ';' {
     pin = 1
-    implements = "me.serce.solidity.lang.psi.SolCallableElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolEventDefMixin"
-    stubClass = "me.serce.solidity.lang.stubs.SolEventDefStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    implements = "com.broxus.solidity.lang.psi.SolCallableElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolEventDefMixin"
+    stubClass = "com.broxus.solidity.lang.stubs.SolEventDefStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 // Note, error can't be a keyword as it could be used as e.g. a variable name
 ErrorDefinition ::= 'error' Identifier IndexedParameterList ';' {
     pin = 2
-    implements = "me.serce.solidity.lang.psi.SolCallableElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolErrorDefMixin"
-    stubClass = "me.serce.solidity.lang.stubs.SolErrorDefStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    implements = "com.broxus.solidity.lang.psi.SolCallableElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolErrorDefMixin"
+    stubClass = "com.broxus.solidity.lang.stubs.SolErrorDefStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 EnumValue ::= Identifier {
-    implements = "me.serce.solidity.lang.psi.SolEnumItemElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolEnumValueMixin"
+    implements = "com.broxus.solidity.lang.psi.SolEnumItemElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolEnumValueMixin"
 }
 
 EnumDefinition ::= enum Identifier '{' EnumValue? (',' EnumValue)* '}' {
     pin = 1
-    implements = "me.serce.solidity.lang.psi.SolEnumDefElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolEnumItemImplMixin"
-    stubClass = "me.serce.solidity.lang.stubs.SolEnumDefStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    implements = "com.broxus.solidity.lang.psi.SolEnumDefElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolEnumItemImplMixin"
+    stubClass = "com.broxus.solidity.lang.stubs.SolEnumDefStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 UserDefinedValueTypeDefinition ::= type Identifier is ElementaryTypeName ';' {
     pin = 1
-    implements = "me.serce.solidity.lang.psi.SolUserDefinedValueTypeDefElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolUserDefinedValueTypeDefMixin"
-    stubClass = "me.serce.solidity.lang.stubs.SolUserDefinedValueTypeDefStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    implements = "com.broxus.solidity.lang.psi.SolUserDefinedValueTypeDefElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolUserDefinedValueTypeDefMixin"
+    stubClass = "com.broxus.solidity.lang.stubs.SolUserDefinedValueTypeDefStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 IndexedParameterList ::= '(' ( TypeName indexed?  Identifier? (',' TypeName indexed?  Identifier?)* )? ')'
 ParameterDef ::= TypeName (constant StorageLocation? | StorageLocation constant?)? Identifier? {
-    implements = "me.serce.solidity.lang.psi.SolNamedElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolParameterDefMixin"
+    implements = "com.broxus.solidity.lang.psi.SolNamedElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolParameterDefMixin"
 }
 ParameterList ::= '(' ( ParameterDef (',' ParameterDef)* )? ')'
 
@@ -290,13 +290,13 @@ ParameterList ::= '(' ( ParameterDef (',' ParameterDef)* )? ')'
 // are not allowed in argument lists
 // TODO these 2 definitions can be private
 DeclarationItem ::= Identifier ','? | ',' {
-    implements = "me.serce.solidity.lang.psi.SolNamedElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolDeclarationItemMixin"
+    implements = "com.broxus.solidity.lang.psi.SolNamedElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolDeclarationItemMixin"
 }
 DeclarationList ::= '(' DeclarationItem*  ')'
 TypedDeclarationItem ::= (TypeName StorageLocation?)? Identifier ','? | ',' {
-    implements = "me.serce.solidity.lang.psi.SolNamedElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolTypedDeclarationItemMixin"
+    implements = "com.broxus.solidity.lang.psi.SolNamedElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolTypedDeclarationItemMixin"
 }
 TypedDeclarationList ::= '(' TypedDeclarationItem*  ')' ;
 // TODO: remove storage declaration from all other places
@@ -305,8 +305,8 @@ VariableDeclaration ::=
     DeclarationList |
     TypedDeclarationList |
     TypeName StorageLocation? Identifier {
-    implements = "me.serce.solidity.lang.psi.SolNamedElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolVariableDeclarationMixin"
+    implements = "com.broxus.solidity.lang.psi.SolNamedElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolVariableDeclarationMixin"
 }
 
 TypeName ::= MappingTypeName
@@ -316,51 +316,51 @@ TypeName ::= MappingTypeName
          | ArrayTypeName
          | ElementaryTypeName
          | FunctionTypeName {
-    stubClass = "me.serce.solidity.lang.stubs.SolTypeRefStub"
-    extends = "me.serce.solidity.lang.psi.impl.SolStubbedElementImpl<?>"
+    stubClass = "com.broxus.solidity.lang.stubs.SolTypeRefStub"
+    extends = "com.broxus.solidity.lang.psi.impl.SolStubbedElementImpl<?>"
 }
 
 BytesArrayTypeName ::= bytesNumType StorageLocation? {
-     stubClass = "me.serce.solidity.lang.stubs.SolTypeRefStub"
-     elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+     stubClass = "com.broxus.solidity.lang.stubs.SolTypeRefStub"
+     elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 ArrayTypeName ::= TypeName '[' Expression? ']' StorageLocation? {
-    stubClass = "me.serce.solidity.lang.stubs.SolTypeRefStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    stubClass = "com.broxus.solidity.lang.stubs.SolTypeRefStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 UserDefinedLocationTypeName ::= UserDefinedWithLocationTypeName | UserDefinedWithoutLocationTypeName {
-    stubClass = "me.serce.solidity.lang.stubs.SolTypeRefStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    stubClass = "com.broxus.solidity.lang.stubs.SolTypeRefStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 private UserDefinedWithLocationTypeName ::= UserDefinedTypeName StorageLocation
 private UserDefinedWithoutLocationTypeName ::= UserDefinedTypeName
 
 UserDefinedTypeName ::= Identifier ( '.' Identifier )* {
-    implements = "me.serce.solidity.lang.psi.SolUserDefinedTypeNameElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolUserDefinedTypeNameImplMixin"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    implements = "com.broxus.solidity.lang.psi.SolUserDefinedTypeNameElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolUserDefinedTypeNameImplMixin"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 MappingTypeName ::= mapping '(' (BytesArrayTypeName | ElementaryTypeName | UserDefinedTypeName ) '=>' TypeName ')' {
     pin = 1
-    stubClass = "me.serce.solidity.lang.stubs.SolTypeRefStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    stubClass = "com.broxus.solidity.lang.stubs.SolTypeRefStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 OptionalTypeName ::= optional '(' TypeName (',' TypeName)* ')' {
     pin = 1
-    stubClass = "me.serce.solidity.lang.stubs.SolTypeRefStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    stubClass = "com.broxus.solidity.lang.stubs.SolTypeRefStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 // According to grammar.txt, it should be only TypeNameList after function, but according to reality ...
 FunctionTypeName ::= function ParameterList ( internal | external | StateMutability )*
                    ( returns ParameterList )? {
     pin = 1
-    stubClass = "me.serce.solidity.lang.stubs.SolTypeRefStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    stubClass = "com.broxus.solidity.lang.stubs.SolTypeRefStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 StorageLocation ::= memory | storage | calldata
@@ -482,12 +482,12 @@ PrimaryExpression ::= VarLiteral
                   | ElementaryTypeNameExpression
 
 VarLiteral ::= Identifier {
-    implements = "me.serce.solidity.lang.psi.SolReferenceElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolVarLiteralMixin"
+    implements = "com.broxus.solidity.lang.psi.SolReferenceElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolVarLiteralMixin"
 }
 FunctionCallExpression ::= Expression FunctionInvocation {
-    implements = "me.serce.solidity.lang.psi.SolFunctionCallElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolFunctionCallMixin"
+    implements = "com.broxus.solidity.lang.psi.SolFunctionCallElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolFunctionCallMixin"
 }
 
 FunctionInvocation ::= MapExpression? '(' FunctionCallArguments? ')'
@@ -501,15 +501,15 @@ private UnfinishedMapExpression ::= '{' MapExpressionClause (',' MapExpressionCl
 MapExpression ::= UnfinishedMapExpression '}'
 
 NewExpression ::= new TypeName {
-    implements = "me.serce.solidity.lang.psi.SolReferenceElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolNewExpressionElement"
+    implements = "com.broxus.solidity.lang.psi.SolReferenceElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolNewExpressionElement"
     pin = 1
 }
 
 MemberAccessExpression ::= Expression '.' Identifier {
     pin = 2
-    implements = "me.serce.solidity.lang.psi.SolReferenceElement"
-    mixin = "me.serce.solidity.lang.psi.impl.SolMemberAccessElement"
+    implements = "com.broxus.solidity.lang.psi.SolReferenceElement"
+    mixin = "com.broxus.solidity.lang.psi.impl.SolMemberAccessElement"
 }
 IndexAccessExpression ::= Expression '[' ( Expression? ':' Expression? | Expression? ) ']' {pin=2}
 
@@ -539,8 +539,8 @@ private ElementaryTypeNameExpression ::= ElementaryTypeName
 ElementaryTypeName ::= ( address 'payable' ) | address | bool | string | var
                      | 'TvmCell' | 'TvmSlice' | 'TvmBuilder' | 'ExtraCurrencyCollection'
 | NumberType {
-    stubClass = "me.serce.solidity.lang.stubs.SolTypeRefStub"
-    elementTypeFactory = "me.serce.solidity.lang.stubs.ImplKt.factory"
+    stubClass = "com.broxus.solidity.lang.stubs.SolTypeRefStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
 
 NumberType ::= intNumType | uIntNumType | byteNumType | bytesNumType | fixedNumType | uFixedNumType

@@ -1,4 +1,4 @@
-<templateSet group="Solidity">
+<templateSet group="T-Sol">
     <template name="stru" value="struct $NAME$ {&#10;  $END$&#10;}" description="Define a struct"
               toReformat="true" toShortenFQNames="true">
         <variable name="NAME" expression="complete()" defaultValue="" alwaysStopAt="true"/>

@@ -62,6 +62,8 @@ object SolString : SolPrimitiveType {
   override fun isAssignableFrom(other: SolType): Boolean =
     other == SolString
 
+  override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).stringType)
+
   override fun toString() = "string"
 }
 
@@ -228,7 +230,7 @@ data class SolStruct(val ref: SolStructDefinition) : SolType {
 
   override fun getMembers(project: Project): List<SolMember> {
     return ref.variableDeclarationList
-      .map { SolStructVariableDeclaration(it) }
+      .map { SolStructVariableDeclaration(it) } + getSdkMembers(SolInternalTypeFactory.of(project).structType)
   }
 }
 
@@ -323,7 +325,8 @@ sealed class SolArray(val type: SolType) : SolType {
         .map {
           val parameters = it.parseParameters()
             .map { pair -> pair.first to type }
-          BuiltinCallable(parameters, it.parseType(), it.name, it) }
+          BuiltinCallable(parameters, it.parseType(), it.name, it)
+        }
     }
   }
 }
@@ -331,6 +334,8 @@ sealed class SolArray(val type: SolType) : SolType {
 object SolBytes : SolPrimitiveType {
   override fun isAssignableFrom(other: SolType): Boolean =
     other == SolBytes
+
+  override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).bytesType)
 
   override fun toString() = "bytes"
 }

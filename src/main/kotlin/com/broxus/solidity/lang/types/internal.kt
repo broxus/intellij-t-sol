@@ -25,7 +25,11 @@ class SolInternalTypeFactory(project: Project) {
       mathType,
       tvmType,
       mappingType,
-      optionalType
+      optionalType,
+      structType,
+      stringType,
+      rndType,
+      bytesType
     ).associateBy { it.toString() }
   }
 
@@ -645,6 +649,116 @@ decodes the cell and returns the values.
     """), true)
   }
 
+  val structType: SolContract by lazy {
+    SolContract(psiFactory.createContract("""
+      contract ${internalise("Struct")} {
+							/**
+							*/
+							function unpack() returns (TypeA /*a*/, TypeB /*b*/);
+      }
+    """), true)
+  }
+
+  val stringType: SolContract by lazy {
+    SolContract(psiFactory.createContract("""
+      contract ${internalise("String")} {
+							/**
+							*/
+							function empty() returns (bool);
+							/**
+							*/
+							function byteLength() returns (uint32);
+							/**
+							*/
+							function substr(uint from) returns (string);
+							/**
+							*/
+							function substr(uint from, uint count) returns (string); 
+							/**
+							*/
+							function append(string tail);
+							/**
+							*/
+							function find(bytes1 symbol) returns (optional(uint32));
+							/**
+							*/
+							function find(string substr) returns (optional(uint32));
+							/**
+							*/
+							function findLast(bytes1 symbol) returns (optional(uint32));
+							/**
+							*/
+							function toUpperCase() returns (string)
+							/**
+							*/
+							function toLowerCase() returns (string)
+							/**
+							*/
+							function format(string template, TypeA a, TypeB b, ...) returns (string);
+							/**
+							*/
+							function stoi(string inputStr) returns (optional(int) /*result*/);
+        }
+    """), true)
+  }
+
+  val rndType: SolContract by lazy {
+    SolContract(psiFactory.createContract("""
+      contract ${internalise("Rnd")} {
+							/**
+							*/
+							function next(Type/*[Type limit]*/) returns (Type); 
+							/**
+							*/
+							function next() returns (uint256); 
+							/**
+							*/
+							function getSeed() returns (uint256);
+							/**
+							*/
+							function setSeed(uint256 x);
+							/**
+							*/
+							function shuffle(uint someNumber);
+							/**
+							*/
+							function shuffle();
+        }
+    """), true)
+  }
+
+
+  val bytesType: SolContract by lazy {
+    SolContract(psiFactory.createContract("""
+      contract ${internalise("Bytes")} {
+							/**
+							*/
+							function empty() returns (bool);
+							/**
+							*/
+//							function operator[](uint index) returns (byte);
+							/**
+							*/
+//							function operator[](uint from, uint to) returns (bytes);
+							/**
+							*/
+							function length() returns (uint) 
+							/**
+							*/
+							function toSlice() returns (TvmSlice);
+							/**
+							*/
+							function dataSize(uint n) returns (uint /*cells*/, uint /*bits*/, uint /*refs*/);
+							/**
+							*/
+							function dataSizeQ(uint n) returns (optional(uint /*cells*/, uint /*bits*/, uint /*refs*/));
+							/**
+							*/
+							function append(bytes tail);
+      }
+    """), true)
+  }
+
   val tvmType: SolContract by lazy {
     SolContract(psiFactory.createContract("""
       contract ${internalise("Tvm")} {
@@ -980,46 +1094,55 @@ new contract
           $abiType abi;
           $mathType math;
           $tvmType tvm;
+          $rndType rnd;
           
           uint now;
 
-          function assert(bool condition) private {}
 							/**
 							*/
-							function require(bool condition) private {}
+              function assert(bool condition)  {}
 							/**
 							*/
-							function require(bool condition, string message) private {}
+              function bitSize(int x) private returns (uint16)   {}
 							/**
 							*/
-							function revert() private {}
+              function uBitSize(uint x) returns (uint16)   {}
+							/**
+							*/
+							function require(bool condition)  {}
+							/**
+							*/
+							function require(bool condition, string message)  {}
+							/**
+							*/
+							function revert()  {}
 							/**
 							*/
 							function revert(string) {}
 							/**
 							*/
-							function keccak256() returns (bytes32) private {}
+							function keccak256()  returns (bytes32) {} 
 							/**
 							*/
-							function sha3() returns (bytes32) private {}
+							function sha3()  returns (bytes32)  {}
 							/**
 							*/
-							function sha256() returns (bytes32) private {}
+							function sha256()  returns (bytes32)  {}
 							/**
 							*/
-							function ripemd160() returns (bytes20) private {}
+							function ripemd160()  returns (bytes20)  {}
 							/**
 							*/
-							function ecrecover(bytes32 hash, uint8 v, bytes32 r, bytes32 s) returns (address) private {}
+							function ecrecover(bytes32 hash, uint8 v, bytes32 r, bytes32 s)  returns (address)  {}
 							/**
 							*/
-							function addmod(uint x, uint y, uint k) returns (uint) private {}
+							function addmod(uint x, uint y, uint k)  returns (uint)  {}
 							/**
 							*/
-							function mulmod(uint x, uint y, uint k) returns (uint) private returns (uint) {}
+							function mulmod(uint x, uint y, uint k)  returns (uint) {}
 							/**
 							*/
-							function selfdestruct(address recipient) private {};
+							function selfdestruct(address recipient)  {};
           
           logtvm(string log);
       }

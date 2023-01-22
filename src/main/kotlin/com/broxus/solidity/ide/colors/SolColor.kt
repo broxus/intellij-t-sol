@@ -8,6 +8,7 @@ enum class SolColor(humanName: String, default: TextAttributesKey) {
   LINE_COMMENT("Comments//Comment", Defaults.LINE_COMMENT),
   NAT_SPEC_TAG("Comments//NatSpecTag", Defaults.DOC_COMMENT_TAG),
 
+  BUILTIN_TYPE("Types//Built-in contract or struct name", Defaults.KEYWORD),
   CONTRACT_NAME("Types//Contract name", Defaults.CLASS_NAME),
   STRUCT_NAME("Types//Struct name", Defaults.CLASS_NAME),
   ERROR_NAME("Types//Error name", Defaults.CLASS_NAME),

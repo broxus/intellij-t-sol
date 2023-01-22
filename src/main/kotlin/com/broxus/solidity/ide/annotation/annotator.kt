@@ -1,18 +1,16 @@
 package com.broxus.solidity.ide.annotation
 
+import com.broxus.solidity.ide.colors.SolColor
+import com.broxus.solidity.ide.hints.startOffset
+import com.broxus.solidity.lang.psi.*
+import com.broxus.solidity.lang.psi.impl.SolErrorDefMixin
+import com.broxus.solidity.lang.resolve.SolResolver
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.refactoring.suggested.endOffset
-import com.broxus.solidity.ide.colors.SolColor
-import com.broxus.solidity.ide.hints.startOffset
-import com.broxus.solidity.lang.core.SolidityTokenTypes
-import com.broxus.solidity.lang.core.SolidityTokenTypes.*
-import com.broxus.solidity.lang.psi.*
-import com.broxus.solidity.lang.psi.impl.SolErrorDefMixin
-import com.broxus.solidity.lang.resolve.SolResolver
 
 class SolidityAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
@@ -53,8 +51,8 @@ class SolidityAnnotator : Annotator {
           applyColor(holder, TextRange(element.startOffset, element.startOffset + 8), SolColor.KEYWORD)
         }
       }
-      is SolContractDefinition -> element.identifier?.let { applyColor(holder, it, SolColor.CONTRACT_NAME) }
-      is SolStructDefinition -> element.identifier?.let { applyColor(holder, it, SolColor.STRUCT_NAME) }
+      is SolContractDefinition -> element.identifier?.let { applyColor(holder, it, element.typeColor()) }
+      is SolStructDefinition -> element.identifier?.let { applyColor(holder, it, element.typeColor()) }
       is SolEnumDefinition -> element.identifier?.let { applyColor(holder, it, SolColor.ENUM_NAME) }
       is SolEventDefinition -> element.identifier?.let { applyColor(holder, it, SolColor.EVENT_NAME) }
       is SolUserDefinedValueTypeDefinition -> element.identifier?.let { applyColor(holder, it, SolColor.USER_DEFINED_VALUE_TYPE) }
@@ -80,9 +78,9 @@ class SolidityAnnotator : Annotator {
       is SolModifierDefinition -> element.identifier?.let { applyColor(holder, it, SolColor.FUNCTION_DECLARATION) }
       is SolModifierInvocation -> applyColor(holder, element.varLiteral.identifier, SolColor.FUNCTION_CALL)
       is SolUserDefinedTypeName -> {
-        when(SolResolver.resolveTypeNameUsingImports(element).firstOrNull()) {
-          is SolContractDefinition -> applyColor(holder, element, SolColor.CONTRACT_NAME)
-          is SolStructDefinition -> applyColor(holder, element, SolColor.STRUCT_NAME)
+        when(val resolved = SolResolver.resolveTypeNameUsingImports(element).firstOrNull()) {
+          is SolContractDefinition -> applyColor(holder, element, resolved.typeColor())
+          is SolStructDefinition -> applyColor(holder, element, resolved.typeColor())
           is SolEnumDefinition -> applyColor(holder, element, SolColor.ENUM_NAME)
           is SolUserDefinedValueTypeDefinition -> applyColor(holder, element, SolColor.USER_DEFINED_VALUE_TYPE)
         }
@@ -96,7 +94,7 @@ class SolidityAnnotator : Annotator {
           is SolEventDefinition -> applyColor(holder, element.referenceNameElement, SolColor.EVENT_NAME)
           else -> element.firstChild.let {
             if (it is SolPrimaryExpression && SolResolver.resolveTypeNameUsingImports(element.firstChild).filterIsInstance<SolStructDefinition>().isNotEmpty()) {
-              applyColor(holder, element.referenceNameElement, SolColor.STRUCT_NAME)
+              applyColor(holder, element.referenceNameElement, element.typeColor())
             } else {
               applyColor(holder, element.referenceNameElement, SolColor.FUNCTION_CALL)
             }
@@ -105,6 +103,8 @@ class SolidityAnnotator : Annotator {
       }
     }
   }
+  private fun PsiElement.typeColor() = if (isBuiltin()) SolColor.BUILTIN_TYPE else if (this is SolContractDefinition) SolColor.CONTRACT_NAME else SolColor.STRUCT_NAME
+  private fun PsiElement.isBuiltin() = this.containingFile.virtualFile == null
 
   private fun applyColor(holder: AnnotationHolder, element: PsiElement, color: SolColor) {
     holder.newSilentAnnotation(HighlightSeverity.INFORMATION)

@@ -1,10 +1,5 @@
 package com.broxus.solidity.lang.types
 
-import com.intellij.openapi.util.RecursionManager
-import com.intellij.psi.PsiElement
-import com.intellij.psi.util.CachedValueProvider
-import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiModificationTracker
 import com.broxus.solidity.firstOrElse
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.resolve.SolResolver
@@ -12,6 +7,11 @@ import com.broxus.solidity.lang.resolve.canBeApplied
 import com.broxus.solidity.lang.resolve.ref.SolFunctionCallReference
 import com.broxus.solidity.lang.types.SolArray.SolDynamicArray
 import com.broxus.solidity.lang.types.SolArray.SolStaticArray
+import com.intellij.openapi.util.RecursionManager
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiModificationTracker
 import kotlin.math.max
 
 fun getSolType(type: SolTypeName?): SolType {
@@ -29,10 +29,14 @@ fun getSolType(type: SolTypeName?): SolType {
         "string" -> SolString
         "address" -> SolAddress
         else -> {
-          try {
-            SolInteger.parse(text)
-          } catch (e: IllegalArgumentException) {
-            SolUnknown
+          if (text.matches(SolFixedByte.regex)) {
+            SolFixedByte.parse(text)
+          } else {
+            try {
+              SolInteger.parse(text)
+            } catch (e: IllegalArgumentException) {
+              SolUnknown
+            }
           }
         }
       }

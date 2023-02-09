@@ -64,6 +64,8 @@
         <!-- Quote Handlers -->
         <lang.quoteHandler language="T-Sol" implementationClass="com.broxus.solidity.ide.SolQuoteTokenHandler"/>
 
+        <lang.documentationProvider language="T-Sol" implementationClass="com.broxus.solidity.ide.hints.SolDocumentationProvider"/>
+
         <!-- Hints -->
         <codeInsight.typeInfo language="T-Sol"
                               implementationClass="com.broxus.solidity.ide.hints.SolExpressionTypeProvider"/>

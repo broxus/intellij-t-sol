@@ -121,15 +121,6 @@
 
         <!-- Color settings -->
         <colorSettingsPage implementation="com.broxus.solidity.ide.colors.SolColorSettingsPage"/>
-        <additionalTextAttributes
-                scheme="Default"
-                file="colorSchemes/T-SolDefault.xml"
-        />
-        <additionalTextAttributes
-                scheme="Darcula"
-                file="colorSchemes/T-SolDefault.xml"
-        />
-
 
         <lang.psiStructureViewFactory language="T-Sol"
                                       implementationClass="com.broxus.solidity.ide.SolPsiStructureViewFactory"/>

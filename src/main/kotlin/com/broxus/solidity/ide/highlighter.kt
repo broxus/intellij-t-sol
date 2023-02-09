@@ -1,12 +1,12 @@
 package com.broxus.solidity.ide
 
+import com.broxus.solidity.ide.colors.SolColor
+import com.broxus.solidity.lang.core.SolidityLexer
+import com.broxus.solidity.lang.core.SolidityTokenTypes.*
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SingleLazyInstanceSyntaxHighlighterFactory
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.psi.tree.IElementType
-import com.broxus.solidity.ide.colors.SolColor
-import com.broxus.solidity.lang.core.SolidityLexer
-import com.broxus.solidity.lang.core.SolidityTokenTypes.*
 
 class SolHighlighterFactory : SingleLazyInstanceSyntaxHighlighterFactory() {
   override fun createHighlighter() = SolHighlighter
@@ -48,7 +48,7 @@ object SolHighlighter : SyntaxHighlighterBase() {
     types().map { it to SolColor.TYPE }
   ).mapValues { it.value.textAttributesKey }
 
-  private fun keywords() = setOf<IElementType>(
+  fun keywords() = setOf<IElementType>(
     // Note, the ERROR/REVERT are not keywords and are excluded
     IMPORT, AS, PRAGMA, NEW, DELETE, EMIT, /*REVERT,*/ CONSTRUCTOR,
     CONTRACT, LIBRARY, INTERFACE, IS, STRUCT, FUNCTION, ENUM,
@@ -61,7 +61,7 @@ object SolHighlighter : SyntaxHighlighterBase() {
     DAYS, WEEKS, YEARS, TYPE, VIRTUAL, OVERRIDE, IMMUTABLE, INDEXED
   )
 
-  private fun types() = setOf<IElementType>(
+  fun types() = setOf<IElementType>(
     BYTENUMTYPE, BYTESNUMTYPE, FIXEDNUMTYPE, INTNUMTYPE, UFIXEDNUMTYPE, UINTNUMTYPE,
     STRING, BOOL, ADDRESS,
   )

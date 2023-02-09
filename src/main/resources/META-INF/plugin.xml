@@ -177,6 +177,8 @@
         <defaultLiveTemplates file="/liveTemplates/Solidity.xml"/>
         <liveTemplateContext
                 implementation="com.broxus.solidity.ide.liveTemplates.SolTemplateContextType"/>
+
+        <fileIconPatcher id="tSolFilePatcher" implementation="com.broxus.solidity.ide.annotation.TSolFileIconPatcher"/>
     </extensions>
 
     <actions>

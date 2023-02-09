@@ -1,13 +1,5 @@
 package com.broxus.solidity.lang.completion
 
-import com.intellij.codeInsight.completion.InsertionContext
-import com.intellij.codeInsight.completion.PrioritizedLookupElement
-import com.intellij.codeInsight.lookup.LookupElement
-import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.codeInsight.lookup.LookupElementPresentation
-import com.intellij.psi.PsiElement
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.stubs.StubIndex
 import com.broxus.solidity.ide.SolidityIcons
 import com.broxus.solidity.ide.inspections.fixes.ImportFileAction
 import com.broxus.solidity.lang.psi.*
@@ -16,7 +8,18 @@ import com.broxus.solidity.lang.stubs.SolErrorIndex
 import com.broxus.solidity.lang.stubs.SolEventIndex
 import com.broxus.solidity.lang.stubs.SolGotoClassIndex
 import com.broxus.solidity.lang.stubs.SolModifierIndex
-import com.broxus.solidity.lang.types.*
+import com.broxus.solidity.lang.types.ContextType
+import com.broxus.solidity.lang.types.Usage
+import com.broxus.solidity.lang.types.getMembers
+import com.broxus.solidity.lang.types.type
+import com.intellij.codeInsight.completion.InsertionContext
+import com.intellij.codeInsight.completion.PrioritizedLookupElement
+import com.intellij.codeInsight.lookup.LookupElement
+import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.psi.PsiElement
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.stubs.StubIndex
 import javax.swing.Icon
 
 const val TYPED_COMPLETION_PRIORITY = 15.0
@@ -125,7 +128,7 @@ class ContractLookupElement(val contract: SolContractDefinition) : LookupElement
   override fun getLookupString(): String = contract.name!!
 
   override fun renderElement(presentation: LookupElementPresentation) {
-    presentation.icon = SolidityIcons.CONTRACT
+    presentation.icon = SolidityIcons.CONTRACT_FILE
     presentation.itemText = contract.name
     presentation.typeText = "from ${contract.containingFile.name}"
   }

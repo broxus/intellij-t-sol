@@ -1,12 +1,5 @@
 package com.broxus.solidity.lang.psi.impl
 
-import com.intellij.lang.ASTNode
-import com.intellij.openapi.util.RecursionManager
-import com.intellij.psi.PsiElement
-import com.intellij.psi.stubs.IStubElementType
-import com.intellij.psi.util.CachedValueProvider
-import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiModificationTracker
 import com.broxus.solidity.firstInstance
 import com.broxus.solidity.ide.SolidityIcons
 import com.broxus.solidity.lang.core.SolidityTokenTypes.*
@@ -15,7 +8,17 @@ import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.resolve.ref.*
 import com.broxus.solidity.lang.stubs.*
 import com.broxus.solidity.lang.types.*
+import com.intellij.lang.ASTNode
+import com.intellij.openapi.util.RecursionManager
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiWhiteSpace
+import com.intellij.psi.stubs.IStubElementType
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiModificationTracker
+import com.intellij.psi.util.nextLeaf
 import javax.naming.OperationNotSupportedException
+import javax.swing.Icon
 
 open class SolImportPathElement : SolStubbedNamedElementImpl<SolImportPathDefStub>, SolReferenceElement {
   constructor(node: ASTNode) : super(node)
@@ -83,7 +86,7 @@ abstract class SolContractOrLibMixin : SolStubbedNamedElementImpl<SolContractOrL
   constructor(node: ASTNode) : super(node)
   constructor(stub: SolContractOrLibDefStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
-  override fun getIcon(flags: Int) = SolidityIcons.CONTRACT
+  override fun getIcon(flags: Int) = SolidityIcons.CONTRACT_FILE
 
   override fun parseParameters(): List<Pair<String?, SolType>> {
     return listOf(Pair(null, SolAddress))
@@ -95,6 +98,19 @@ abstract class SolContractOrLibMixin : SolStubbedNamedElementImpl<SolContractOrL
 
   override fun resolveElement() = this
   override val callablePriority = 1000
+
+
+  override val isAbstract: Boolean
+    get() = firstChild?.elementType == ABSTRACT
+  override val contractType: ContractType
+    get() {
+      val typeEl = (if (isAbstract) firstChild?.nextLeaf { it !is PsiWhiteSpace } else firstChild) ?: return ContractType.COMMON
+      return when (typeEl.elementType) {
+        LIBRARY -> ContractType.LIBRARY
+        INTERFACE -> ContractType.INTERFACE
+        else -> ContractType.COMMON
+      }
+    }
 }
 
 abstract class SolConstructorDefMixin(node: ASTNode) : SolElementImpl(node), SolConstructorDefinition {
@@ -192,7 +208,9 @@ abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefSt
   constructor(node: ASTNode) : super(node)
   constructor(stub: SolFunctionDefStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
-  override fun getIcon(flags: Int) = SolidityIcons.FUNCTION
+  override fun getIcon(flags: Int): Icon {
+    return SolidityIcons.FUNCTION
+  }
 }
 
 abstract class SolModifierDefMixin : SolStubbedNamedElementImpl<SolModifierDefStub>, SolModifierDefinition {
@@ -202,7 +220,9 @@ abstract class SolModifierDefMixin : SolStubbedNamedElementImpl<SolModifierDefSt
   constructor(node: ASTNode) : super(node)
   constructor(stub: SolModifierDefStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
-  override fun getIcon(flags: Int) = SolidityIcons.FUNCTION
+  override fun getIcon(flags: Int): Icon {
+    return SolidityIcons.FUNCTION
+  }
 }
 
 abstract class SolStateVarDeclMixin : SolStubbedNamedElementImpl<SolStateVarDeclStub>, SolStateVariableDeclaration {
@@ -241,14 +261,18 @@ abstract class SolConstantVariableDeclMixin : SolStubbedNamedElementImpl<SolCons
   constructor(stub: SolConstantVariableDeclStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
   // TODO: does it need a separate icon?
-  override fun getIcon(flags: Int) = SolidityIcons.STATE_VAR
+  override fun getIcon(flags: Int): Icon {
+    return SolidityIcons.STATE_VAR
+  }
 }
 
 abstract class SolStructDefMixin : SolStubbedNamedElementImpl<SolStructDefStub>, SolStructDefinition, SolCallableElement {
   constructor(node: ASTNode) : super(node)
   constructor(stub: SolStructDefStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
-  override fun getIcon(flags: Int) = SolidityIcons.STRUCT
+  override fun getIcon(flags: Int): Icon {
+    return SolidityIcons.STRUCT
+  }
 
   override fun parseParameters(): List<Pair<String?, SolType>> {
     return variableDeclarationList

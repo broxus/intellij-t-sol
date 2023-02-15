@@ -2,6 +2,6 @@
 pragma ever-solidity >= 0.62.0;
 
 abstract contract ${NAME} {
-    constructor() {
+    constructor() public {
     }
 }

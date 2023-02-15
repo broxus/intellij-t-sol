@@ -1,5 +1,9 @@
 package com.broxus.solidity.lang.completion
 
+import com.broxus.solidity.ide.SolidityIcons
+import com.broxus.solidity.ide.hints.SolArgumentsDescription
+import com.broxus.solidity.lang.core.SolidityTokenTypes
+import com.broxus.solidity.lang.psi.*
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
@@ -10,10 +14,6 @@ import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.util.ProcessingContext
-import com.broxus.solidity.ide.SolidityIcons
-import com.broxus.solidity.ide.hints.SolArgumentsDescription
-import com.broxus.solidity.lang.core.SolidityTokenTypes
-import com.broxus.solidity.lang.psi.*
 
 /**
  * Special Variables and Functions
@@ -48,17 +48,6 @@ class SolContextCompletionContributor : CompletionContributor(), DumbAware {
         }
       })
 
-    extend(CompletionType.BASIC, emitStartStatement(),
-      object : CompletionProvider<CompletionParameters>() {
-        override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-          SolCompleter
-            .completeEventName(parameters.position)
-            .map { it.insertParenthesis(true) }
-            .forEach(result::addElement)
-        }
-      }
-    )
-
     extend(CompletionType.BASIC, revertStartStatement(),
       object : CompletionProvider<CompletionParameters>() {
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
@@ -90,7 +79,7 @@ class SolContextCompletionContributor : CompletionContributor(), DumbAware {
                 val originalPosition = parameters.originalPosition
                 val parent = originalPosition?.parent
                 if (parent !is SolMapExpressionClause) {
-                  val insert = " : ${if (needComma) "," else ""}"
+                  val insert = ": ${if (needComma) "," else ""}"
                   context.document.insertString(context.selectionEndOffset, insert)
                   context.editor.caretModel.currentCaret.moveToOffset(context.selectionEndOffset - 1)
                 }

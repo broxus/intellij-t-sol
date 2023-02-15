@@ -420,6 +420,8 @@ abstract class SolEventDefMixin : SolStubbedNamedElementImpl<SolEventDefStub>, S
   override fun resolveElement() = this
 
   override val callablePriority = 1000
+
+  override fun getIcon(flags: Int) = SolidityIcons.EVENT
 }
 
 abstract class SolErrorDefMixin : SolStubbedNamedElementImpl<SolErrorDefStub>, SolErrorDefinition, SolCallableElement {
@@ -445,6 +447,8 @@ abstract class SolErrorDefMixin : SolStubbedNamedElementImpl<SolErrorDefStub>, S
   override fun resolveElement() = this
 
   override val callablePriority = 1000
+
+  override fun getIcon(flags: Int) = SolidityIcons.ERROR
 }
 
 

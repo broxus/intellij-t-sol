@@ -118,7 +118,7 @@ object SolCompleter {
 
   private fun Sequence<SolNamedElement>.createVarLookups(icon: Icon): Sequence<LookupElement> = map {
     PrioritizedLookupElement.withPriority(
-      LookupElementBuilder.create(it.name ?: "").withIcon(icon),
+      LookupElementBuilder.create(it.name ?: "").withIcon(it.getIcon(0) ?: icon),
       TYPED_COMPLETION_PRIORITY
     )
   }

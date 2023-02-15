@@ -341,7 +341,7 @@ See example of how to work with TVM specific types:
           bytes public data;
           uint public gas;
           address public sender;
-          uint public value;
+          uint128 public value;
           
           ExtraCurrencyCollection currencies;
           
@@ -441,6 +441,7 @@ Normally, <code>stateInit</code> is used in 2 cases: to deploy the contract or t
         See example of address.transfer() usage:
 		
 		<li><a href="https://github.com/tonlabs/samples/blob/master/solidity/7_Giver.sol">giver</a></li>
+    @custom:no_validation
 */
               function transfer(uint128 value, bool bounce, uint16 flag, TvmCell body, ExtraCurrencyCollection currencies, TvmCell stateInit);
 							/**      
@@ -486,7 +487,7 @@ It's wrapper for opcode <code>REWRITESTDADDR</code>.
 Example:
 
 <code>(int8 wid, uint addr) = address(this).unpack();</code>
-@custom:no_validation
+ @custom:no_validation
 							*/
 							function unpack() returns (int8 /*wid*/, uint256 /*value*/);
       }
@@ -592,6 +593,8 @@ Sets the value associated with key, but only if key is present in the <code>mapp
   val arrayType: SolContract by lazy {
     SolContract(psiFactory.createContract("""
       contract ${internalise("Array")} {
+          uint64 length;
+          
           function push(uint value);
       }
     """), true)
@@ -627,12 +630,12 @@ Deletes content of the <code>optional</code>.
           // todo varargs
 							/**
 creates <code>cell</code> from the values.
-@custom:no_validation
+ @custom:no_validation
 							*/
 							function encode(TypeA a) returns (TvmCell /*cell*/);
 							/**
 decodes the <code>cell</code> and returns the values.
-@custom:no_validation
+ @custom:no_validation
 							*/
 							function decode(TvmCell cell) returns (TypeA);
       }

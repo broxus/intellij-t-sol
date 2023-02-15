@@ -12,6 +12,13 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <b>v1.1</b>
+        <ul>
+          <li>Showing documentation when hovering on an element (function, state variable etc.)</li>
+          <li>Added documentation for built-in elements</li>
+          <li>Checking the type of function call arguments</li>
+          <li>New icons</li>
+        </ul>
         <b>v1.0.2</b>
         <ul>
           <li>Plugin is now compatible with the IntelliJ-Solidity one</li>

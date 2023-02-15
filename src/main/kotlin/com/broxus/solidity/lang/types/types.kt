@@ -297,6 +297,8 @@ sealed class SolArray(val type: SolType) : SolType {
     override fun hashCode(): Int {
       return Objects.hash(size, type)
     }
+
+    override fun getMembers(project: Project) = SolInternalTypeFactory.of(project).arrayType.ref.stateVariableDeclarationList;
   }
 
   class SolDynamicArray(type: SolType) : SolArray(type) {
@@ -320,13 +322,14 @@ sealed class SolArray(val type: SolType) : SolType {
     }
 
     override fun getMembers(project: Project): List<SolMember> {
-      return SolInternalTypeFactory.of(project).arrayType.ref
-        .functionDefinitionList
+      return SolInternalTypeFactory.of(project).arrayType.ref.let {
+        it.functionDefinitionList
         .map {
           val parameters = it.parseParameters()
             .map { pair -> pair.first to type }
           BuiltinCallable(parameters, it.parseType(), it.name, it)
-        }
+        } + it.stateVariableDeclarationList
+      }
     }
   }
 }

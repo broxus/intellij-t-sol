@@ -1,6 +1,6 @@
-<KEYWORD>pragma</KEYWORD> solidity ^0.4.11;
+<KEYWORD>pragma</KEYWORD> ever-solidity >=0.62.0;
 
-<KEYWORD>import</KEYWORD> './Ownable.sol';
+<KEYWORD>import</KEYWORD> './Ownable.tsol';
 
 <TYPE>uint8</TYPE> <KEYWORD>constant</KEYWORD> <CONSTANT>MASK</CONSTANT> = 0x01;
 
@@ -16,7 +16,7 @@
  * @dev Extension for the Ownable contract, where the ownership needs to be claimed.
  * This allows the new owner to accept the transfer.
  */
-<KEYWORD>contract</KEYWORD> <CONTRACT_NAME>Claimable</CONTRACT_NAME> <KEYWORD>is</KEYWORD> <CONTRACT_NAME>Ownable</CONTRACT_NAME> {
+<KEYWORD>contract</KEYWORD> <CONTRACT_NAME>Claimable</CONTRACT_NAME> <KEYWORD>is</KEYWORD> <TYPE_REFERENCE>Ownable</TYPE_REFERENCE> {
 
     <KEYWORD>error</KEYWORD> <ERROR_NAME>InvalidAddress</ERROR_NAME>(<TYPE>address</TYPE> addr);
 
@@ -24,6 +24,8 @@
 
     <TYPE>bytes</TYPE> <KEYWORD>public</KEYWORD> <KEYWORD>constant</KEYWORD> <CONSTANT>DATA</CONSTANT> = <KEYWORD>hex</KEYWORD><STRING>"48656C6C6F2C20576F726C6421"</STRING>;
     <TYPE>address</TYPE> <KEYWORD>public</KEYWORD> <STATE_VARIABLE>pendingOwner</STATE_VARIABLE>;
+
+    <TYPE_REFERENCE>TvmCell</TYPE_REFERENCE> <STATE_VARIABLE>builtinType</STATE_VARIABLE>;
 
     <KEYWORD>struct</KEYWORD> <STRUCT_NAME>Struct</STRUCT_NAME> {
         <TYPE>bool</TYPE> flag;
@@ -42,7 +44,7 @@
         pendingOwner = newOwner;
     }
 
-    <KEYWORD>function</KEYWORD> <FUNCTION_DECLARATION>claimOwnership</FUNCTION_DECLARATION>() <FUNCTION_CALL>onlyPendingOwner</FUNCTION_CALL> {
+    <KEYWORD>function</KEYWORD> <FUNCTION_DECLARATION>claimOwnership</FUNCTION_DECLARATION>() <MODIFIER_INVOCATION>onlyPendingOwner</MODIFIER_INVOCATION> {
         owner = pendingOwner;
         pendingOwner = 0x0;
     }

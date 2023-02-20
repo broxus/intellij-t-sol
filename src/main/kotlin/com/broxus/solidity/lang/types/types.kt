@@ -1,14 +1,14 @@
 package com.broxus.solidity.lang.types
 
+import com.broxus.solidity.lang.psi.*
+import com.broxus.solidity.lang.psi.impl.Linearizable
+import com.broxus.solidity.lang.resolve.SolResolver
+import com.broxus.solidity.lang.types.SolInteger.Companion.UINT_160
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
-import com.broxus.solidity.lang.psi.*
-import com.broxus.solidity.lang.psi.impl.Linearizable
-import com.broxus.solidity.lang.resolve.SolResolver
-import com.broxus.solidity.lang.types.SolInteger.Companion.UINT_160
 import java.math.BigInteger
 import java.util.*
 
@@ -61,6 +61,8 @@ object SolBoolean : SolPrimitiveType {
 object SolString : SolPrimitiveType {
   override fun isAssignableFrom(other: SolType): Boolean =
     other == SolString
+
+  override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).stringType)
 
   override fun toString() = "string"
 }
@@ -228,7 +230,7 @@ data class SolStruct(val ref: SolStructDefinition) : SolType {
 
   override fun getMembers(project: Project): List<SolMember> {
     return ref.variableDeclarationList
-      .map { SolStructVariableDeclaration(it) }
+      .map { SolStructVariableDeclaration(it) } + getSdkMembers(SolInternalTypeFactory.of(project).structType)
   }
 }
 
@@ -295,6 +297,8 @@ sealed class SolArray(val type: SolType) : SolType {
     override fun hashCode(): Int {
       return Objects.hash(size, type)
     }
+
+    override fun getMembers(project: Project) = SolInternalTypeFactory.of(project).arrayType.ref.stateVariableDeclarationList;
   }
 
   class SolDynamicArray(type: SolType) : SolArray(type) {
@@ -318,12 +322,14 @@ sealed class SolArray(val type: SolType) : SolType {
     }
 
     override fun getMembers(project: Project): List<SolMember> {
-      return SolInternalTypeFactory.of(project).arrayType.ref
-        .functionDefinitionList
+      return SolInternalTypeFactory.of(project).arrayType.ref.let {
+        it.functionDefinitionList
         .map {
           val parameters = it.parseParameters()
             .map { pair -> pair.first to type }
-          BuiltinCallable(parameters, it.parseType(), it.name, it) }
+          BuiltinCallable(parameters, it.parseType(), it.name, it)
+        } + it.stateVariableDeclarationList
+      }
     }
   }
 }
@@ -331,6 +337,8 @@ sealed class SolArray(val type: SolType) : SolType {
 object SolBytes : SolPrimitiveType {
   override fun isAssignableFrom(other: SolType): Boolean =
     other == SolBytes
+
+  override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).bytesType)
 
   override fun toString() = "bytes"
 }
@@ -347,6 +355,25 @@ data class SolFixedBytes(val size: Int): SolPrimitiveType {
         SolFixedBytes(name.substring(5).toInt())
       } else {
         throw java.lang.IllegalArgumentException("should start with bytes")
+      }
+    }
+  }
+}
+
+data class SolFixedByte(val size: Int): SolPrimitiveType {
+  override fun toString() = "byte$size"
+
+  override fun isAssignableFrom(other: SolType): Boolean =
+    other is SolFixedByte && other.size <= size
+
+  companion object {
+
+    val regex = "byte\\d*$".toRegex()
+    fun parse(name: String): SolFixedByte {
+      return if (name.startsWith("byte")) {
+        SolFixedByte(name.substring(4).toInt())
+      } else {
+        throw java.lang.IllegalArgumentException("should start with 'byte'")
       }
     }
   }

@@ -8,6 +8,7 @@ enum class SolColor(humanName: String, default: TextAttributesKey) {
   LINE_COMMENT("Comments//Comment", Defaults.LINE_COMMENT),
   NAT_SPEC_TAG("Comments//NatSpecTag", Defaults.DOC_COMMENT_TAG),
 
+  TYPE_REFERENCE("Types//Type reference (contract, struct etc.)", Defaults.KEYWORD),
   CONTRACT_NAME("Types//Contract name", Defaults.CLASS_NAME),
   STRUCT_NAME("Types//Struct name", Defaults.CLASS_NAME),
   ERROR_NAME("Types//Error name", Defaults.CLASS_NAME),
@@ -22,6 +23,7 @@ enum class SolColor(humanName: String, default: TextAttributesKey) {
   STATE_VARIABLE("Identifiers//State variable", Defaults.INSTANCE_FIELD),
 
   FUNCTION_DECLARATION("Functions//Function declaration", Defaults.FUNCTION_DECLARATION),
+  MODIFIER_INVOCATION("Functions//Modifier invocation", Defaults.FUNCTION_DECLARATION),
   RECEIVE_FALLBACK_DECLARATION("Functions//Receive/Fallback declaration", Defaults.STATIC_METHOD),
   FUNCTION_CALL("Functions//Function call", Defaults.FUNCTION_CALL),
   GLOBAL_FUNCTION_CALL("Functions//Global function call", Defaults.GLOBAL_VARIABLE),

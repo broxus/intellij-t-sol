@@ -1,12 +1,12 @@
 package com.broxus.solidity.lang.psi
 
+import com.broxus.solidity.lang.resolve.ref.SolReference
+import com.broxus.solidity.lang.types.SolMember
+import com.broxus.solidity.lang.types.SolType
 import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiReference
-import com.broxus.solidity.lang.resolve.ref.SolReference
-import com.broxus.solidity.lang.types.SolMember
-import com.broxus.solidity.lang.types.SolType
 
 interface SolElement : PsiElement {
   override fun getReference(): PsiReference?
@@ -23,6 +23,10 @@ enum class Visibility {
 
 enum class Mutability {
   PURE, CONSTANT, VIEW, PAYABLE, RESPONSIBLE;
+}
+
+enum class ContractType(val docName: String) {
+  COMMON("contract"), LIBRARY("library"), INTERFACE("interface")
 }
 
 interface SolCallable {
@@ -83,6 +87,8 @@ interface SolModifierElement : SolNamedElement {
 interface SolContractOrLibElement : SolCallableElement {
   val supers: List<SolUserDefinedTypeName>
   val collectSupers: Collection<SolUserDefinedTypeName>
+  val isAbstract: Boolean
+  val contractType: ContractType
 }
 
 interface SolReferenceElement : SolNamedElement {

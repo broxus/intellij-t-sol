@@ -12,6 +12,13 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <b>v1.1</b>
+        <ul>
+          <li>Showing documentation when hovering on an element (function, state variable etc.)</li>
+          <li>Added documentation for built-in elements</li>
+          <li>Checking the type of function call arguments</li>
+          <li>New icons</li>
+        </ul>
         <b>v1.0.2</b>
         <ul>
           <li>Plugin is now compatible with the IntelliJ-Solidity one</li>
@@ -63,6 +70,8 @@
 
         <!-- Quote Handlers -->
         <lang.quoteHandler language="T-Sol" implementationClass="com.broxus.solidity.ide.SolQuoteTokenHandler"/>
+
+        <lang.documentationProvider language="T-Sol" implementationClass="com.broxus.solidity.ide.hints.SolDocumentationProvider"/>
 
         <!-- Hints -->
         <codeInsight.typeInfo language="T-Sol"
@@ -120,7 +129,6 @@
         <!-- Color settings -->
         <colorSettingsPage implementation="com.broxus.solidity.ide.colors.SolColorSettingsPage"/>
 
-
         <lang.psiStructureViewFactory language="T-Sol"
                                       implementationClass="com.broxus.solidity.ide.SolPsiStructureViewFactory"/>
 
@@ -167,6 +175,8 @@
         <defaultLiveTemplates file="/liveTemplates/Solidity.xml"/>
         <liveTemplateContext
                 implementation="com.broxus.solidity.ide.liveTemplates.SolTemplateContextType"/>
+
+        <fileIconPatcher id="tSolFilePatcher" implementation="com.broxus.solidity.ide.annotation.TSolFileIconPatcher"/>
     </extensions>
 
     <actions>

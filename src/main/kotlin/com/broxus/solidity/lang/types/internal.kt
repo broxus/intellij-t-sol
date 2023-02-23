@@ -596,7 +596,22 @@ Sets the value associated with key, but only if key is present in the <code>mapp
       contract ${internalise("Array")} {
           uint64 length;
           
-          function push(uint value);
+            /**
+Returns status flag whether the array is empty (its length is 0).
+            */
+          function empty() returns (bool);
+          
+            /**
+Dynamic storage arrays and <code>bytes</code> (not <code>string</code>) have a member function called <code>push()</code> that you can use to append a zero-initialised element at the end of the array. It returns a reference to the element, so that it can be used like <code>x.push().t = 2</code> or <code>x.push() = b</code>.
+            */
+          function push() returns (Type);
+            /**
+Dynamic storage arrays and <code>bytes</code> (not <code>string</code>) have a member function called <code>push(x)</code> that you can use to append a given element at the end of the array. The function returns nothing.
+            */
+          function push(Type value);
+            /**
+Dynamic storage arrays and <code>bytes</code> (not <code>string</code>) have a member function called <code>pop()</code> that you can use to remove an element from the end of the array. This also implicitly calls delete on the removed element. The function returns nothing.            */
+          function pop() returns (Type);
       }
     """)
   }

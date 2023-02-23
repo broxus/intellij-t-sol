@@ -538,7 +538,9 @@ private ElementaryTypeNameExpression ::= ElementaryTypeName
 
 ElementaryTypeName ::= ( address 'payable' ) | address | bool | string | var
                      | 'TvmCell' | 'TvmSlice' | 'TvmBuilder' | 'ExtraCurrencyCollection'
-| mapping '(' (BytesArrayTypeName | ElementaryTypeName | UserDefinedTypeName) '=>' TypeName ')' | NumberType {
+| mapping '(' (BytesArrayTypeName | ElementaryTypeName | UserDefinedTypeName) '=>' TypeName ')'
+| optional '(' TypeName (',' TypeName)* ')'
+| NumberType {
     stubClass = "com.broxus.solidity.lang.stubs.SolTypeRefStub"
     elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }

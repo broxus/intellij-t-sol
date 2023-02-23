@@ -71,7 +71,7 @@ data class SolOptional(val types: List<SolType>) : SolType {
   override fun isAssignableFrom(other: SolType): Boolean =
     when (other) {
       is SolOptional -> other.types.size == this.types.size && other.types.mapIndexed { index, solType -> types[index].isAssignableFrom(solType) }.all { it }
-      else -> false
+      else -> types.size == 1 && types[0].isAssignableFrom(other)
     }
 
   override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).optionalType)

@@ -446,9 +446,6 @@ Normally, <code>stateInit</code> is used in 2 cases: to deploy the contract or t
               function transfer(uint128 value, bool bounce, uint16 flag, TvmCell body, ExtraCurrencyCollection currencies, TvmCell stateInit);
 							/**      
 Constructs an <code>address</code> of type <strong>addr_std</strong> with given workchain id wid and value <strong>address_value</strong>.
-							/**
-							*/
-							function send(uint value) returns (bool);
 							*/
 							function makeAddrStd(int8 wid, uint _address) returns (address);
 							/**

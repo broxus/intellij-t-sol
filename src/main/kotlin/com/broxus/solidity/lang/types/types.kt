@@ -80,6 +80,19 @@ data class SolOptional(val types: List<SolType>) : SolType {
 
 }
 
+data class SolVector(val types: List<SolType>) : SolType {
+  override fun isAssignableFrom(other: SolType): Boolean =
+    when (other) {
+      is SolVector -> other.types.size == this.types.size && other.types.mapIndexed { index, solType -> types[index].isAssignableFrom(solType) }.all { it }
+      else -> types.size == 1 && types[0].isAssignableFrom(other)
+    }
+
+  override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).vectorType)
+
+  override fun toString() = "SolVector(${types.joinToString { it.toString() }})"
+
+}
+
 object SolAddress : SolPrimitiveType {
   override fun isAssignableFrom(other: SolType): Boolean =
     when (other) {

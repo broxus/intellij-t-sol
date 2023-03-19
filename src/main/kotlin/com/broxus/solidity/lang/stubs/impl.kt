@@ -1,20 +1,20 @@
 package com.broxus.solidity.lang.stubs
 
-import com.intellij.psi.PsiFile
-import com.intellij.psi.StubBuilder
-import com.intellij.psi.stubs.*
-import com.intellij.psi.tree.IStubFileElementType
 import com.broxus.solidity.lang.TSolidityLanguage
 import com.broxus.solidity.lang.core.SolidityFile
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.psi.impl.*
+import com.intellij.psi.PsiFile
+import com.intellij.psi.StubBuilder
+import com.intellij.psi.stubs.*
+import com.intellij.psi.tree.IStubFileElementType
 
 class SolidityFileStub(file: SolidityFile?) : PsiFileStubImpl<SolidityFile>(file) {
   override fun getType() = Type
 
   object Type : IStubFileElementType<SolidityFileStub>(TSolidityLanguage) {
     // bump version every time stub tree changes
-    override fun getStubVersion() = 16
+    override fun getStubVersion() = 17
 
     override fun getBuilder(): StubBuilder = object : DefaultStubBuilder() {
       override fun createStubForFile(file: PsiFile) = SolidityFileStub(file as SolidityFile)
@@ -44,6 +44,7 @@ fun factory(name: String): SolStubElementType<*, *> = when (name) {
   "ELEMENTARY_TYPE_NAME" -> SolTypeRefStub.Type("ELEMENTARY_TYPE_NAME", ::SolElementaryTypeNameImpl)
   "MAPPING_TYPE_NAME" -> SolTypeRefStub.Type("MAPPING_TYPE_NAME", ::SolMappingTypeNameImpl)
   "OPTIONAL_TYPE_NAME" -> SolTypeRefStub.Type("OPTIONAL_TYPE_NAME", ::SolOptionalTypeNameImpl)
+  "VECTOR_TYPE_NAME" -> SolTypeRefStub.Type("VECTOR_TYPE_NAME", ::SolVectorTypeNameImpl)
   "FUNCTION_TYPE_NAME" -> SolTypeRefStub.Type("FUNCTION_TYPE_NAME", ::SolFunctionTypeNameImpl)
   "ARRAY_TYPE_NAME" -> SolTypeRefStub.Type("ARRAY_TYPE_NAME", ::SolArrayTypeNameImpl)
   "BYTES_ARRAY_TYPE_NAME" -> SolTypeRefStub.Type("BYTES_ARRAY_TYPE_NAME", ::SolBytesArrayTypeNameImpl)

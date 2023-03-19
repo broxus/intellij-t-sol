@@ -26,6 +26,7 @@ class SolInternalTypeFactory(project: Project) {
       tvmType,
       mappingType,
       optionalType,
+      vectorType,
       structType,
       stringType,
       rndType,
@@ -620,6 +621,31 @@ Deletes content of the <code>optional</code>.
       }
     """), true)
   }
+
+  val vectorType: SolContract by lazy {
+    SolContract(psiFactory.createContract("""
+      contract ${internalise("Vector")} {
+
+							/**
+Appends <b>obj</b> to the <code>vector</code>.
+							*/
+							function push(Type _type);
+							/**
+Pops the last value from the <code>vector</code> and returns it.
+							*/
+							function pop() returns (Type);
+							/**
+Returns length of the <code>vector</code>.
+							*/
+							function length() returns (uint8);
+							/**
+Checks whether the <code>vector</code> is empty.
+							*/
+							function empty() returns (bool);
+      }
+    """), true)
+  }
+
 
   val abiType: SolContract by lazy {
     SolContract(psiFactory.createContract("""

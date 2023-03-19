@@ -312,6 +312,7 @@ VariableDeclaration ::=
 TypeName ::= MappingTypeName
          | UserDefinedLocationTypeName
 		 | OptionalTypeName
+		 | VectorTypeName
          | BytesArrayTypeName
          | ArrayTypeName
          | ElementaryTypeName
@@ -350,6 +351,12 @@ MappingTypeName ::= mapping '(' (BytesArrayTypeName | ElementaryTypeName | UserD
 }
 
 OptionalTypeName ::= optional '(' TypeName (',' TypeName)* ')' {
+    pin = 1
+    stubClass = "com.broxus.solidity.lang.stubs.SolTypeRefStub"
+    elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
+}
+
+VectorTypeName ::= vector '(' TypeName (',' TypeName)* ')' {
     pin = 1
     stubClass = "com.broxus.solidity.lang.stubs.SolTypeRefStub"
     elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
@@ -540,6 +547,7 @@ ElementaryTypeName ::= ( address 'payable' ) | address | bool | string | var
                      | 'TvmCell' | 'TvmSlice' | 'TvmBuilder' | 'ExtraCurrencyCollection'
 | mapping '(' (BytesArrayTypeName | ElementaryTypeName | UserDefinedTypeName) '=>' TypeName ')'
 | optional '(' TypeName (',' TypeName)* ')'
+| vector '(' TypeName (',' TypeName)* ')'
 | NumberType {
     stubClass = "com.broxus.solidity.lang.stubs.SolTypeRefStub"
     elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"

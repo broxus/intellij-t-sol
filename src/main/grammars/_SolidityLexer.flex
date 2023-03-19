@@ -202,6 +202,7 @@ PRAGMAALL=[^ ][^;]*
   "string"                { return STRING; }
   "bool"                  { return BOOL; }
   "optional"              { return OPTIONAL; }
+  "vector"                { return VECTOR; }
   "static"                { return STATIC; }
 
 

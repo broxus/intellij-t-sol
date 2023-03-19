@@ -1,5 +1,6 @@
 package com.broxus.solidity.ide.actions
 
+import com.broxus.solidity.utils.SolLightPlatformCodeInsightFixtureTestCase
 import com.intellij.ide.IdeView
 import com.intellij.ide.actions.TestDialogBuilder
 import com.intellij.openapi.actionSystem.ActionManager
@@ -9,7 +10,6 @@ import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.impl.file.PsiDirectoryFactory
 import com.intellij.testFramework.MapDataContext
-import com.broxus.solidity.utils.SolLightPlatformCodeInsightFixtureTestCase
 import org.intellij.lang.annotations.Language
 
 class SolCreateFileActionTest: SolLightPlatformCodeInsightFixtureTestCase() {
@@ -32,7 +32,7 @@ class SolCreateFileActionTest: SolLightPlatformCodeInsightFixtureTestCase() {
       pragma ever-solidity >= 0.62.0;
       
       contract myContract {
-          constructor(){
+          constructor() public {
       
           }
       }

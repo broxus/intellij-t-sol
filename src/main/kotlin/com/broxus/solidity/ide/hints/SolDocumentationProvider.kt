@@ -4,6 +4,7 @@ import com.broxus.solidity.ide.SolHighlighter
 import com.broxus.solidity.ide.colors.SolColor
 import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.psi.*
+import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.types.getSolType
 import com.intellij.lang.documentation.AbstractDocumentationProvider
 import com.intellij.lang.documentation.DocumentationMarkup.*
@@ -43,8 +44,11 @@ class SolDocumentationProvider : AbstractDocumentationProvider() {
   }
   private fun String.colorizeKeyword()  = "<b style='color:$typeRGB'>${this}</b>"
 
-  override fun generateDoc(element: PsiElement?, originalElement: PsiElement?): String? {
-    if (element == null) return null
+  override fun generateDoc(elementOrNull: PsiElement?, originalElement: PsiElement?): String? {
+    var element = elementOrNull ?: return null
+    if (element is SolMemberAccessExpression) {
+      element = SolResolver.resolveMemberAccess(element).filterIsInstance<SolFunctionDefinition>().firstOrNull() ?: return null
+    }
     val builder = StringBuilder()
     if (!builder.appendDefinition(element)) return null
     val comments = element.comments()

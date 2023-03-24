@@ -6,6 +6,7 @@ import com.broxus.solidity.lang.psi.SolPsiFactory
 import com.broxus.solidity.lang.types.SolInteger.Companion.UINT_256
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
+import org.intellij.lang.annotations.Language
 
 class SolInternalTypeFactory(project: Project) {
   private val psiFactory: SolPsiFactory = SolPsiFactory(project)
@@ -337,7 +338,7 @@ See example of how to work with TVM specific types:
 
 
   val msgType: SolContract by lazy {
-    SolContract(psiFactory.createContract("""
+    contract("""
       contract ${internalise("Msg")} {
           bytes public data;
           uint public gas;
@@ -358,11 +359,11 @@ Returns public key that is used to check the message signature. If the message i
 							function pubkey() returns (uint256);
           
       }
-    """), true)
+    """)
   }
 
-  val txType: SolType by lazy {
-    SolStruct(psiFactory.createStruct("""
+  val txType: SolStruct by lazy {
+    struct("""
       struct ${internalise("Tx")} {
           uint public gasprice;
           address public origin;
@@ -371,11 +372,11 @@ Returns public key that is used to check the message signature. If the message i
            
           uint64 public storageFee; 
       }
-    """))
+    """)
   }
 
   val addressType: SolContract by lazy {
-    SolContract(psiFactory.createContract("""
+    contract("""
       contract ${internalise("Address")} {
           int8 public wid;
           
@@ -384,6 +385,11 @@ Returns public key that is used to check the message signature. If the message i
           uint128 public balance;
           
           ExtraCurrencyCollection public currencies;
+          
+          /**
+          Sends an internal outbound message to the address, returns false on failure,
+          */
+          function send(uint value) returns (bool);
       
 							/**
 		Sends an internal outbound message to the address. Function parameters:
@@ -489,13 +495,12 @@ Example:
 							*/
 							function unpack() returns (int8 /*wid*/, uint256 /*value*/);
       }
-    """), true)
+    """)
 
   }
 
   val mappingType: SolContract by lazy {
-    SolContract(
-      psiFactory.createContract(
+    contract(
         """
       contract ${internalise("Mapping")} {
 							/**
@@ -585,21 +590,21 @@ Sets the value associated with key, but only if key is present in the <code>mapp
 							*/
 							function values() returns (ValueType[]);
       }
-    """), true)
+    """)
   }
 
   val arrayType: SolContract by lazy {
-    SolContract(psiFactory.createContract("""
+    contract("""
       contract ${internalise("Array")} {
           uint64 length;
           
           function push(uint value);
       }
-    """), true)
+    """)
   }
 
   val optionalType: SolContract by lazy {
-    SolContract(psiFactory.createContract("""
+    contract("""
       contract ${internalise("Optional")} {
 
 							/**
@@ -619,11 +624,11 @@ Deletes content of the <code>optional</code>.
 							*/
 							function reset();
       }
-    """), true)
+    """)
   }
 
   val vectorType: SolContract by lazy {
-    SolContract(psiFactory.createContract("""
+    contract("""
       contract ${internalise("Vector")} {
 
 							/**
@@ -643,12 +648,12 @@ Checks whether the <code>vector</code> is empty.
 							*/
 							function empty() returns (bool);
       }
-    """), true)
+    """)
   }
 
 
   val abiType: SolContract by lazy {
-    SolContract(psiFactory.createContract("""
+    contract("""
       contract ${internalise("Abi")} {
           // todo varargs
 							/**
@@ -662,21 +667,21 @@ decodes the <code>cell</code> and returns the values.
 							*/
 							function decode(TvmCell cell) returns (TypeA);
       }
-    """), true)
+    """)
   }
 
   val structType: SolContract by lazy {
-    SolContract(psiFactory.createContract("""
+    contract("""
       contract ${internalise("Struct")} {
 							/**
 							*/
 							function unpack() returns (TypeA /*a*/, TypeB /*b*/);
       }
-    """), true)
+    """)
   }
 
   val stringType: SolContract by lazy {
-    SolContract(psiFactory.createContract("""
+    contract("""
       contract ${internalise("String")} {
 							/**
 							*/
@@ -716,11 +721,11 @@ decodes the <code>cell</code> and returns the values.
 							*/
 							function stoi(string inputStr) returns (optional(int) /*result*/);
         }
-    """), true)
+    """)
   }
 
   val rndType: SolContract by lazy {
-    SolContract(psiFactory.createContract("""
+    contract("""
       contract ${internalise("Rnd")} {
 							/**
 							*/
@@ -741,12 +746,12 @@ decodes the <code>cell</code> and returns the values.
 							*/
 							function shuffle();
         }
-    """), true)
+    """)
   }
 
 
   val bytesType: SolContract by lazy {
-    SolContract(psiFactory.createContract("""
+    contract("""
       contract ${internalise("Bytes")} {
 							/**
 							*/
@@ -773,11 +778,11 @@ decodes the <code>cell</code> and returns the values.
 							*/
 							function append(bytes tail);
       }
-    """), true)
+    """)
   }
 
   val tvmType: SolContract by lazy {
-    SolContract(psiFactory.createContract("""
+    contract("""
       contract ${internalise("Tvm")} {
 							/**
 Executes TVM instruction "ACCEPT" (<a href="https://test.ton.org/tvm.pdf">TVM</a> - A.11.2). This instruction sets current gas limit to its maximal allowed value. This action is required to process external messages that bring no value.
@@ -1610,12 +1615,12 @@ See example of how to use this function:
 							function sendrawmsg(TvmCell msg, uint8 flag);
            
       }
-    """), true)
+    """)
   }
 
 
   val mathType: SolContract by lazy {
-    SolContract(psiFactory.createContract("""
+    contract("""
       contract ${internalise("Abi")} {
            // todo varargs
 							/**
@@ -1780,7 +1785,7 @@ See example of how to use this function:
 							function sign(int val) returns (int8);
            
       }
-    """), true)
+    """)
   }
 
   val blockType: SolType by lazy {
@@ -1795,7 +1800,7 @@ See example of how to use this function:
   }
 
   val globalType: SolContract by lazy {
-    SolContract(psiFactory.createContract("""
+    contract("""
       contract Global {
           $blockType block;
           $msgType msg;
@@ -1931,6 +1936,14 @@ See example of how to use this function:
           
           logtvm(string log);
       }
-    """), true)
+    """)
   }
+
+
+  private fun contract(@Language("Solidity") contractBody: String) =
+    SolContract(psiFactory.createContract(contractBody), true)
+
+  private fun struct(@Language("Solidity") contractBody: String) =
+    SolStruct(psiFactory.createStruct(contractBody), true)
+
 }

@@ -42,6 +42,11 @@ interface SolType {
     get() = true
 }
 
+interface SolUserType : SolType {
+  override val isBuiltin: Boolean
+    get() = false
+}
+
 interface SolPrimitiveType : SolType
 interface SolNumeric : SolPrimitiveType
 
@@ -192,7 +197,7 @@ data class SolInteger(val unsigned: Boolean, val size: Int) : SolNumeric {
   override fun toString() = "${if (unsigned) "u" else ""}int$size"
 }
 
-data class SolContract(val ref: SolContractDefinition, val builtin: Boolean = false) : SolType, Linearizable<SolContract> {
+data class SolContract(val ref: SolContractDefinition, val builtin: Boolean = false) : SolUserType, Linearizable<SolContract> {
   override fun linearize(): List<SolContract> {
     return RecursionManager.doPreventingRecursion(ref, true) {
       CachedValuesManager.getCachedValue(ref) {
@@ -235,7 +240,7 @@ data class SolContract(val ref: SolContractDefinition, val builtin: Boolean = fa
   override fun toString() = ref.name ?: ref.text ?: "$ref"
 }
 
-data class SolStruct(val ref: SolStructDefinition) : SolType {
+data class SolStruct(val ref: SolStructDefinition, val builtin : Boolean = false) : SolUserType {
   override fun isAssignableFrom(other: SolType): Boolean =
     other is SolStruct && ref == other.ref
 
@@ -245,6 +250,9 @@ data class SolStruct(val ref: SolStructDefinition) : SolType {
     return ref.variableDeclarationList
       .map { SolStructVariableDeclaration(it) } + getSdkMembers(SolInternalTypeFactory.of(project).structType)
   }
+
+  override val isBuiltin: Boolean
+    get() = builtin
 }
 
 data class SolStructVariableDeclaration(
@@ -259,7 +267,7 @@ data class SolStructVariableDeclaration(
   override fun getPossibleUsage(contextType: ContextType) = Usage.VARIABLE
 }
 
-data class SolEnum(val ref: SolEnumDefinition) : SolType {
+data class SolEnum(val ref: SolEnumDefinition) : SolUserType {
   override fun isAssignableFrom(other: SolType): Boolean =
     other is SolEnum && ref == other.ref
 

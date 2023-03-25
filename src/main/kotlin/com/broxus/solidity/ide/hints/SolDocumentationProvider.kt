@@ -55,7 +55,10 @@ class SolDocumentationProvider : AbstractDocumentationProvider() {
     if (comments.isNotEmpty()) {
       builder.append(CONTENT_START)
       comments.reversed().mapIndexed { i, e ->
-        var text = e.text.let { if (i == 0) it.replace("/**", "") else if (i == comments.size - 1) it.replace("*/", "") else it}
+        var text = e.text.let {
+          if (comments.size == 1) it.replace("/**", "").replace("*/", "")
+          else if (i == 0) it.replace("/**", "") else if (i == comments.size - 1) it.replace("*/", "") else it
+        }
         if (e.elementType == SolidityTokenTypes.NAT_SPEC_TAG) {
           text = (if (e.text == NO_VALIDATION_TAG) "" else "<br/>$GRAYED_START${text.substring(1)}:$GRAYED_END")
         }

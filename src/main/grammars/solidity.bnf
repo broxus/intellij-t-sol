@@ -232,7 +232,7 @@ ConstructorDefinition ::= constructor ParameterList
 
 FunctionDefinition ::= (function Identifier? | fallback | receive | onbounce | onticktock)
                         ParameterList
-                        ( FunctionVisibilitySpecifier | StateMutability | ModifierInvocation)*
+                        ( FunctionVisibilitySpecifier | StateMutability | externalMsg | internalMsg | inline | ModifierInvocation )*
                         ( returns ParameterList )? ( ';' | Block ) {
     pin = 1
     implements = "com.broxus.solidity.lang.psi.SolFunctionDefElement"

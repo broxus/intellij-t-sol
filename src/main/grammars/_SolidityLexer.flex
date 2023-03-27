@@ -204,6 +204,9 @@ PRAGMAALL=[^;]*
   "optional"              { return OPTIONAL; }
   "vector"                { return VECTOR; }
   "static"                { return STATIC; }
+  "inline"                { return INLINE; }
+  "internalMsg"           { return INTERNALMSG; }
+  "externalMsg"           { return EXTERNALMSG; }
 
 
   {HEXLITERAL}            { return HEXLITERAL; }

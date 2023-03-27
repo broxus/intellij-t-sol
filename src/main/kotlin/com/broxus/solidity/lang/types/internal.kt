@@ -3,7 +3,6 @@ package com.broxus.solidity.lang.types
 import com.broxus.solidity.lang.psi.SolContractDefinition
 import com.broxus.solidity.lang.psi.SolNamedElement
 import com.broxus.solidity.lang.psi.SolPsiFactory
-import com.broxus.solidity.lang.types.SolInteger.Companion.UINT_256
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import org.intellij.lang.annotations.Language
@@ -394,7 +393,6 @@ Returns public key that is used to check the message signature. If the message i
 							/**
 		Sends an internal outbound message to the address. Function parameters:
 		
-<ul >
 <li><code>value</code> (<code>uint128</code>) - amount of nanotons sent attached to the message. Note: the sent value is
 withdrawn from the contract's balance even if the contract has been called by internal inbound message.</li>
 <li><code>currencies</code> (<code>ExtraCurrencyCollection</code>) - additional currencies attached to the message. Defaults to
@@ -1789,14 +1787,17 @@ See example of how to use this function:
   }
 
   val blockType: SolType by lazy {
-    BuiltinType(internalise("Block"), listOf(
-      BuiltinCallable(listOf(), SolAddress, "coinbase", null, Usage.VARIABLE),
-      BuiltinCallable(listOf(), UINT_256, "difficulty", null, Usage.VARIABLE),
-      BuiltinCallable(listOf(), UINT_256, "gasLimit", null, Usage.VARIABLE),
-      BuiltinCallable(listOf(), UINT_256, "number", null, Usage.VARIABLE),
-      BuiltinCallable(listOf(), UINT_256, "timestamp", null, Usage.VARIABLE),
-      BuiltinCallable(listOf("blockNumber" to UINT_256), SolFixedBytes(32), "blockhash", null, Usage.VARIABLE)
-    ))
+    contract("""
+            contract ${internalise("Block")}{
+                 address coinbase;
+                 uint difficulty;
+                 uint gasLimit;
+                 uint number;
+                 uint timestamp;
+                 
+                 function blockhash(uint blockNumber) returns (bytes32);
+            }      
+        """)
   }
 
   val globalType: SolContract by lazy {
@@ -1813,14 +1814,16 @@ See example of how to use this function:
           uint now;
 
 							/**
+causes a Panic error and thus state change reversion if the condition is not met - to be used for internal errors.
+
 							*/
-              function assert(bool condition)  {}
+              function assert(bool condition);
 							/**
 							*/
-              function bitSize(int x) private returns (uint16) private {}
+              function bitSize(int x) private returns (uint16);
 							/**
 							*/
-              function uBitSize(uint x) returns (uint16) private {}
+              function uBitSize(uint x) returns (uint16);
 							/**
 							In case of exception state variables of the contract are reverted to the state before <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmcommit">tvm.commit()</a> or to the state of the contract before it was called. Use error codes that are greater than 100 because other error codes can be <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#solidity-runtime-errors">reserved</a> <strong>Note</strong> if a nonconstant error code is passed as the function argument and the error code is less than 2 then the error code will be set to 100.
 							
@@ -1835,7 +1838,7 @@ See example of how to use this function:
 							require(a == 6, 101, "a is not equal to six"); // throws an exception with code 101 and string
 							require(a == 6, 101, a); // throws an exception with code 101 and number a</pre></code>
 							*/
-							function require(bool condition) private {}
+							function require(bool condition);
 							/**
 							In case of exception state variables of the contract are reverted to the state before <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmcommit">tvm.commit()</a> or to the state of the contract before it was called. Use error codes that are greater than 100 because other error codes can be <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#solidity-runtime-errors">reserved</a> <strong>Note</strong> if a nonconstant error code is passed as the function argument and the error code is less than 2 then the error code will be set to 100.
 							
@@ -1850,16 +1853,16 @@ See example of how to use this function:
 							require(a == 6, 101, "a is not equal to six"); // throws an exception with code 101 and string
 							require(a == 6, 101, a); // throws an exception with code 101 and number a</pre></code>
 							*/
-							function require(bool condition, string message) private {}
+							function require(bool condition, string message);
 
               /**
                  require function can be used to check the condition and throw an exception if the condition is not met. The function takes condition and optional parameter: error code (unsigned integer).
               */
-              function require(bool condition, uint errorCode) private {}
+              function require(bool condition, uint errorCode);
               /**
                  require function can be used to check the condition and throw an exception if the condition is not met. The function takes condition and optional parameters: error code (unsigned integer) and the object of any type.
               */
-              function require(bool condition, uint errorCode, Type exceptionArgument) private {}
+              function require(bool condition, uint errorCode, Type exceptionArgument);
               
 							/**
 							In case of exception state variables of the contract are reverted to the state before <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmcommit">tvm.commit()</a> or to the state of the contract before it was called. Use error codes that are greater than 100 because other error codes can be <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#solidity-runtime-errors">reserved</a> <strong>Note</strong> if a nonconstant error code is passed as the function argument and the error code is less than 2 then the error code will be set to 100.
@@ -1873,15 +1876,15 @@ See example of how to use this function:
 								revert(102, "We have a some problem"); // throw exception 102 and string
 								revert(101, a); // throw exception 101 and number a</pre></code>
 							*/
-							function revert() private {}
+							function revert();
 							/**
                 revert function can be used to throw exceptions. The function takes an optional error code (unsigned integer).
 							*/
-							function revert(uint errorCode) private {}
+							function revert(uint errorCode);
 							/**
                 revert function can be used to throw exceptions. The function takes an optional error code (unsigned integer) and the object of any type.
 							*/
-							function revert(uint errorCode, Type exceptionArgument) private {}
+							function revert(uint errorCode, Type exceptionArgument);
 							/**
 							In case of exception state variables of the contract are reverted to the state before <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmcommit">tvm.commit()</a> or to the state of the contract before it was called. Use error codes that are greater than 100 because other error codes can be <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#solidity-runtime-errors">reserved</a> <strong>Note</strong> if a nonconstant error code is passed as the function argument and the error code is less than 2 then the error code will be set to 100.
 							
@@ -1898,11 +1901,11 @@ See example of how to use this function:
 							/**
 							This returns the <code>bytes32</code> keccak256 hash of the bytes.
 							*/
-							function keccak256() returns (bytes32) private {}
+							function keccak256(bytes memory input) returns (bytes32);
 							/**
 							The <strong>keccak256 (SHA-3 family)</strong> algorithm computes the hash of an <code>input</code> to a fixed length <code>output</code>. The input can be a variable length string or number, but the result will always be a fixed <strong>bytes32</strong> data type. It is a one-way cryptographic hash function, which cannot be decoded in reverse.
 							*/
-							function sha3() returns (bytes32) private {}
+							function sha3(bytes memory input) returns (bytes32);
 							/**
 							<li>1. Computes the SHA-256 hash. If the bit length of <code>slice</code> is not divisible by eight, throws a cell underflow <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvm-exception-codes">exception</a> References of <code>slice</code> are not used to compute the hash. Only data bits located in the root cell of <code>slice</code> are used.</li>
 							<li>2. Computes the SHA-256 hash only for the first 127 bytes. If <code>bytes.length > 127</code> then <code>b[128], b[129], b[130] ...</code> elements are ignored.</li>
@@ -1910,29 +1913,29 @@ See example of how to use this function:
 
 							See also <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmhash">tvm.hash()</a> to compute representation hash of the whole tree of cells.
 							*/
-							function sha256() returns (bytes32) private {}
+							function sha256(bytes memory input) returns (bytes32);
 							/**
 							This returns the <code>bytes20</code> ripemd160 hash of the bytes.
 							*/
-							function ripemd160() returns (bytes20) private {}
+							function ripemd160(bytes memory input) returns (bytes20);
 							/**
 							*/
-							function ecrecover(bytes32 hash, uint8 v, bytes32 r, bytes32 s) returns (address) private {}
+							function ecrecover(bytes32 hash, uint8 v, bytes32 r, bytes32 s) returns (address);
 							/**
 							Add x to y, and then divides by k. x + y will not overflow.
 							*/
-							function addmod(uint x, uint y, uint k) returns (uint) private {}
+							function addmod(uint x, uint y, uint k) returns (uint);
 							/**
 							Multiply x with y, and then divides by k. x * y will not overflow.
 							*/
-							function mulmod(uint x, uint y, uint k) returns (uint) private returns (uint) {}
+							function mulmod(uint x, uint y, uint k) returns (uint);
 							/**
 							Creates and sends the message that carries all the remaining balance of the current smart contract and destroys the current account.
 
 							See example of how to use the <code>selfdestruct</code> function:
 							<li><a href="https://github.com/tonlabs/samples/blob/master/solidity/8_Kamikaze.sol">Kamikaze</a></li>
 							*/
-							function selfdestruct(address recipient) private {};
+							function selfdestruct(address recipient);
           
           logtvm(string log);
       }

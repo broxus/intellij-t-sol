@@ -1,17 +1,5 @@
 package com.broxus.solidity.lang.completion
 
-import com.intellij.codeInsight.completion.*
-import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.ex.EditorEx
-import com.intellij.openapi.project.DumbAware
-import com.intellij.patterns.StandardPatterns
-import com.intellij.patterns.StandardPatterns.and
-import com.intellij.patterns.StandardPatterns.not
-import com.intellij.psi.TokenType
-import com.intellij.psi.util.PsiTreeUtil.findElementOfClassAtOffset
-import com.intellij.psi.util.PsiTreeUtil.getParentOfType
-import com.intellij.util.ProcessingContext
 import com.broxus.solidity.ide.SolidityIcons
 import com.broxus.solidity.lang.core.SolidityFile
 import com.broxus.solidity.lang.core.SolidityTokenTypes
@@ -19,6 +7,17 @@ import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.types.SolInternalTypeFactory
 import com.broxus.solidity.lang.types.SolType
+import com.intellij.codeInsight.completion.*
+import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.project.DumbAware
+import com.intellij.patterns.StandardPatterns.and
+import com.intellij.patterns.StandardPatterns.not
+import com.intellij.psi.TokenType
+import com.intellij.psi.util.PsiTreeUtil.findElementOfClassAtOffset
+import com.intellij.psi.util.PsiTreeUtil.getParentOfType
+import com.intellij.util.ProcessingContext
 
 class SolFunctionCompletionContributor : CompletionContributor(), DumbAware {
 
@@ -92,10 +91,9 @@ object FunctionCompletionProvider : CompletionProvider<CompletionParameters>() {
   ) {
     val position = parameters.originalPosition
 
-    val availableRefs = getParentOfType(position, SolFunctionDefinition::class.java)?.contract?.let { contract ->
-      val globalRef = SolInternalTypeFactory.of(contract.project).globalType.ref
-      contract.collectSupers.flatMap { SolResolver.resolveTypeName(it) } + globalRef + contract
-    }?.filterIsInstance<SolContractDefinition>() ?: emptyList()
+    val availableRefs = listOf(SolInternalTypeFactory.of(parameters.editor.project!!).globalType.ref) + (getParentOfType(position, SolFunctionDefinition::class.java)?.contract?.let { contract ->
+      contract.collectSupers.flatMap { SolResolver.resolveTypeName(it) } + contract
+    }?.filterIsInstance<SolContractDefinition>() ?: emptyList())
 
     val functions = availableRefs
       .flatMap { it.functionDefinitionList }

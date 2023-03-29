@@ -1,18 +1,12 @@
 package com.broxus.solidity.lang.completion
 
+import com.broxus.solidity.lang.core.SolidityFile
+import com.broxus.solidity.lang.core.SolidityTokenTypes
+import com.broxus.solidity.lang.psi.*
 import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.patterns.StandardPatterns
 import com.intellij.psi.PsiElement
-import com.broxus.solidity.lang.core.SolElementType
-import com.broxus.solidity.lang.core.SolidityFile
-import com.broxus.solidity.lang.core.SolidityTokenTypes
-import com.broxus.solidity.lang.psi.SolFunctionCallArguments
-import com.broxus.solidity.lang.psi.SolFunctionCallExpression
-import com.broxus.solidity.lang.psi.SolMapExpression
-import com.broxus.solidity.lang.psi.SolPragmaDirective
-import com.broxus.solidity.lang.psi.SolPrimaryExpression
-import com.broxus.solidity.lang.psi.SolRevertStatement
 
 
 fun emitStartStatement() =
@@ -49,6 +43,9 @@ fun functionCallArguments(): ElementPattern<PsiElement> =
 
 fun pragma(): ElementPattern<PsiElement> =
   psiElement(SolidityTokenTypes.IDENTIFIER).inside(SolPragmaDirective::class.java)
+
+fun pragmaAll(): ElementPattern<PsiElement> =
+  psiElement(SolidityTokenTypes.PRAGMAALL).inside(SolPragmaDirective::class.java)
 
 fun mapExpression(): ElementPattern<PsiElement> =
   psiElement(SolidityTokenTypes.IDENTIFIER).inside(SolMapExpression::class.java)

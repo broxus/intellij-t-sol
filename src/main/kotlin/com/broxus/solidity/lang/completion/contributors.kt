@@ -2,6 +2,7 @@ package com.broxus.solidity.lang.completion
 
 import com.broxus.solidity.ide.SolidityIcons
 import com.broxus.solidity.ide.hints.SolArgumentsDescription
+import com.broxus.solidity.ide.hints.SolDocumentationProvider
 import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.psi.*
 import com.intellij.codeInsight.completion.*
@@ -59,10 +60,13 @@ class SolContextCompletionContributor : CompletionContributor(), DumbAware {
       }
     )
 
-    extend(CompletionType.BASIC, pragma(),
+
+    extend(CompletionType.BASIC, pragmaAll(),
       object : CompletionProvider<CompletionParameters>() {
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-          result.addAllElements(listOf("ever-solidity", "AbiHeader", "copyleft", "ignoreIntOverflow", "msgValue").map { LookupElementBuilder.create("$it ") })
+          if (SolDocumentationProvider.isAbiHeaderValue(parameters.originalPosition)) {
+            result.addAllElements(SolDocumentationProvider.abiHeaders.map { LookupElementBuilder.create(it.key).withTypeText(it.value.first).withTailText("   " + it.value.second)})
+          }
         }
       }
     )

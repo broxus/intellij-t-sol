@@ -8,9 +8,11 @@ import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.types.getSolType
 import com.intellij.lang.documentation.AbstractDocumentationProvider
 import com.intellij.lang.documentation.DocumentationMarkup.*
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -18,6 +20,8 @@ import com.intellij.psi.util.descendantsOfType
 import com.intellij.psi.util.siblings
 
 const val NO_VALIDATION_TAG = "@custom:no_validation"
+
+
 
 fun PsiElement.comments(): List<PsiElement> {
   return CachedValuesManager.getCachedValue(this) {
@@ -46,12 +50,23 @@ private fun collectBlockComments(nonSolElements: List<PsiElement>): List<PsiElem
 }
 
 class SolDocumentationProvider : AbstractDocumentationProvider() {
+  companion object {
+    val abiHeaders = mapOf(
+      "pubkey" to ("uint256" to "optional public key that the message can be signed with"),
+      "time" to ("uint64" to "local time when message was created. Used for replay protection"),
+      "expire" to ("uint32" to "time when the message should be meant as expired"))
+    fun isAbiHeaderValue(element: PsiElement?) = element?.prevSibling?.text == "AbiHeader"
+  }
   override fun getQuickNavigateInfo(element: PsiElement?, originalElement: PsiElement?): String? {
     if (element == null) return null
     val builder = StringBuilder()
     if (!builder.appendDefinition(element)) return null
 
     return builder.toString()
+  }
+
+  override fun getCustomDocumentationElement(editor: Editor, file: PsiFile, contextElement: PsiElement?, targetOffset: Int): PsiElement? {
+    return if (contextElement?.elementType == SolidityTokenTypes.PRAGMAALL) contextElement else null
   }
 
   private val keywordColors = SolHighlighter.keywords().plus(SolHighlighter.types()).filterNot { it == SolidityTokenTypes.RETURN }.map { it.debugName }
@@ -66,6 +81,9 @@ class SolDocumentationProvider : AbstractDocumentationProvider() {
 
   override fun generateDoc(elementOrNull: PsiElement?, originalElement: PsiElement?): String? {
     var element = elementOrNull ?: return null
+    if (element.elementType == SolidityTokenTypes.PRAGMAALL) {
+      return showPragmaDocs(element)
+    }
     if (element is SolMemberAccessExpression) {
       element = SolResolver.resolveMemberAccess(element).filterIsInstance<SolFunctionDefinition>().firstOrNull() ?: return null
     }
@@ -88,6 +106,13 @@ class SolDocumentationProvider : AbstractDocumentationProvider() {
     }
 
     return builder.toString()
+  }
+
+  private fun showPragmaDocs(element: PsiElement): String? {
+    if (!isAbiHeaderValue(element)) return null
+    val key = element.text.trim()
+    val pair = abiHeaders[key] ?: return null
+    return "$key (<i>${pair.first}</i>) : ${pair.second}"
   }
 
   private fun StringBuilder.appendDefinition(element: PsiElement) : Boolean {

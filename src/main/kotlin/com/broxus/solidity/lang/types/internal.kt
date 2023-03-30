@@ -361,9 +361,9 @@ Returns public key that is used to check the message signature. If the message i
     """)
   }
 
-  val txType: SolStruct by lazy {
-    struct("""
-      struct ${internalise("Tx")} {
+  val txType: SolContract by lazy {
+    contract("""
+      contract ${internalise("Tx")} {
           uint public gasprice;
           address public origin;
           
@@ -1960,8 +1960,5 @@ causes a Panic error and thus state change reversion if the condition is not met
 
   private fun contract(@Language("Solidity") contractBody: String) =
     SolContract(psiFactory.createContract(contractBody), true)
-
-  private fun struct(@Language("Solidity") contractBody: String) =
-    SolStruct(psiFactory.createStruct(contractBody), true)
 
 }

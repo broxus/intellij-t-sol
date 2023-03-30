@@ -254,6 +254,10 @@ abstract class SolStateVarDeclMixin : SolStubbedNamedElementImpl<SolStateVarDecl
   override val mutability: Mutability?
     get() = mutationModifier?.text?.let { safeValueOf(it.uppercase()) }
 
+  override val visibilityModifier: SolVisibilityModifier?
+    get() = visibilityModifierList.getOrNull(0)
+  override val mutationModifier: SolMutationModifier?
+    get() = mutationModifierList.getOrNull(0)
 }
 
 abstract class SolConstantVariableDeclMixin : SolStubbedNamedElementImpl<SolConstantVariableDeclStub>, SolConstantVariableDeclaration {

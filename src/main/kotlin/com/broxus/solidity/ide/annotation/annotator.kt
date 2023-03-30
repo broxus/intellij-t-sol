@@ -87,7 +87,7 @@ class SolidityAnnotator : Annotator {
       is SolModifierDefinition -> element.identifier?.let { applyColor(holder, it, SolColor.FUNCTION_DECLARATION) }
       is SolModifierInvocation -> applyColor(holder, element.varLiteral.identifier, SolColor.MODIFIER_INVOCATION)
       is SolUserDefinedTypeName -> {
-        when(val resolved = SolResolver.resolveTypeNameUsingImports(element).firstOrNull()) {
+        when(SolResolver.resolveTypeNameUsingImports(element).firstOrNull()) {
           is SolContractDefinition, is SolStructDefinition, is SolEnumDefinition,
           is SolErrorDefinition, is SolEventDefinition -> applyColor(holder, element, SolColor.TYPE_REFERENCE)
           is SolUserDefinedValueTypeDefinition -> applyColor(holder, element, SolColor.USER_DEFINED_VALUE_TYPE)

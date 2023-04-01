@@ -109,6 +109,8 @@ SourceUnit ::= (
 private UntilSemicolonRecover ::= !(';')
 private UntilBraceRecover ::= !('}')
 
+private UntilBraceOrSemicolonRecover ::= !('}' | ';')
+
 // Pragma actually parses anything up to the trailing ';' to be fully forward-compatible.
 private PragmaPart ::= pragma Identifier pragmaAll? {
     pin = 2
@@ -396,9 +398,12 @@ private FinishedStatement ::=
     | EmitStatement
     | RevertStatement
     | SimpleStatement {
-    recoverWhile = UntilSemicolonRecover
+    recoverWhile = UntilBraceOrSemicolonRecover
 }
-Statement ::= IfStatement | TryStatement | WhileStatement | ForStatement | RepeatStatement | Block | InlineAssemblyStatement | TupleStatement | ReturnTupleStatement | FinishedStatement ';'
+Statement ::= IfStatement | TryStatement | WhileStatement | ForStatement | RepeatStatement | Block | InlineAssemblyStatement | TupleStatement | ReturnTupleStatement | FinishedStatement ';' {
+pin(".*") = 1
+//recoverWhile = UntilBraceRecover
+}
 
 // intentionally not pinned
 TupleStatement ::= VariableDeclaration '=' SeqExpression ';'

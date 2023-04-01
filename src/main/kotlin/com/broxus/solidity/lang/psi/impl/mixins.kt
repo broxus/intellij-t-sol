@@ -86,7 +86,13 @@ abstract class SolContractOrLibMixin : SolStubbedNamedElementImpl<SolContractOrL
   constructor(node: ASTNode) : super(node)
   constructor(stub: SolContractOrLibDefStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
-  override fun getIcon(flags: Int) = SolidityIcons.CONTRACT_FILE
+  override fun getIcon(flags: Int) = if (isAbstract) SolidityIcons.ABSTRACT else {
+    when (contractType) {
+      ContractType.COMMON -> SolidityIcons.CONTRACT_FILE
+      ContractType.LIBRARY -> SolidityIcons.LIBRARY
+      ContractType.INTERFACE -> SolidityIcons.INTERFACE
+    }
+  }
 
   override fun parseParameters(): List<Pair<String?, SolType>> {
     return listOf(Pair(null, SolAddress))
@@ -130,6 +136,8 @@ abstract class SolConstructorDefMixin(node: ASTNode) : SolElementImpl(node), Sol
     return findChildrenByType<SolModifierInvocation>(MODIFIER_INVOCATION)
       .map { SolModifierReference(this, it) }.toTypedArray()
   }
+
+  override fun getIcon(flags: Int) = SolidityIcons.CONTRACT_FILE
 }
 
 abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefStub>, SolFunctionDefinition {
@@ -356,7 +364,9 @@ open class SolDeclarationItemMixin(node: ASTNode) : SolNamedElementImpl(node)
 
 open class SolTypedDeclarationItemMixin(node: ASTNode) : SolNamedElementImpl(node)
 
-abstract class SolVariableDeclarationMixin(node: ASTNode) : SolVariableDeclaration, SolNamedElementImpl(node)
+abstract class SolVariableDeclarationMixin(node: ASTNode) : SolVariableDeclaration, SolNamedElementImpl(node) {
+  override fun getIcon(flags: Int) = SolidityIcons.STATE_VAR
+}
 
 open class SolParameterDefMixin(node: ASTNode) : SolNamedElementImpl(node)
 

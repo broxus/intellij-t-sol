@@ -3,6 +3,7 @@ package com.broxus.solidity
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.openapi.util.io.StreamUtil
+import com.intellij.psi.PsiElement
 
 fun <T> recursionGuard(key: Any, memoize: Boolean = true, block: Computable<T>): T? =
   RecursionManager.doPreventingRecursion(key, memoize, block)
@@ -40,3 +41,5 @@ fun <T> nullIfError(action: () -> T): T? {
     null
   }
 }
+
+inline fun <reified T: PsiElement> PsiElement.childrenOfType() = this.children.filterIsInstance<T>()

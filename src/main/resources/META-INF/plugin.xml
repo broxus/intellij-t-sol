@@ -126,6 +126,8 @@
         <langCodeStyleSettingsProvider
                 implementation="com.broxus.solidity.ide.formatting.SolLanguageCodeStyleSettingsProvider"/>
 
+        <lang.importOptimizer language="T-Sol" implementationClass="com.broxus.solidity.ide.formatting.SolImportOptimizer"/>
+
         <!-- Color settings -->
         <colorSettingsPage implementation="com.broxus.solidity.ide.colors.SolColorSettingsPage"/>
 

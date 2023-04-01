@@ -1,5 +1,9 @@
 package com.broxus.solidity.ide.formatting
 
+import com.broxus.solidity.lang.TSolidityLanguage
+import com.broxus.solidity.lang.core.SolidityParserDefinition.Companion.BINARY_OPERATORS
+import com.broxus.solidity.lang.core.SolidityParserDefinition.Companion.CONTROL_STRUCTURES
+import com.broxus.solidity.lang.core.SolidityTokenTypes.*
 import com.intellij.formatting.*
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.TextRange
@@ -7,10 +11,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.psi.tree.TokenSet
-import com.broxus.solidity.lang.TSolidityLanguage
-import com.broxus.solidity.lang.core.SolidityParserDefinition.Companion.BINARY_OPERATORS
-import com.broxus.solidity.lang.core.SolidityParserDefinition.Companion.CONTROL_STRUCTURES
-import com.broxus.solidity.lang.core.SolidityTokenTypes.*
 
 /**
  * Ideally we should fully implement this
@@ -44,6 +44,7 @@ class SolidityFormattingModelBuilder : FormattingModelBuilder {
         .before(COMMA).none()
         .before(SEMICOLON).none()
         .around(BINARY_OPERATORS).spaces(1)
+        .beforeInside(COLON, MAP_EXPRESSION_CLAUSE).spaces(0)
         .around(TokenSet.create(QUESTION, COLON, IS)).spaces(1)
         .after(TokenSet.create(RETURNS, RETURN, IMPORT)).spaces(1)
         .after(MAPPING).spaces(0)

@@ -34,7 +34,7 @@ open class SolImportPathElement : SolStubbedNamedElementImpl<SolImportPathDefStu
 
 open class SolImportAliasMixin(node: ASTNode) : SolNamedElementImpl(node)
 
-abstract class SolEnumItemImplMixin : SolStubbedNamedElementImpl<SolEnumDefStub>, SolEnumDefinition {
+abstract class SolEnumItemImplMixin : SolStubbedNamedElementImpl<SolEnumDefStub>, SolEnumDefinition, SolUserDefinedType {
   constructor(node: ASTNode) : super(node)
   constructor(stub: SolEnumDefStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
@@ -278,7 +278,7 @@ abstract class SolConstantVariableDeclMixin : SolStubbedNamedElementImpl<SolCons
   }
 }
 
-abstract class SolStructDefMixin : SolStubbedNamedElementImpl<SolStructDefStub>, SolStructDefinition, SolCallableElement {
+abstract class SolStructDefMixin : SolStubbedNamedElementImpl<SolStructDefStub>, SolStructDefinition, SolCallableElement, SolUserDefinedType {
   constructor(node: ASTNode) : super(node)
   constructor(stub: SolStructDefStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 

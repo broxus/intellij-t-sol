@@ -29,6 +29,8 @@ enum class ContractType(val docName: String) {
   COMMON("contract"), LIBRARY("library"), INTERFACE("interface")
 }
 
+interface SolUserDefinedType : SolNamedElement
+
 interface SolCallable {
   val callablePriority: Int
   fun getName(): String?
@@ -84,7 +86,7 @@ interface SolModifierElement : SolNamedElement {
   val contract: SolContractDefinition
 }
 
-interface SolContractOrLibElement : SolCallableElement {
+interface SolContractOrLibElement : SolCallableElement, SolUserDefinedType {
   val supers: List<SolUserDefinedTypeName>
   val collectSupers: Collection<SolUserDefinedTypeName>
   val isAbstract: Boolean

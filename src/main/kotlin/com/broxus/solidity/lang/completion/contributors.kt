@@ -27,12 +27,18 @@ class SolContextCompletionContributor : CompletionContributor(), DumbAware {
     extend(CompletionType.BASIC, startStatementInsideBlock(),
       object : CompletionProvider<CompletionParameters>() {
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+          var res = result
           val position = parameters.originalPosition
           if (position != null) {
-            SolCompleter.completeLiteral(position)
-              .forEach(result::addElement)
+            if (parameters.position.parent !is SolMemberAccessExpression) {
+              SolCompleter.completeLiteral(position)
+                .forEach(res::addElement)
+            } else {
+              val prefix = parameters.position.parent.text.replace(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED, "")
+              res = result.withPrefixMatcher(PlainPrefixMatcher(prefix, true))
+            }
             SolCompleter.completeTypeName(position)
-              .forEach(result::addElement)
+              .forEach(res::addElement)
           }
         }
       })
@@ -104,14 +110,8 @@ class SolContextCompletionContributor : CompletionContributor(), DumbAware {
   })
 
   private fun startStatementInsideBlock() = psiElement<PsiElement>()
-    .withParent(SolBlock::class.java)
-    .afterLeaf(
-      or(
-        // by some reason afterSibling doesn't work, it skips the intellijRulezzz marker
-        psiElement().withText(";"),
-        psiElement().withText("{")
-      )
-    )
+    .inside(SolBlock::class.java)
+    .withParent(SolMemberAccessExpression::class.java)
 
   private fun eqExpressionInsideBlock() = psiElement<PsiElement>()
     .withParent(SolBlock::class.java)

@@ -66,8 +66,8 @@ object SolCompleter {
       .flatMap {
         StubIndex.getElements(SolGotoClassIndex.KEY, it, project, GlobalSearchScope.projectScope(project), SolNamedElement::class.java)
       }
-      .filterIsInstance<SolContractDefinition>()
-      .map { ContractLookupElement(it) }
+      .filterIsInstance<SolUserDefinedType>()
+      .map { UserDefinedTypeLookupElement(it) }
       .toTypedArray()
   }
 
@@ -124,18 +124,21 @@ object SolCompleter {
   }
 }
 
-class ContractLookupElement(val contract: SolContractDefinition) : LookupElement() {
-  override fun getLookupString(): String = contract.name!!
+class UserDefinedTypeLookupElement(val type: SolUserDefinedType) : LookupElement() {
+  private val typeName = type.name.let { tn ->
+    "${type.parentOfType<SolContractDefinition>()?.name?.let { "$it." } ?: ""}$tn"
+  }
+  override fun getLookupString(): String = typeName
 
   override fun renderElement(presentation: LookupElementPresentation) {
-    presentation.icon = SolidityIcons.CONTRACT_FILE
-    presentation.itemText = contract.name
-    presentation.typeText = "from ${contract.containingFile.name}"
+    presentation.icon = type.getIcon(0)
+    presentation.itemText = type.name
+    presentation.typeText = "from ${type.containingFile.name}"
   }
 
   override fun handleInsert(context: InsertionContext) {
-    if (!ImportFileAction.isImportedAlready(context.file, contract.containingFile)) {
-      ImportFileAction.addImport(contract.project, context.file, contract.containingFile)
+    if (!ImportFileAction.isImportedAlready(context.file, type.containingFile)) {
+      ImportFileAction.addImport(type.project, context.file, type.containingFile)
     }
   }
 }

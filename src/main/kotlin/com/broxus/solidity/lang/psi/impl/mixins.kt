@@ -339,6 +339,12 @@ abstract class SolFunctionCallMixin(node: ASTNode) : SolNamedElementImpl(node), 
 
   override val functionCallArguments: SolFunctionCallArguments
     get() = functionInvocation.functionCallArguments!!
+
+  override fun resolveDefinitions(): List<SolFunctionDefElement>? {
+    return ((children.firstOrNull() as? SolMemberAccessExpression)?.let {
+      SolResolver.resolveMemberAccess(it)
+    } ?: SolResolver.resolveVarLiteralReference(this)).filterIsInstance<SolFunctionDefElement>()
+  }
 }
 
 abstract class SolModifierInvocationMixin(node: ASTNode) : SolNamedElementImpl(node), SolModifierInvocationElement {

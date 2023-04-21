@@ -1,6 +1,7 @@
 package com.broxus.solidity.lang.types
 
 import com.broxus.solidity.firstOrElse
+import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.resolve.canBeApplied
@@ -12,6 +13,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
+import com.intellij.psi.util.elementType
 import kotlin.math.max
 
 fun getSolType(type: SolTypeName?): SolType {
@@ -207,7 +209,11 @@ fun inferExprType(expr: SolExpression?): SolType {
       else -> inferExprType(expr.expressionList.firstOrNull())
     }
     is SolUnaryExpression ->
-      inferExprType(expr.expression)
+      inferExprType(expr.expression).let {
+        if (it is SolInteger && it.unsigned && expr.firstChild.elementType == SolidityTokenTypes.MINUS ) {
+          SolInteger(false, it.size)
+        } else it
+      }
     else -> SolUnknown
   }
 }

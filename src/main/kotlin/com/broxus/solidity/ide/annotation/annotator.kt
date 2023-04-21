@@ -111,15 +111,8 @@ class SolidityAnnotator : Annotator {
       }
       is SolFunctionCallArguments -> {
         val args = element.expressionList
-        fun PsiElement.getDefs() : List<SolFunctionDefElement>? {
-          return ((parent.parent?.children?.firstOrNull() as? SolMemberAccessExpression)?.let {
-            SolResolver.resolveMemberAccess(it)
-          } ?: (parent?.parent as? SolFunctionCallExpression)?.let {
-            SolResolver.resolveVarLiteralReference(it)
-          })?.filterIsInstance<SolFunctionDefElement>()
-        }
         if (args.firstOrNull() !is SolMapExpression) {
-          element.getDefs()?.let {
+          (element.parent?.parent as? SolFunctionCallElement)?.resolveDefinitions()?.let {
             val funDefs = it.filterNot { it.comments().any { it.elementType == SolidityTokenTypes.NAT_SPEC_TAG && it.text == NO_VALIDATION_TAG } }
             if (funDefs.isNotEmpty()) {
               var wrongNumberOfArgs = ""

@@ -1,5 +1,6 @@
 package com.broxus.solidity.lang.psi
 
+import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.resolve.ref.SolReference
 import com.broxus.solidity.lang.types.SolMember
 import com.broxus.solidity.lang.types.SolType
@@ -67,6 +68,8 @@ inline fun <reified T : Enum<*>> safeValueOf(name: String): T? =
 interface SolFunctionCallElement : SolReferenceElement {
   val expression: SolExpression?
   val functionCallArguments: SolFunctionCallArguments
+
+  fun resolveDefinitions() : List<SolFunctionDefElement>?
 }
 
 interface SolModifierInvocationElement : SolReferenceElement {

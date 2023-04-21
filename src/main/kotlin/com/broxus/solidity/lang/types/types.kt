@@ -140,11 +140,19 @@ data class SolInteger(val unsigned: Boolean, val size: Int) : SolNumeric {
     }
 
     fun inferType(numberLiteral: SolNumberLiteral): SolInteger {
-      return inferIntegerType(numberLiteral.toBigInteger())
+      return inferIntegerType(numberLiteral.toBigInteger(), numberLiteral)
     }
 
-    private fun inferIntegerType(value: BigInteger): SolInteger {
-      if (value == BigInteger.ZERO) return SolInteger(true, 8)
+    private fun inferIntegerType(value: BigInteger, context: SolElement): SolInteger {
+      val expType : SolInteger? = null
+ /*       (context.parent?.parent as? SolFunctionCallArguments)?.let { args ->
+        args.expressionList.indexOfFirst { it.descendants().any { it == context } }.takeIf { it >= 0 }?. let { index ->
+            context.parentOfType<SolFunctionCallElement>()?.resolveDefinitions()?.takeIf { it.map { it.parseParameters().getOrNull(index)?.second }.toSet().size == 1 }?.let {
+              it.first().parseParameters().getOrNull(index)?.second as? SolInteger
+            }
+        }
+      }*/
+      return run {if (value == BigInteger.ZERO) return@run SolInteger(true, 8)
       val positive = value >= BigInteger.ZERO
       if (positive) {
         var shifts = 0
@@ -153,7 +161,7 @@ data class SolInteger(val unsigned: Boolean, val size: Int) : SolNumeric {
           shifts++
           current = current.shiftRight(8)
         }
-        return SolInteger(positive, shifts * 8)
+        return@run SolInteger(positive, shifts * 8)
       } else {
         var shifts = 1
         var current = value.abs().minus(BigInteger.ONE).shiftRight(7)
@@ -161,8 +169,9 @@ data class SolInteger(val unsigned: Boolean, val size: Int) : SolNumeric {
           shifts++
           current = current.shiftRight(8)
         }
-        return SolInteger(positive, shifts * 8)
+        return@run SolInteger(positive, shifts * 8)
       }
+        }.let { if (expType != null && expType.canBeCoercedFrom(it, value)) expType else it}
     }
 
     private fun SolNumberLiteral.toBigInteger(): BigInteger {
@@ -179,6 +188,9 @@ data class SolInteger(val unsigned: Boolean, val size: Int) : SolNumeric {
       return BigInteger.ZERO
     }
   }
+
+  fun canBeCoercedFrom(other: SolInteger, value: BigInteger) : Boolean =
+    (!unsigned || value >= BigInteger.ZERO) && this.size >= other.size
 
   override fun isAssignableFrom(other: SolType): Boolean =
     when (other) {

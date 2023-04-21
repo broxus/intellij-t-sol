@@ -60,12 +60,17 @@ object SolCompleter {
       SolGotoClassIndex.KEY,
       project
     )
-    return allTypeNames
+
+
+    val aliases = element.getAliases()
+
+    return (allTypeNames
       .flatMap {
         StubIndex.getElements(SolGotoClassIndex.KEY, it, project, GlobalSearchScope.projectScope(project), SolNamedElement::class.java)
       }
       .filterIsInstance<SolUserDefinedType>()
       .map { UserDefinedTypeLookupElement(it) }
+      + aliases.mapNotNull { LookupElementBuilder.create(it.name ?: return@mapNotNull null).withIcon(it.getIcon(0)) })
       .toTypedArray()
   }
 

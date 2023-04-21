@@ -1,5 +1,15 @@
 package com.broxus.solidity.lang.resolve
 
+import com.broxus.solidity.lang.core.SolidityFile
+import com.broxus.solidity.lang.psi.*
+import com.broxus.solidity.lang.psi.impl.SolNewExpressionElement
+import com.broxus.solidity.lang.psi.impl.getAliases
+import com.broxus.solidity.lang.resolve.ref.SolFunctionCallReference
+import com.broxus.solidity.lang.stubs.SolGotoClassIndex
+import com.broxus.solidity.lang.stubs.SolModifierIndex
+import com.broxus.solidity.lang.types.*
+import com.broxus.solidity.nullIfError
+import com.broxus.solidity.wrap
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -9,15 +19,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
-import com.broxus.solidity.lang.core.SolidityFile
-import com.broxus.solidity.lang.psi.*
-import com.broxus.solidity.lang.psi.impl.SolNewExpressionElement
-import com.broxus.solidity.lang.resolve.ref.SolFunctionCallReference
-import com.broxus.solidity.lang.stubs.SolGotoClassIndex
-import com.broxus.solidity.lang.stubs.SolModifierIndex
-import com.broxus.solidity.lang.types.*
-import com.broxus.solidity.nullIfError
-import com.broxus.solidity.wrap
 
 object SolResolver {
   fun resolveTypeNameUsingImports(element: PsiElement): Set<SolNamedElement> =
@@ -256,7 +257,7 @@ object SolResolver {
 
   fun lexicalDeclarations(place: PsiElement, stop: (PsiElement) -> Boolean = { false }): Sequence<SolNamedElement> {
     val globalType = SolInternalTypeFactory.of(place.project).globalType
-    return lexicalDeclarations(globalType.ref, place) + lexicalDeclRec(place, stop).distinct()
+    return lexicalDeclarations(globalType.ref, place) + lexicalDeclRec(place, stop).distinct() + place.getAliases()
   }
 
   private fun lexicalDeclRec(place: PsiElement, stop: (PsiElement) -> Boolean): Sequence<SolNamedElement> {
@@ -296,6 +297,9 @@ object SolResolver {
           (scope.returns?.parameterDefList?.asSequence() ?: emptySequence())
       }
       is SolConstructorDefinition -> {
+        scope.parameterList?.parameterDefList?.asSequence() ?: emptySequence()
+      }
+      is SolModifierDefinition -> {
         scope.parameterList?.parameterDefList?.asSequence() ?: emptySequence()
       }
       is SolEnumDefinition -> sequenceOf(scope)

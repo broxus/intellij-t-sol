@@ -32,7 +32,21 @@ open class SolImportPathElement : SolStubbedNamedElementImpl<SolImportPathDefStu
   override fun getReference() = SolImportPathReference(this)
 }
 
-open class SolImportAliasMixin(node: ASTNode) : SolNamedElementImpl(node)
+open class SolImportAliasMixin(node: ASTNode) : SolNamedElementImpl(node), SolReferenceElement {
+  override fun getIcon(flags: Int): Icon? {
+    return SolidityIcons.LIBRARY
+  }
+  override val referenceNameElement: PsiElement
+    get() = findChildByType(IDENTIFIER)!!
+
+  override val referenceName: String
+    get() = referenceNameElement.text
+
+
+  override fun getReference(): SolReference? {
+    return super.getReference()
+  }
+}
 
 abstract class SolEnumItemImplMixin : SolStubbedNamedElementImpl<SolEnumDefStub>, SolEnumDefinition, SolUserDefinedType {
   constructor(node: ASTNode) : super(node)
@@ -488,3 +502,9 @@ abstract class SolUsingForMixin(node: ASTNode) : SolElementImpl(node), SolUsingF
       .filterIsInstance<SolContractDefinition>()
       .firstOrNull()
 }
+
+fun PsiElement.getAliases() = containingFile.children.asSequence()
+  .filterIsInstance<SolImportDirective>()
+  .flatMap { it.importAliasedPairList.mapNotNull { it.importAlias } +
+    (it.importAlias?.takeIf { it.identifier.text != "*" }?.let { listOf(it) } ?: emptyList())
+  }

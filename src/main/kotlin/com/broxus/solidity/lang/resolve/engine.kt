@@ -97,9 +97,10 @@ object SolResolver {
       { it.userDefinedValueTypeDefinitionList }) + resolveUsingImports(SolUserDefinedValueTypeDefinition::class.java, element, element.containingFile, true)
 
   private fun resolveBuiltinValueType(element: PsiElement): Set<SolNamedElement> {
-    if (element !is SolUserDefinedTypeNameElement) return emptySet()
-    val ids = element.findIdentifiers().firstOrNull() ?: return emptySet()
-    return setOf(SolInternalTypeFactory.of(element.project).builtinByName(ids.nameOrText ?: return emptySet()) ?: return emptySet())
+    val id = (element as? SolUserDefinedTypeNameElement)?.findIdentifiers()?.firstOrNull() ?:
+        (element as? SolVarLiteral)?.identifier ?: return emptySet()
+
+    return setOf(SolInternalTypeFactory.of(element.project).builtinByName(id.nameOrText ?: return emptySet()) ?: return emptySet())
   }
 
 
@@ -223,6 +224,7 @@ object SolResolver {
         ?: emptyList()
       else -> lexicalDeclarations(element)
         .filter { it.name == element.name }
+        .distinct()
         .toList()
     }
   }
@@ -257,7 +259,7 @@ object SolResolver {
 
   fun lexicalDeclarations(place: PsiElement, stop: (PsiElement) -> Boolean = { false }): Sequence<SolNamedElement> {
     val globalType = SolInternalTypeFactory.of(place.project).globalType
-    return lexicalDeclarations(globalType.ref, place) + lexicalDeclRec(place, stop).distinct() + place.getAliases()
+    return lexicalDeclarations(globalType.ref, place) + lexicalDeclRec(place, stop).distinct() + place.getAliases() + resolveTypeNameUsingImports(place)
   }
 
   private fun lexicalDeclRec(place: PsiElement, stop: (PsiElement) -> Boolean): Sequence<SolNamedElement> {

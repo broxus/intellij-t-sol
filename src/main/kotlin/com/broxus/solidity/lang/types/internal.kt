@@ -722,10 +722,10 @@ decodes the <code>cell</code> and returns the values.
 							function findLast(bytes1 symbol) returns (optional(uint32));
 							/**
 							*/
-							function toUpperCase() returns (string)
+							function toUpperCase() returns (string);
 							/**
 							*/
-							function toLowerCase() returns (string)
+							function toLowerCase() returns (string);
 							/**
                 @custom:no_validation
 							*/

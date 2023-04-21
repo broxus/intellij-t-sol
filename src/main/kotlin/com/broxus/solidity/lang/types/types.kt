@@ -17,7 +17,8 @@ import java.util.*
 enum class ContextType {
   SUPER,
   EXTERNAL,
-  BUILTIN
+  BUILTIN,
+  LIBRARY
 }
 
 enum class Usage {

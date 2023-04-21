@@ -234,6 +234,9 @@ abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefSt
   override fun getIcon(flags: Int): Icon {
     return SolidityIcons.FUNCTION
   }
+  override fun getName(): String? {
+    return super.getName() ?: firstChild.elementType.takeIf { it in specialFunctionTypes }?.toString()
+  }
 }
 
 abstract class SolModifierDefMixin : SolStubbedNamedElementImpl<SolModifierDefStub>, SolModifierDefinition {

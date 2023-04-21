@@ -52,6 +52,9 @@ interface SolStateVarElement : SolMember, SolCallableElement {
 
 interface SolConstantVariable : SolNamedElement {}
 
+val specialFunctionTypes = setOf(SolidityTokenTypes.RECEIVE, SolidityTokenTypes.FALLBACK,
+  SolidityTokenTypes.ONBOUNCE, SolidityTokenTypes.ONTICKTOCK)
+
 interface SolFunctionDefElement : SolHasModifiersElement, SolMember, SolCallableElement {
   /** The contract can be null in the case of free functions. */
   val contract: SolContractDefinition?

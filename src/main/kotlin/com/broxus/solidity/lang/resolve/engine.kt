@@ -248,7 +248,8 @@ object SolResolver {
 
   fun resolveContractMembers(contract: SolContractDefinition, skipThis: Boolean = false): List<SolMember> {
     val members = if (!skipThis)
-      contract.stateVariableDeclarationList as List<SolMember> + contract.functionDefinitionList
+      contract.stateVariableDeclarationList as List<SolMember> + contract.functionDefinitionList  +
+        contract.structDefinitionList.map { SolStructConstructor(it) }
     else
       emptyList()
     return members + contract.supers

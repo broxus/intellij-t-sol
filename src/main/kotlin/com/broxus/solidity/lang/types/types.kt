@@ -280,6 +280,20 @@ data class SolStructVariableDeclaration(
   override fun getPossibleUsage(contextType: ContextType) = Usage.VARIABLE
 }
 
+data class SolStructConstructor(val ref: SolStructDefinition) : SolMember, SolCallable {
+  override val callablePriority: Int = 0
+
+  override fun getName(): String? = ref.name
+
+  override fun parseType(): SolType = ref.parseType()
+  override fun parseParameters(): List<Pair<String?, SolType>> = ref.parseParameters()
+
+  override fun resolveElement(): SolNamedElement? = ref
+
+  override fun getPossibleUsage(contextType: ContextType): Usage? = Usage.CALLABLE
+
+}
+
 data class SolEnum(val ref: SolEnumDefinition) : SolUserType {
   override fun isAssignableFrom(other: SolType): Boolean =
     other is SolEnum && ref == other.ref

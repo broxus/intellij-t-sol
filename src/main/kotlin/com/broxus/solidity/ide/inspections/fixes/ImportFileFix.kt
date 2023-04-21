@@ -1,5 +1,9 @@
 package com.broxus.solidity.ide.inspections.fixes
 
+import com.broxus.solidity.ide.inspections.fixes.ImportFileAction.Companion.buildImportPath
+import com.broxus.solidity.lang.psi.SolReferenceElement
+import com.broxus.solidity.lang.psi.SolUserDefinedTypeName
+import com.broxus.solidity.lang.resolve.SolResolver
 import com.intellij.codeInsight.hint.HintManager
 import com.intellij.codeInspection.HintAction
 import com.intellij.codeInspection.LocalQuickFix
@@ -8,18 +12,14 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.broxus.solidity.ide.inspections.fixes.ImportFileAction.Companion.buildImportPath
-import com.broxus.solidity.lang.psi.SolReferenceElement
-import com.broxus.solidity.lang.psi.SolUserDefinedTypeName
-import com.broxus.solidity.lang.resolve.SolResolver
 
-class ImportFileFix(element: SolUserDefinedTypeName) : LocalQuickFixOnPsiElement(element), HintAction, LocalQuickFix {
+class ImportFileFix(element: SolReferenceElement) : LocalQuickFixOnPsiElement(element), HintAction, LocalQuickFix {
   override fun startInWriteAction(): Boolean = false
 
   override fun getFamilyName(): String = "Import file"
 
   override fun showHint(editor: Editor): Boolean {
-    val element = startElement as SolUserDefinedTypeName?
+    val element = startElement as SolReferenceElement?
     if (element != null) {
       val suggestions = SolResolver.resolveTypeName(element).map { it.containingFile }.toSet()
       val fixText: String? = when {

@@ -187,21 +187,27 @@ object SolResolver {
     .toList()
 
   fun resolveVarLiteralReference(element: SolNamedElement): List<SolNamedElement> {
-    return if (element.parent?.parent is SolFunctionCallExpression) {
-      val functionCall = element.findParentOrNull<SolFunctionCallElement>()!!
-      val resolved = functionCall.reference?.multiResolve() ?: emptyList()
-      if (resolved.isNotEmpty()) {
-        resolved.filterIsInstance<SolNamedElement>()
-      } else {
-        resolveVarLiteral(element)
-      }
-    } else {
-      resolveVarLiteral(element)
-        .findBest {
-          when (it) {
-            is SolStateVariableDeclaration -> 0
-            else -> Int.MAX_VALUE
+    return when {
+        element.parent?.parent is SolFunctionCallExpression -> {
+          val functionCall = element.findParentOrNull<SolFunctionCallElement>()!!
+          val resolved = functionCall.reference?.multiResolve() ?: emptyList()
+          if (resolved.isNotEmpty()) {
+            resolved.filterIsInstance<SolNamedElement>()
+          } else {
+            resolveVarLiteral(element)
           }
+        }
+        element.parent is SolModifierInvocation -> {
+          (element.parent as SolModifierInvocation).reference?.multiResolve()?.filterIsInstance<SolNamedElement>() ?: emptyList()
+        }
+        else -> {
+          resolveVarLiteral(element)
+            .findBest {
+              when (it) {
+                is SolStateVariableDeclaration -> 0
+                else -> Int.MAX_VALUE
+              }
+            }
         }
     }
   }

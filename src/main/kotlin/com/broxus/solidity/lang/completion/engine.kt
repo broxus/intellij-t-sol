@@ -3,15 +3,13 @@ package com.broxus.solidity.lang.completion
 import com.broxus.solidity.ide.SolidityIcons
 import com.broxus.solidity.ide.inspections.fixes.ImportFileAction
 import com.broxus.solidity.lang.psi.*
+import com.broxus.solidity.lang.psi.impl.getAliases
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.stubs.SolErrorIndex
 import com.broxus.solidity.lang.stubs.SolEventIndex
 import com.broxus.solidity.lang.stubs.SolGotoClassIndex
 import com.broxus.solidity.lang.stubs.SolModifierIndex
-import com.broxus.solidity.lang.types.ContextType
-import com.broxus.solidity.lang.types.Usage
-import com.broxus.solidity.lang.types.getMembers
-import com.broxus.solidity.lang.types.type
+import com.broxus.solidity.lang.types.*
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.completion.PrioritizedLookupElement
 import com.intellij.codeInsight.lookup.LookupElement
@@ -92,6 +90,7 @@ object SolCompleter {
     val contextType = when {
       expr is SolPrimaryExpression && expr.varLiteral?.name == "super" -> ContextType.SUPER
       expr.type.isBuiltin -> ContextType.BUILTIN
+      element.childOfType<SolVarLiteral>()?.reference?.resolve()?.findContract()?.contractType == ContractType.LIBRARY -> ContextType.LIBRARY
       else -> ContextType.EXTERNAL
     }
     return element.expression.getMembers()

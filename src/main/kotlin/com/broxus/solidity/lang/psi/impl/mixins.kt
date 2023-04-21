@@ -191,9 +191,10 @@ abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefSt
 
   private fun isPossibleToUse(contextType: ContextType): Boolean {
     val visibility = this.visibility
-    return visibility != Visibility.PRIVATE
+    return contextType == ContextType.LIBRARY ||
+      (visibility != Visibility.PRIVATE
       && !(visibility == Visibility.EXTERNAL && contextType == ContextType.SUPER)
-      && !(visibility == Visibility.INTERNAL && contextType == ContextType.EXTERNAL)
+      && !(visibility == Visibility.INTERNAL && contextType == ContextType.EXTERNAL))
   }
 
   override fun resolveElement() = this
@@ -246,7 +247,7 @@ abstract class SolStateVarDeclMixin : SolStubbedNamedElementImpl<SolStateVarDecl
   override fun getPossibleUsage(contextType: ContextType): Usage? {
     val visibility = this.visibility
     return when {
-        contextType == ContextType.SUPER || contextType == ContextType.BUILTIN || mutability == Mutability.CONSTANT -> Usage.VARIABLE
+        contextType in setOf(ContextType.SUPER, ContextType.BUILTIN, ContextType.LIBRARY) || mutability == Mutability.CONSTANT -> Usage.VARIABLE
         contextType == ContextType.EXTERNAL && visibility == Visibility.PUBLIC -> Usage.CALLABLE
         else -> null
     }

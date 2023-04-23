@@ -173,6 +173,12 @@
                          shortName="TSolLinearizationImpossibleInspection"
                          implementationClass="com.broxus.solidity.ide.inspections.LinearizationImpossibleInspection"/>
 
+        <localInspection language="T-Sol" groupName="Solidity"
+                         displayName="Function call arguments are not matched with the parameters of function definition"
+                         enabledByDefault="true"
+                         level="ERROR"
+                         implementationClass="com.broxus.solidity.ide.inspections.ValidateFunctionArgumentsInspection"/>
+
         <errorHandler implementation="com.broxus.solidity.ide.SentryReportSubmitter"/>
 
         <defaultLiveTemplates file="/liveTemplates/Solidity.xml"/>

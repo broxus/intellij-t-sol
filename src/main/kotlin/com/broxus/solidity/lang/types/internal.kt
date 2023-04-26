@@ -1634,7 +1634,7 @@ See example of how to use this function:
 
   val mathType: SolContract by lazy {
     contract("""
-      contract ${internalise("Abi")} {
+      contract ${internalise("Math")} {
            // todo varargs
 							/**
 							Returns the minimal (maximal) value of the passed arguments. <code>T</code> should be an integer or fixed point type

@@ -8,6 +8,7 @@ import com.broxus.solidity.lang.resolve.canBeApplied
 import com.broxus.solidity.lang.resolve.ref.SolFunctionCallReference
 import com.broxus.solidity.lang.types.SolArray.SolDynamicArray
 import com.broxus.solidity.lang.types.SolArray.SolStaticArray
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValueProvider
@@ -248,6 +249,9 @@ val SolExpression.type: SolType
   get() {
     if (!isValid) {
       return SolUnknown
+    }
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      RecursionManager.disableMissedCacheAssertions {  }
     }
     return RecursionManager.doPreventingRecursion(this, true) {
       CachedValuesManager.getCachedValue(this) {

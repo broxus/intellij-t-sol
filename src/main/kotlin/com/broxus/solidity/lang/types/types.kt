@@ -9,6 +9,7 @@ import com.intellij.openapi.util.RecursionManager
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
+import com.intellij.psi.util.descendants
 import java.math.BigInteger
 import java.util.*
 
@@ -113,16 +114,21 @@ object SolAddress : SolPrimitiveType {
 
 }
 
-data class SolInteger(val unsigned: Boolean, val size: Int) : SolNumeric {
+data class SolInteger(val unsigned: Boolean, val size: Int, val isVarType : Boolean = false) : SolNumeric {
   companion object {
     val UINT_160 = SolInteger(true, 160)
     val UINT_256 = SolInteger(true, 256)
 
     fun parse(name: String): SolInteger {
       var unsigned = false
+      var varType = false
       var size = 256
       var typeName = name
-      if (name.startsWith("u")) {
+      if (typeName.startsWith("var")) {
+        typeName = typeName.substring(3).replaceFirstChar { it.lowercase() }
+        varType = true
+      }
+      if (typeName.startsWith("u")) {
         unsigned = true
         typeName = typeName.substring(1)
       }
@@ -137,7 +143,7 @@ data class SolInteger(val unsigned: Boolean, val size: Int) : SolNumeric {
           throw IllegalArgumentException("Incorrect int typename: $name")
         }
       }
-      return SolInteger(unsigned, size)
+      return SolInteger(unsigned, size, varType)
     }
 
     fun inferType(numberLiteral: SolNumberLiteral): SolInteger {
@@ -145,14 +151,14 @@ data class SolInteger(val unsigned: Boolean, val size: Int) : SolNumeric {
     }
 
     private fun inferIntegerType(value: BigInteger, context: SolElement): SolInteger {
-      val expType : SolInteger? = null
- /*       (context.parent?.parent as? SolFunctionCallArguments)?.let { args ->
+      val expType : SolInteger? =
+        (context.parent?.parent as? SolFunctionCallArguments)?.let { args ->
         args.expressionList.indexOfFirst { it.descendants().any { it == context } }.takeIf { it >= 0 }?. let { index ->
             context.parentOfType<SolFunctionCallElement>()?.resolveDefinitions()?.takeIf { it.map { it.parseParameters().getOrNull(index)?.second }.toSet().size == 1 }?.let {
               it.first().parseParameters().getOrNull(index)?.second as? SolInteger
             }
         }
-      }*/
+      }
       return run {if (value == BigInteger.ZERO) return@run SolInteger(true, 8)
       val positive = value >= BigInteger.ZERO
       if (positive) {
@@ -207,7 +213,9 @@ data class SolInteger(val unsigned: Boolean, val size: Int) : SolNumeric {
       else -> false
     }
 
-  override fun toString() = "${if (unsigned) "u" else ""}int$size"
+  override fun toString() = "${if (isVarType) "var" else ""}${if (unsigned) "u" else ""}int$size".let {
+    if (isVarType) it.substring(0, 3) + it.substring(3).capitalize() else it
+  }
 }
 
 data class SolContract(val ref: SolContractDefinition, val builtin: Boolean = false) : SolUserType, Linearizable<SolContract> {

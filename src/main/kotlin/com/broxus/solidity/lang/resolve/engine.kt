@@ -4,6 +4,7 @@ import com.broxus.solidity.lang.core.SolidityFile
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.psi.impl.SolNewExpressionElement
 import com.broxus.solidity.lang.psi.impl.getAliases
+import com.broxus.solidity.lang.psi.parentOfType
 import com.broxus.solidity.lang.resolve.ref.SolFunctionCallReference
 import com.broxus.solidity.lang.stubs.SolGotoClassIndex
 import com.broxus.solidity.lang.stubs.SolModifierIndex
@@ -15,10 +16,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.stubs.StubIndex
-import com.intellij.psi.util.CachedValueProvider
-import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiModificationTracker
-import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.*
 
 object SolResolver {
   fun resolveTypeNameUsingImports(element: PsiElement): Set<SolNamedElement> =
@@ -74,8 +72,11 @@ object SolResolver {
           else -> emptyList()
         }
 
+        val insideImportDirective = element.findParentOfType<SolImportDirective>() != null
+
         val imported = file.children
           .filterIsInstance<SolImportDirective>()
+          .filter { insideImportDirective || it.importAliasedPairList.let { it.isEmpty() || it.any {it.importAlias?.name == element.nameOrText } } }
           .mapNotNull { nullIfError { it.importPath?.reference?.resolve()?.containingFile } }
           .flatMap { resolveUsingImports(target, element, it, false) }
 
@@ -340,7 +341,9 @@ object SolResolver {
           // NOTE: Imports are intentionally resolved eagerly rather than lazily to ensure that
           // cyclic imports don't cause infinite recursion.
           val imports = scope.children.asSequence().filterIsInstance<SolImportDirective>()
-            .mapNotNull { nullIfError { it.importPath?.reference?.resolve()?.containingFile } }
+            .mapNotNull { if (it.importAliasedPairList.let { it.isEmpty() || it.any {it.importAlias?.name == place.nameOrText } }) {
+              nullIfError { it.importPath?.reference?.resolve()?.containingFile }
+              } else null }
             .mapNotNull { lexicalDeclarations(it, place) }
             .flatten()
             .toList()

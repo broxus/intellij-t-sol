@@ -257,6 +257,7 @@ PRAGMAALL=[^;]*
 
   <<EOF>>                 {
                             yybegin(YYINITIAL);
+                            return COMMENT;
                           }
 
   [^]                     { }

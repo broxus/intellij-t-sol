@@ -97,6 +97,9 @@
 
         <lang.documentationProvider language="T-Sol" implementationClass="com.broxus.solidity.ide.hints.SolDocumentationProvider"/>
 
+        <codeInsight.parameterNameHints implementationClass="com.broxus.solidity.ide.hints.SolParameterInlayHintProvider"
+                                        language="T-Sol"/>
+
         <!-- Hints -->
         <codeInsight.typeInfo language="T-Sol"
                               implementationClass="com.broxus.solidity.ide.hints.SolExpressionTypeProvider"/>

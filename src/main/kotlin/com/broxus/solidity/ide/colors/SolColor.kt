@@ -28,6 +28,8 @@ enum class SolColor(humanName: String, default: TextAttributesKey) {
   FUNCTION_CALL("Functions//Function call", Defaults.FUNCTION_CALL),
   GLOBAL_FUNCTION_CALL("Functions//Global function call", Defaults.GLOBAL_VARIABLE),
 
+  MAPPING("Functions//Mapping", Defaults.PARAMETER),
+
   BRACES("Other//Braces", Defaults.BRACES),
   BRACKETS("Other//Brackets", Defaults.BRACKETS),
   PARENTHESES("Other//Parentheses", Defaults.PARENTHESES),

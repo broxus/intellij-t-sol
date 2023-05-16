@@ -1,5 +1,5 @@
 import "../AssetGatewayToken.tsol";
 
 contract IUseLab {
-  Lab lab;
+  Lab1 lab;
 }

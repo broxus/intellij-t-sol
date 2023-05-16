@@ -1,12 +1,13 @@
 package com.broxus.solidity.lang.resolve.ref
 
+import com.broxus.solidity.ide.inspections.fixes.ImportFileAction
+import com.broxus.solidity.lang.core.SolidityFile
+import com.broxus.solidity.lang.psi.impl.SolImportPathElement
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.source.tree.LeafElement
-import com.broxus.solidity.lang.core.SolidityFile
-import com.broxus.solidity.lang.psi.impl.SolImportPathElement
-import java.nio.file.Paths;
+import java.nio.file.Paths
 
 class SolImportPathReference(element: SolImportPathElement) : SolReferenceBase<SolImportPathElement>(element) {
   override fun singleResolve(): PsiElement? {
@@ -120,5 +121,12 @@ class SolImportPathReference(element: SolImportPathElement) : SolReferenceBase<S
     }
     val newImportPath = currentPath.replace(name, newName)
     identifier.replaceWithText(newImportPath)
+  }
+
+  override fun bindToElement(element: PsiElement): PsiElement {
+    val file = element as? SolidityFile ?: return element
+    val newPath = ImportFileAction.buildImportPath(this.element.containingFile.virtualFile, file.virtualFile)
+    val identifier = this.element.referenceNameElement as? LeafElement ?: return element
+    return identifier.replaceWithText("\"$newPath\"").psi ?: element
   }
 }

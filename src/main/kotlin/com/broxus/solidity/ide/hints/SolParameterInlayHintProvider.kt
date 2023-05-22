@@ -110,7 +110,7 @@ fun provideArgumentNameHints(element: SolFunctionCallElement): List<InlayInfo> {
   // if (expressionList.none { it.isUnclearExpression() }) return emptyList()
   val args = element.functionCallArguments.expressionList
 
-  return params.zip(args).map { InlayInfo(it.first.let { it.first ?: it.second.toString() }, it.second.textOffset) }
+  return params.zip(args).map { InlayInfo(it.first.let { it.first ?: it.second.toString() }, it.second.startOffset) }
 
     // val ctx = element.safeAnalyzeNonSourceRootCode(BodyResolveMode.PARTIAL)
     // val call = element.getCall(ctx) ?: return emptyList()

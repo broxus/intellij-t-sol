@@ -6,9 +6,9 @@ import com.broxus.solidity.lang.psi.SolExpression
 import com.broxus.solidity.lang.psi.SolFunctionCallArguments
 import com.broxus.solidity.lang.psi.SolFunctionCallElement
 import com.broxus.solidity.lang.types.inferDeclType
-import com.intellij.codeInsight.hints.Option
 import com.intellij.codeInsight.hints.InlayInfo
 import com.intellij.codeInsight.hints.InlayParameterHintsProvider
+import com.intellij.codeInsight.hints.Option
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 
@@ -106,11 +106,11 @@ class PsiInlayInfoDetail(text: String, val element: PsiElement): InlayInfoDetail
 
 
 fun provideArgumentNameHints(element: SolFunctionCallElement): List<InlayInfo> {
-  val params = element.resolveDefinitions().takeIf { it?.size == 1 }?.get(0)?.parameters ?: return emptyList()
+  val params = element.resolveDefinitions().takeIf { it?.size == 1 }?.get(0)?.parseParameters() ?: return emptyList()
   // if (expressionList.none { it.isUnclearExpression() }) return emptyList()
   val args = element.functionCallArguments.expressionList
 
-  return params.zip(args).map { InlayInfo(it.first.run { identifier ?: typeName }.text ?: "", it.second.textOffset) }
+  return params.zip(args).map { InlayInfo(it.first.let { it.first ?: it.second.toString() }, it.second.textOffset) }
 
     // val ctx = element.safeAnalyzeNonSourceRootCode(BodyResolveMode.PARTIAL)
     // val call = element.getCall(ctx) ?: return emptyList()

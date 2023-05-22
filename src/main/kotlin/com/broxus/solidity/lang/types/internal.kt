@@ -1808,7 +1808,7 @@ See example of how to use this function:
                  uint difficulty;
                  uint gasLimit;
                  uint number;
-                 uint timestamp;
+                 uint32 timestamp;
                  
                  function blockhash(uint blockNumber) returns (bytes32);
             }      

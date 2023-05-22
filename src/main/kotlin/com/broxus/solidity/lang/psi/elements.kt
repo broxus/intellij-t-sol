@@ -72,7 +72,7 @@ interface SolFunctionCallElement : SolReferenceElement {
   val expression: SolExpression?
   val functionCallArguments: SolFunctionCallArguments
 
-  fun resolveDefinitions() : List<SolFunctionDefElement>?
+  fun resolveDefinitions() : List<SolCallable>?
 }
 
 interface SolModifierInvocationElement : SolReferenceElement {

@@ -28,7 +28,7 @@ object SolFunctionResolver {
       .filter { signatureEquals(func, it) }
   }
 
-  private fun signatureEquals(f1: SolFunctionDefinition, f2: SolFunctionDefinition): Boolean {
+  fun signatureEquals(f1: SolFunctionDefinition, f2: SolFunctionDefinition): Boolean {
     if (f1.name != f2.name) {
       return false
     }

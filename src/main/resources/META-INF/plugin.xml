@@ -125,6 +125,7 @@
         <codeInsight.lineMarkerProvider language="T-Sol"
                                         implementationClass="com.broxus.solidity.ide.annotation.SolidityLineMarkerProvider"/>
 
+        <codeInsight.implementMethod language="T-Sol" implementationClass="com.broxus.solidity.ide.actions.ImplementMethodsHandler"/>
 
         <internalFileTemplate name="T-Sol Contract"/>
         <internalFileTemplate name="T-Sol Abstract Contract"/>
@@ -222,6 +223,11 @@
                 text="Smart Contract" description="Create new solidity contract">
             <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
         </action>
+
+          <action id="ImplementMembers" class="com.broxus.solidity.ide.actions.ImplementMembersAction">
+              <add-to-group group-id="GenerateGroup"/>
+          </action>
+
     </actions>
 
 </idea-plugin>

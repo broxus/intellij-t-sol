@@ -1,12 +1,12 @@
 package com.broxus.solidity.lang.psi
 
+import com.broxus.solidity.lang.TSolidityFileType
+import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiParserFacade
 import com.intellij.psi.impl.source.tree.LeafPsiElement
-import com.broxus.solidity.lang.TSolidityFileType
-import com.broxus.solidity.lang.core.SolidityTokenTypes
 import org.intellij.lang.annotations.Language
 
 class SolPsiFactory(val project: Project) {
@@ -21,6 +21,12 @@ class SolPsiFactory(val project: Project) {
     return createFromText("contract dummystruct$1 { $structBody }")
       ?: error("Failed to create struct: `$structBody`")
   }
+
+  fun createFunction(func: String): SolFunctionDefinition {
+    return createFromText("contract dummystruct$1 { $func }")
+      ?: error("Failed to create function: `$func`")
+  }
+
 
   fun createImportDirective(importPath: String): SolImportDirective {
     return createFromText("import \"$importPath\";")

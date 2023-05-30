@@ -359,7 +359,7 @@ object SolResolver {
           when {
             declarationList != null -> declarationList.declarationItemList.asSequence()
             typedDeclarationList != null -> typedDeclarationList.typedDeclarationItemList.asSequence()
-            else -> emptySequence()
+            else -> sequenceOf(it)
           }
         } ?: emptySequence()
       }

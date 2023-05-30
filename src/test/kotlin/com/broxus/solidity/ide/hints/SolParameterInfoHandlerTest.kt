@@ -1,12 +1,12 @@
 package com.broxus.solidity.ide.hints
 
+import com.broxus.solidity.utils.SolTestBase
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.utils.parameterInfo.MockCreateParameterInfoContext
 import com.intellij.testFramework.utils.parameterInfo.MockParameterInfoUIContext
 import com.intellij.testFramework.utils.parameterInfo.MockUpdateParameterInfoContext
 import junit.framework.AssertionFailedError
 import junit.framework.TestCase
-import com.broxus.solidity.utils.SolTestBase
 import org.intellij.lang.annotations.Language
 import java.awt.Color
 
@@ -19,7 +19,7 @@ class SolParameterInfoHandlerTest : SolTestBase() {
                 emit SomeEvent(/*caret*/);
             }
         }
-    """, "uint256, string", 0)
+    """, "uint256 value, string s", 0)
 
   fun testError() = checkByText("""
         contract A {
@@ -29,7 +29,7 @@ class SolParameterInfoHandlerTest : SolTestBase() {
                 revert AnError(/*caret*/);
             }
         }
-    """, "uint256, string", 0)
+    """, "uint256 value, string s", 0)
 
   fun testStruct() = checkByText("""
       contract B {

@@ -248,7 +248,7 @@ object SolResolver {
     }
     return when (val memberName = element.identifier?.text) {
       null -> emptyList()
-      else -> element.expression.getMembers()
+      else -> element.getMembers()
         .filter { it.getName() == memberName }
     }
   }

@@ -8,6 +8,7 @@ import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.resolve.ref.*
 import com.broxus.solidity.lang.stubs.*
 import com.broxus.solidity.lang.types.*
+import com.broxus.solidity.wrap
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.psi.PsiElement
@@ -171,7 +172,7 @@ abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefSt
       ?: emptyList()
 
   override fun parseParameters(): List<Pair<String?, SolType>> {
-    return parameters.map { it.identifier?.text to getSolType(it.typeName) }
+    return Companion.parseParameters(parameters)
   }
 
   override val callablePriority = 0
@@ -236,6 +237,12 @@ abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefSt
   }
   override fun getName(): String? {
     return super.getName() ?: firstChild.elementType.takeIf { it in specialFunctionTypes }?.toString()
+  }
+
+  companion object {
+    fun parseParameters(parameters: List<SolParameterDef>): List<Pair<String?, SolType>> {
+      return parameters.map { it.identifier?.text to getSolType(it.typeName) }
+    }
   }
 }
 
@@ -335,7 +342,7 @@ abstract class SolFunctionCallMixin(node: ASTNode) : SolNamedElementImpl(node), 
       is SolNewExpression ->
         expr.typeName as PsiElement
       is SolSeqExpression ->
-        getReferenceNameElement(expr.expressionList.first())
+        expr.expressionList.firstOrNull()?.let { getReferenceNameElement(it) } ?: expr
       // unable to extract reference name element
       else -> expr
     }
@@ -429,6 +436,26 @@ abstract class SolMemberAccessElement(node: ASTNode) : SolNamedElementImpl(node)
     get() = referenceNameElement.text
 
   override fun getReference() = SolMemberAccessReference(this)
+
+  fun collectUsingForLibraryFunctions(): List<SolFunctionDefinition> {
+    val type = expression.type.takeIf { it != SolUnknown } ?: return emptyList()
+    val contract = findContract()
+    val superContracts = contract
+      ?.collectSupers
+      ?.flatMap { SolResolver.resolveTypeNameUsingImports(it) }
+      ?.filterIsInstance<SolContractDefinition>()
+      ?: emptyList()
+    val libraries = (superContracts + contract.wrap())
+      .flatMap { it.usingForDeclarationList }
+      .filter {
+        val usingType = it.type
+        usingType == null || usingType == type
+      }
+      .mapNotNull { it.library }
+      .distinct()
+      .flatMap { it.functionDefinitionList }
+    return libraries
+  }
 }
 
 abstract class SolNewExpressionElement(node: ASTNode) : SolNamedElementImpl(node), SolNewExpression {

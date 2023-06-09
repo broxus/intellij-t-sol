@@ -3,9 +3,11 @@ package com.broxus.solidity.lang.types
 import com.broxus.solidity.firstOrElse
 import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.psi.*
+import com.broxus.solidity.lang.psi.impl.SolMemberAccessElement
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.resolve.canBeApplied
 import com.broxus.solidity.lang.resolve.ref.SolFunctionCallReference
+import com.broxus.solidity.lang.resolve.ref.toLibraryFunDefinition
 import com.broxus.solidity.lang.types.SolArray.SolDynamicArray
 import com.broxus.solidity.lang.types.SolArray.SolStaticArray
 import com.intellij.openapi.application.ApplicationManager
@@ -232,15 +234,17 @@ private fun getNumericExpressionType(firstType: SolType, secondType: SolType): S
   }
 }
 
-fun SolExpression.getMembers(): List<SolMember> {
+fun SolMemberAccessExpression.getMembers(): List<SolMember> {
+  val expr = expression
   return when {
-    this is SolPrimaryExpression && varLiteral?.name == "super" -> {
-      val contract = this.findContract()
+    expr is SolPrimaryExpression && expr.varLiteral?.name == "super" -> {
+      val contract = expr.findContract()
       contract?.let { SolResolver.resolveContractMembers(it, true) }
         ?: emptyList()
     }
     else -> {
-      this.type.getMembers(this.project)
+      val fromLibraries = (this as? SolMemberAccessElement)?.collectUsingForLibraryFunctions() ?: emptyList()
+      expr.type.getMembers(this.project) + fromLibraries.map { it.toLibraryFunDefinition() }
     }
   }
 }

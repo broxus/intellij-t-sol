@@ -98,7 +98,8 @@ object SolCompleter {
       element.childOfType<SolVarLiteral>()?.reference?.resolve()?.findContract()?.contractType == ContractType.LIBRARY -> ContextType.LIBRARY
       else -> ContextType.EXTERNAL
     }
-    return element.expression.getMembers()
+
+    return element.getMembers()
       .mapNotNull {
         when (it.getPossibleUsage(contextType)) {
           Usage.CALLABLE -> {

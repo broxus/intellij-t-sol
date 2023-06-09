@@ -1,15 +1,16 @@
 package com.broxus.solidity.lang.resolve.ref
 
-import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiElement
 import com.broxus.solidity.lang.completion.SolCompleter
 import com.broxus.solidity.lang.psi.*
+import com.broxus.solidity.lang.psi.impl.SolFunctionDefMixin
 import com.broxus.solidity.lang.psi.impl.SolNewExpressionElement
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.resolve.canBeApplied
 import com.broxus.solidity.lang.resolve.function.SolFunctionResolver
 import com.broxus.solidity.lang.types.*
 import com.broxus.solidity.wrap
+import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiElement
 
 class SolUserDefinedTypeNameReference(element: SolUserDefinedTypeName) : SolReferenceBase<SolUserDefinedTypeName>(element), SolReference {
   override fun multiResolve(): Collection<PsiElement> {
@@ -112,7 +113,7 @@ class SolFunctionCallReference(element: SolFunctionCallExpression) : SolReferenc
         regular + casts
       }
       is SolMemberAccessExpression -> {
-        resolveMemberFunctions(expr) + resolveFunctionCallUsingLibraries(expr)
+        resolveMemberFunctions(expr)
       }
       else ->
         emptyList()
@@ -149,60 +150,11 @@ class SolFunctionCallReference(element: SolFunctionCallExpression) : SolReferenc
   private fun resolveMemberFunctions(expression: SolMemberAccessExpression): Collection<SolCallable> {
     val name = expression.identifier?.text
     return if (name != null) {
-      expression.expression.getMembers()
+      expression.getMembers()
         .filterIsInstance<SolCallable>()
         .filter { it.getName() == name }
     } else {
       emptyList()
-    }
-  }
-
-  private fun resolveFunctionCallUsingLibraries(expression: SolMemberAccessExpression): Collection<SolCallable> {
-    val name = expression.identifier?.text
-    return if (name != null) {
-      val type = expression.expression.type
-      if (type != SolUnknown) {
-        val contract = expression.findContract()
-        val superContracts = contract
-          ?.collectSupers
-          ?.flatMap { SolResolver.resolveTypeNameUsingImports(it) }
-          ?.filterIsInstance<SolContractDefinition>()
-          ?: emptyList()
-        val libraries = (superContracts + contract.wrap())
-          .flatMap { it.usingForDeclarationList }
-          .filter {
-            val usingType = it.type
-            usingType == null || usingType == type
-          }
-          .mapNotNull { it.library }
-        return libraries
-          .distinct()
-          .flatMap { it.functionDefinitionList }
-          .filter { it.name == name }
-          .filter {
-            val firstParam = it.parameters.firstOrNull()
-            if (firstParam == null) {
-              false
-            } else {
-              getSolType(firstParam.typeName).isAssignableFrom(type)
-            }
-          }
-          .map { it.toLibraryCallable() }
-      } else {
-        emptyList()
-      }
-    } else {
-      emptyList()
-    }
-  }
-
-  private fun SolFunctionDefinition.toLibraryCallable(): SolCallable {
-    return object : SolCallable {
-      override fun parseParameters(): List<Pair<String?, SolType>> = this@toLibraryCallable.parseParameters().drop(1)
-      override fun parseType(): SolType = this@toLibraryCallable.parseType()
-      override fun resolveElement() = this@toLibraryCallable
-      override fun getName() = name
-      override val callablePriority = 0
     }
   }
 
@@ -215,4 +167,29 @@ class SolFunctionCallReference(element: SolFunctionCallExpression) : SolReferenc
     return resolveFunctionCall()
       .filter { it.canBeApplied(element.functionCallArguments) }
   }
+}
+
+class LibraryFunDefinition(private val original: SolFunctionDefinition) : SolFunctionDefinition by original {
+  override val parameters: List<SolParameterDef>
+    get() = original.parameters.drop(1)
+
+
+  override fun parseParameters(): List<Pair<String?, SolType>> {
+    return SolFunctionDefMixin.parseParameters(parameters)
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (other is LibraryFunDefinition) {
+      return original == other.original
+    }
+    return super.equals(other)
+  }
+
+  override fun hashCode(): Int {
+    return original.hashCode()
+  }
+
+}
+fun SolFunctionDefinition.toLibraryFunDefinition(): SolFunctionDefinition {
+  return LibraryFunDefinition(this)
 }

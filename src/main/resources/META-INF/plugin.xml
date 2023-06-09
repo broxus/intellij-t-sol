@@ -12,6 +12,24 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <b>v1.3</b>
+        Features:
+        <ul>
+          <li>Support for Library methods in autocomplete <a href="https://github.com/broxus/intellij-t-sol/issues/#35">#35</a></li>
+          <li>'implement all members' feature <a href="https://github.com/broxus/intellij-t-sol/issues/#29">#29</a></li>
+          <li>Import suggestions in autocomplete <a href="https://github.com/broxus/intellij-t-sol/issues/#25">#25</a></li>
+          <li>Support for the Move refactoring <a href="https://github.com/broxus/intellij-t-sol/issues/#24">#24</a></li>
+          <li>Color scheme for json  <a href="https://github.com/broxus/intellij-t-sol/issues/#22">#22</a></li>
+          <li>The function parameter placeholder are shown <a href="https://github.com/broxus/intellij-t-sol/issues/#21">#21</a></li>
+          <li>Support autocomplete for library methods <a href="https://github.com/broxus/intellij-t-sol/issues/#35">#35</a></li>
+        </ul>
+        Bugfixes:
+        <ul>
+          <li>address.makeAddrStd() with inline args <a href="https://github.com/broxus/intellij-t-sol/issues/#32">#32</a></li>
+          <li>Problems with function input types resolving <a href="https://github.com/broxus/intellij-t-sol/issues/#31">#31</a></li>
+          <li>Natspec comments starting from /** break syntax highlighting <a href="https://github.com/broxus/intellij-t-sol/issues/#33">#33</a></li>
+          <li>Standard functions valueToGas() and gasToValue() are marked as undefined <a href="https://github.com/broxus/intellij-t-sol/issues/#36">#36</li>
+        </ul>
         <b>v1.2</b>
         <br/>
         Minimum IDE version bumped to 2022.2
@@ -206,6 +224,7 @@
                          displayName="Function call arguments are not matched with the parameters of function definition"
                          enabledByDefault="true"
                          level="ERROR"
+                         shortName="TSolValidateFunctionArgumentsInspection"
                          implementationClass="com.broxus.solidity.ide.inspections.ValidateFunctionArgumentsInspection"/>
 
         <errorHandler implementation="com.broxus.solidity.ide.SentryReportSubmitter"/>

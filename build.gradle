@@ -136,3 +136,5 @@ publishPlugin {
     token = System.getenv("PUBLISH_TOKEN")
 }
 
+publishPlugin.dependsOn test
+

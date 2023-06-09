@@ -1326,11 +1326,11 @@ See example of how to use this function:
 							<code><pre>contract MyContract {
 								constructor(uint a) public {
 								}
-									/*...*/
+									//...
 								}
 							
 								function f() public pure returns (uint) {
-									/*...*/
+									//...
 								}
 							
 								function getConstructorID() public pure returns (uint32) {
@@ -1352,9 +1352,9 @@ See example of how to use this function:
 
 							Example:
 							<code><pre>contract Remote {
-								constructor(uint x, uint y, uint z) public { /* */ }
-								function func(uint256 num, int64 num2) public pure { /* */ }
-								function getCost(uint256 num) public responsible pure returns (uint128) { /* */ }
+								constructor(uint x, uint y, uint z) public { /.../ }
+								function func(uint256 num, int64 num2) public pure { /.../ }
+								function getCost(uint256 num) public responsible pure returns (uint128) { /.../ }
 							}
 							
 							// deploy the contract
@@ -1380,9 +1380,9 @@ See example of how to use this function:
 
 								Example:
 								<code><pre>contract Remote {
-									constructor(uint x, uint y, uint z) public { /* */ }
-									function func(uint256 num, int64 num2) public pure { /* */ }
-									function getCost(uint256 num) public responsible pure returns (uint128) { /* */ }
+									constructor(uint x, uint y, uint z) public { /.../ }
+									function func(uint256 num, int64 num2) public pure { /.../ }
+									function getCost(uint256 num) public responsible pure returns (uint128) { /.../ }
 								}
 								
 								// deploy the contract
@@ -1408,9 +1408,9 @@ See example of how to use this function:
 
 								Example:
 								<code><pre>contract Remote {
-									constructor(uint x, uint y, uint z) public { /* */ }
-									function func(uint256 num, int64 num2) public pure { /* */ }
-									function getCost(uint256 num) public responsible pure returns (uint128) { /* */ }
+									constructor(uint x, uint y, uint z) public { /.../ }
+									function func(uint256 num, int64 num2) public pure { /.../ }
+									function getCost(uint256 num) public responsible pure returns (uint128) { /.../ }
 								}
 								
 								// deploy the contract
@@ -1951,8 +1951,38 @@ causes a Panic error and thus state change reversion if the condition is not met
 							<li><a href="https://github.com/tonlabs/samples/blob/master/solidity/8_Kamikaze.sol">Kamikaze</a></li>
 							*/
 							function selfdestruct(address recipient);
+
+              /**
+              Returns worth of <b>gas</b> in workchain <b>wid</b>. Throws an exception if <b>wid</b> is not equal to <code>0</code> or <code>-1</code>. If <code>wid</code> is omitted than used the contract's <code>wid</code>
+              */
+              function gasToValue(uint128 gas) returns (uint128 value)
+              /**
+              Returns worth of <b>gas</b> in workchain <b>wid</b>. Throws an exception if <b>wid</b> is not equal to <code>0</code> or <code>-1</code>. If <code>wid</code> is omitted than used the contract's <code>wid</code>
+              */
+              function gasToValue(uint128 gas, int8 wid) returns (uint128 value)
+              
+              /**
+              Counts how much <b>gas</b> could be bought on <b>value</b> nanotons in workchain <b>wid</b>. Throws an exception if <b>wid</b> is not equal to <code>0</code> or <code>-1</code>. If <code>wid</code> is omitted than used the contract's <code>wid</code>
+              */
+              function valueToGas(uint128 value) returns (uint128 gas)
+              /**
+              Counts how much <b>gas</b> could be bought on <b>value</b> nanotons in workchain <b>wid</b>. Throws an exception if <b>wid</b> is not equal to <code>0</code> or <code>-1</code>. If <code>wid</code> is omitted than used the contract's <code>wid</code>
+              */
+              function valueToGas(uint128 value, int8 wid) returns (uint128 gas)              
           
-          logtvm(string log);
+              /**
+              Dumps <code>log</code> string. This function is a wrapper for TVM instructions <code>PRINTSTR</code> (for constant literal strings shorter than 16 symbols) and <code>STRDUMP</code> (for other strings). 
+              <code>logtvm</code> is an alias for <code>tvm.log(string)</code>. Example:
+              <code>
+              tvm.log("Hello, world!");
+              logtvm("99_Bottles");
+              
+              string s = "Some_text";
+              tvm.log(s);
+              </code>
+              <b>Note:</b> For long strings dumps only the first 127 symbols.
+              */
+              function logtvm(string log);
       }
     """)
   }

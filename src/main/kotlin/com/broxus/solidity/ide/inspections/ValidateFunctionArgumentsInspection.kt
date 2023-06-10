@@ -12,6 +12,7 @@ import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.util.parents
 
 class ValidateFunctionArgumentsInspection : LocalInspectionTool() {
   override fun getDisplayName(): String = ""
@@ -56,7 +57,7 @@ class ValidateFunctionArgumentsInspection : LocalInspectionTool() {
                   }
                 }) {
                 holder.registerProblem(
-                  element, wrongTypes.takeIf { it.isNotEmpty() }
+                    element.parents(true).first { it.textLength > 0 }, wrongTypes.takeIf { it.isNotEmpty() }
                   ?: wrongNumberOfArgs)
               }
             }

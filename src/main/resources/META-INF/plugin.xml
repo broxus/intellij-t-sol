@@ -22,13 +22,15 @@
           <li>Color scheme for json  <a href="https://github.com/broxus/intellij-t-sol/issues/#22">#22</a></li>
           <li>The function parameter placeholder are shown <a href="https://github.com/broxus/intellij-t-sol/issues/#21">#21</a></li>
           <li>Support autocomplete for library methods <a href="https://github.com/broxus/intellij-t-sol/issues/#35">#35</a></li>
+          <li>Support for var*Int, functionID and emptyMap keywords</li>
+          <li>Number literal type inference of function argument based on parameter type <a href="https://github.com/broxus/intellij-t-sol/issues/#32">#32</a></li>
         </ul>
         Bugfixes:
         <ul>
-          <li>address.makeAddrStd() with inline args <a href="https://github.com/broxus/intellij-t-sol/issues/#32">#32</a></li>
-          <li>Problems with function input types resolving <a href="https://github.com/broxus/intellij-t-sol/issues/#31">#31</a></li>
           <li>Natspec comments starting from /** break syntax highlighting <a href="https://github.com/broxus/intellij-t-sol/issues/#33">#33</a></li>
-          <li>Standard functions valueToGas() and gasToValue() are marked as undefined <a href="https://github.com/broxus/intellij-t-sol/issues/#36">#36</li>
+          <li>Standard functions valueToGas() and gasToValue() are marked as undefined <a href="https://github.com/broxus/intellij-t-sol/issues/#36">#36</a></li>
+          <li>Fixed resolving of an alias type <a href="https://github.com/broxus/intellij-t-sol/issues/#31">#31</a></li>
+          <li>Fixed resolving of a variable definition with initializer containing parenthesis</li>
         </ul>
         <b>v1.2</b>
         <br/>

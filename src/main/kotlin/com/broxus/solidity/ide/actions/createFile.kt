@@ -1,5 +1,6 @@
 package com.broxus.solidity.ide.actions
 
+import com.broxus.solidity.ide.SolidityIcons
 import com.intellij.ide.actions.CreateFileFromTemplateAction
 import com.intellij.ide.actions.CreateFileFromTemplateDialog
 import com.intellij.openapi.project.DumbAware
@@ -8,7 +9,6 @@ import com.intellij.openapi.ui.InputValidatorEx
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiDirectory
-import com.broxus.solidity.ide.SolidityIcons
 
 private const val CAPTION = "New T-Sol File"
 
@@ -23,9 +23,9 @@ class SolCreateFileAction : CreateFileFromTemplateAction(CAPTION, "", SolidityIc
   ) {
     builder.setTitle(CAPTION)
       .addKind("Smart contract", SolidityIcons.FILE_ICON, "T-Sol Contract")
-      .addKind("Smart abstract contract", SolidityIcons.FILE_ICON, "T-Sol Abstract Contract")
-      .addKind("Smart contract interface", SolidityIcons.FILE_ICON, "T-Sol Interface")
-      .addKind("Smart contract library", SolidityIcons.FILE_ICON, "T-Sol Library")
+      .addKind("Abstract smart contract", SolidityIcons.FILE_ICON, "T-Sol Abstract Contract")
+      .addKind("Interface", SolidityIcons.FILE_ICON, "T-Sol Interface")
+      .addKind("Library", SolidityIcons.FILE_ICON, "T-Sol Library")
       .setValidator(object : InputValidatorEx {
         override fun checkInput(inputString: String): Boolean {
           return getErrorText(inputString) == null

@@ -211,6 +211,7 @@ PRAGMAALL=[^;]*
   "externalMsg"           { return EXTERNALMSG; }
   "functionID"            { return FUNCTIONID; }
   "emptyMap"              { return EMPTYMAP; }
+  "null"                  { return NULL; }
 
 
   {HEXLITERAL}            { return HEXLITERAL; }

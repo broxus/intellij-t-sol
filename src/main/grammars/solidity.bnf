@@ -230,7 +230,7 @@ private ModifierInvocationCallArguments ::= FunctionCallArguments
 private FunctionID ::= functionID '(' NumberLiteral ')'
 
 ConstructorDefinition ::= constructor ParameterList
-                         ( ModifierInvocation | FunctionVisibilitySpecifier | StateMutability)*
+                         ( ModifierInvocation | FunctionVisibilitySpecifier | StateMutability | FunctionID)*
                          Block {
     pin = 1
     implements = "com.broxus.solidity.lang.psi.SolHasModifiersElement"

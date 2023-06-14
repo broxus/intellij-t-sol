@@ -29,7 +29,7 @@ class SolidityAnnotator : Annotator {
         applyColor(holder, element, SolColor.KEYWORD)
       }
       is SolEnumValue -> applyColor(holder, element, SolColor.ENUM_VALUE)
-      is SolMapExpression -> applyColor(holder, element, SolColor.MAPPING)
+      is SolMapExpressionClause -> applyColor(holder, element.identifier, SolColor.MAPPING)
       is SolMemberAccessExpression -> when(element.expression.firstChild.text) {
         "super" -> applyColor(holder, element.expression.firstChild, SolColor.KEYWORD)
         "msg", "block", "abi" -> applyColor(holder, element.expression.firstChild, SolColor.GLOBAL)

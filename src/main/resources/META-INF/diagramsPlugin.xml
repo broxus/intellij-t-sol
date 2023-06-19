@@ -1,0 +1,5 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <diagram.Provider implementation="com.broxus.solidity.ide.hints.SolDiagramProvider"/>
+    </extensions>
+</idea-plugin>

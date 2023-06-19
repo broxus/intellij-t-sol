@@ -86,6 +86,13 @@
     <idea-version since-build="222.4554.10"/>
 
     <depends>com.intellij.modules.lang</depends>
+    <!--
+        The below might not be strictly necessary, however, it's required as per
+        https://plugins.jetbrains.com/docs/intellij/webstorm.html#configuring-plugin-projects-targeting-webstorm
+        in order to include JavaScript.
+    -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends optional="true" config-file="diagramsPlugin.xml">com.intellij.diagram</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <fileType name="T-Sol File"

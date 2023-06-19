@@ -53,8 +53,10 @@ intellij {
     pluginName = 'IntelliJ-T-Sol'
 
     version = '2022.2.5'
+    type = 'IU'
     downloadSources = true
     updateSinceUntilBuild = false
+    plugins = ['JavaScript', "com.intellij.diagram"]
 
     sandboxDir = project.rootDir.canonicalPath + "/.sandbox"
 }

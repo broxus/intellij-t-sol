@@ -114,6 +114,7 @@
         <renamePsiElementProcessor implementation="com.broxus.solidity.ide.refactoring.RenameConstructorProcessor"/>
         <renamePsiElementProcessor implementation="com.broxus.solidity.ide.refactoring.SolRenameFileProcessor"/>
         <refactoring.moveHandler implementation="com.broxus.solidity.ide.refactoring.SolMoveHandler" order="first"/>
+        <lang.refactoringSupport language="T-Sol" implementationClass="com.broxus.solidity.ide.refactoring.SolRenameFileRefactoringSupportProvider"/>
 
         <!-- Commenter -->
         <lang.commenter language="T-Sol" implementationClass="com.broxus.solidity.ide.SolCommenter"/>

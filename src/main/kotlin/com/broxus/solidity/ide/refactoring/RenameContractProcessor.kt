@@ -1,9 +1,10 @@
 package com.broxus.solidity.ide.refactoring
 
+import com.broxus.solidity.lang.TSolidityFileType
+import com.broxus.solidity.lang.psi.SolContractDefinition
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.SearchScope
 import com.intellij.refactoring.rename.RenamePsiElementProcessor
-import com.broxus.solidity.lang.psi.SolContractDefinition
 
 class RenameContractProcessor : RenamePsiElementProcessor() {
   override fun canProcessElement(element: PsiElement): Boolean {
@@ -11,7 +12,12 @@ class RenameContractProcessor : RenamePsiElementProcessor() {
   }
 
   override fun prepareRenaming(element: PsiElement, newName: String, allRenames: MutableMap<PsiElement, String>, scope: SearchScope) {
-    (element as SolContractDefinition).functionDefinitionList
+    val contract = element as SolContractDefinition
+    val file = element.containingFile
+    if (contract.name == file.virtualFile.nameWithoutExtension) {
+      allRenames[file] = "$newName.${TSolidityFileType.defaultExtension}"
+    }
+    contract.functionDefinitionList
       .filter { it.isConstructor }
       .forEach { allRenames[it] = newName }
   }

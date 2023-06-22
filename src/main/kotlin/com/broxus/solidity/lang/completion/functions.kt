@@ -22,7 +22,7 @@ import com.intellij.util.ProcessingContext
 class SolFunctionCompletionContributor : CompletionContributor(), DumbAware {
 
   init {
-    extend(CompletionType.BASIC, and(expression(), not(mapExpression())), FunctionCompletionProvider)
+    extend(CompletionType.BASIC, and(expression(), and(not(mapExpression()), not(memberAccessExpression()))), FunctionCompletionProvider)
   }
 
   override fun beforeCompletion(context: CompletionInitializationContext) {

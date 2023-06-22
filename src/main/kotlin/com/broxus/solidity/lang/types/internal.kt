@@ -128,7 +128,7 @@ class SolInternalTypeFactory(project: Project) {
               (uint16 num0, uint32 num1, address addr) = slice.decode(uint16, uint32, address);</pre></code>
                @custom:no_validation
               */              
-              function decode(TypeA a, TypeB b) returns (TypeA /*a*/, TypeB /*b*/);
+              function decode(TypeA a, TypeB varargs) returns (TypeA /*a*/, TypeB /*b*/);
               /**
               Sequentially decodes values of the specified types from the <code>TvmSlice</code> if the <code>TvmSlice</code> holds sufficient data for all specified types. Otherwise, returns null.
               
@@ -139,7 +139,7 @@ class SolInternalTypeFactory(project: Project) {
               optional(uint8, uint16) b = slice.decodeQ(uint8, uint16);</pre></code>
               @custom:no_validation
               */              
-              function decodeQ(TypeA a, TypeB b) returns (optional(TypeA, TypeB)); 
+              function decodeQ(TypeA a, TypeB varargs) returns (optional(TypeA, TypeB)); 
               /**
               Loads a cell from the <code>TvmSlice</code> reference.
               */              
@@ -172,7 +172,7 @@ class SolInternalTypeFactory(project: Project) {
               Decodes parameters of the function or constructor (if contract type is provided). This function is usually used in <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#onbounce">onBounce</a> function.
               @custom:no_validation
               */              
-              function decodeFunctionParams(FunctionOrContractName) returns (TypeA /*a*/, TypeB /*b*/);
+              function decodeFunctionParams(FunctionOrContractName functionOrContract) returns (TypeA /*a*/, TypeB /*b*/);
               /**
               Decode state variables from slice that is obtained from the field data of stateInit
               
@@ -286,7 +286,7 @@ int16 b = 22;
 TvmBuilder builder;
 builder.store(a, b, uint(33));</pre></code> @custom:no_validation
 							*/
-							function store(/*list_of_values*/); 
+							function store(Type varargs); 
 							/**
 Stores <code>n</code> binary ones into the <code>TvmBuilder</code>.
 							*/
@@ -673,12 +673,12 @@ Checks whether the <code>vector</code> is empty.
 creates <code>cell</code> from the values.
  @custom:no_validation
 							*/
-							function encode(TypeA a) returns (TvmCell /*cell*/);
+							function encode(TypeA varargs) returns (TvmCell /*cell*/);
 							/**
 decodes the <code>cell</code> and returns the values.
  @custom:no_validation
 							*/
-							function decode(TvmCell cell) returns (TypeA);
+							function decode(TvmCell cell, TypeA varargs) returns (TypeA);
       }
     """)
   }
@@ -729,7 +729,7 @@ decodes the <code>cell</code> and returns the values.
 							/**
                 @custom:no_validation
 							*/
-							function format(string template, TypeA a, TypeB b) returns (string);
+							function format(string template, Type varargs) returns (string);
 							/**
 							*/
 							function stoi(string inputStr) returns (optional(int) /*result*/);
@@ -1640,19 +1640,19 @@ See example of how to use this function:
 							Returns the minimal (maximal) value of the passed arguments. <code>T</code> should be an integer or fixed point type
                 @custom:no_validation
 							*/
-							function min(T a, T b) returns (T);
+							function min(T a, T varargs) returns (T);
 							/**
 							Returns the minimal (maximal) value of the passed arguments. <code>T</code> should be an integer or fixed point type
                 @custom:no_validation
 							*/
-							function max(T a, T b) returns (T);
+							function max(T a, T varargs) returns (T);
 							/**
 							Returns minimal and maximal values of the passed arguments. <code>T</code> should be an integer or fixed point type
 
 							Example:
 							<code>(uint a, uint b) = math.minmax(20, 10); // (10, 20)</code>
 							*/
-							function minmax(T a, T b) returns (T /*min*/, T /*max*/);
+							function minmax(T a, T varargs) returns (T /*min*/, T /*max*/);
 							/**
 							Computes the absolute value of the given integer.
 

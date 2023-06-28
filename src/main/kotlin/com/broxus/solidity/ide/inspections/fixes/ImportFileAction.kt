@@ -1,5 +1,10 @@
 package com.broxus.solidity.ide.inspections.fixes
 
+import com.broxus.solidity.ide.formatting.SolImportOptimizer
+import com.broxus.solidity.lang.psi.SolImportDirective
+import com.broxus.solidity.lang.psi.SolPragmaDirective
+import com.broxus.solidity.lang.psi.SolPsiFactory
+import com.broxus.solidity.nullIfError
 import com.intellij.codeInsight.hint.QuestionAction
 import com.intellij.ide.util.DefaultPsiElementCellRenderer
 import com.intellij.openapi.application.ApplicationManager
@@ -14,10 +19,6 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.ui.popup.list.ListPopupImpl
 import com.intellij.ui.popup.list.PopupListElementRenderer
-import com.broxus.solidity.lang.psi.SolImportDirective
-import com.broxus.solidity.lang.psi.SolPragmaDirective
-import com.broxus.solidity.lang.psi.SolPsiFactory
-import com.broxus.solidity.nullIfError
 import java.awt.BorderLayout
 import java.nio.file.Paths
 import javax.swing.Icon
@@ -120,6 +121,7 @@ class ImportFileAction(
           val factory = SolPsiFactory(project)
           file.addAfter(factory.createImportDirective(buildImportPath(file.virtualFile, to.virtualFile)), after)
           file.addAfter(factory.createNewLine(project), after)
+          SolImportOptimizer().processFile(file).run()
         }
       }
     }

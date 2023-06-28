@@ -10,6 +10,7 @@ import com.broxus.solidity.lang.stubs.SolGotoClassIndex
 import com.broxus.solidity.lang.stubs.SolModifierIndex
 import com.broxus.solidity.lang.stubs.SolNamedElementIndex
 import com.broxus.solidity.lang.types.*
+import com.broxus.solidity.nullIfError
 import com.broxus.solidity.wrap
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.psi.PsiElement
@@ -17,21 +18,17 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.stubs.StubIndex
 import com.intellij.psi.util.*
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSuperclassOf
 
 object SolResolver {
   fun resolveTypeNameUsingImports(element: PsiElement): Set<SolNamedElement> =
     CachedValuesManager.getCachedValue(element) {
+      val commonTargets = setOf(SolContractDefinition::class, SolEnumDefinition::class, SolUserDefinedValueTypeDefinition::class)
       val result = if (element is SolFunctionCallElement) {
-        resolveError(element) +
-          resolveEvent(element) +
-          resolveContract(element) +
-          resolveEnum(element) +
-          resolveUserDefinedValueType(element)
+        resolveUsingImports(commonTargets + setOf(SolErrorDefinition::class, SolEventDefinition::class), element, element.containingFile, true)
       } else {
-        resolveContract(element) +
-          resolveEnum(element) +
-          resolveStruct(element) +
-          resolveUserDefinedValueType(element) +
+        resolveUsingImports(commonTargets + SolStructDefinition::class, element, element.containingFile, true) +
           resolveBuiltinValueType(element)
       }
       CachedValueProvider.Result.create(result, PsiModificationTracker.MODIFICATION_COUNT)
@@ -41,17 +38,14 @@ object SolResolver {
   /**
    * @param withAliases aliases are not recursive, so count them only at the first level of recursion
    */
-  private fun <T : SolNamedElement> resolveUsingImports(
-    target: Class<T>,
+  private fun resolveUsingImports(
+    target: Set<KClass<out SolNamedElement>>,
     element: PsiElement,
     file: PsiFile,
     withAliases: Boolean,
-  ): Set<T> {
+  ): Set<SolNamedElement> {
     // If the elements has no name or text, we can't resolve it.
-    val elementName = element.nameOrText
-    if (elementName == null) {
-      return emptySet()
-    }
+    val elementName = element.nameOrText ?: return emptySet()
 
     // Resolve aliases of the following form:
     // import {Wallet as ExternalWallet} from "./wallet.sol";
@@ -60,7 +54,7 @@ object SolResolver {
         val imports = file.childrenOfType<SolImportDirective>()
         imports.mapNotNull { directive ->
           directive.importAliasedPairList //
-            .firstOrNull { aliasPair -> aliasPair.importAlias?.name == element.nameOrText } //
+            .firstOrNull { aliasPair -> aliasPair.importAlias?.name == elementName } //
             ?.let { aliasPair ->
               directive.importPath?.reference?.resolve()?.let { resolvedFile ->
                 aliasPair.userDefinedTypeName to resolvedFile
@@ -83,22 +77,25 @@ object SolResolver {
       SolNamedElement::class.java //
     )
 
-    val resolvedImportedFiles = collectImports(file)
-    val sameNameReferences = elements.filterIsInstance(target).filter {
+    fun PsiElement.insideImport() = withAliases && parentOfType<SolImportDirective>() != null
+
+    val resolvedImportedFiles = collectImports(file, elementName.takeIf { !element.insideImport() } ?: "")
+    val sameNameReferences = elements.filter { e -> target.any { it.isSuperclassOf(e::class) } }.filter {
       val containingFile = it.containingFile
       // During completion, IntelliJ copies PSI files, and therefore we need to ensure that we compare
       // files against its original file.
       val originalFile = file.originalFile
       // Below, either include
-      containingFile == originalFile || containingFile in resolvedImportedFiles
+      !element.insideImport() && containingFile == originalFile || containingFile in resolvedImportedFiles
     }
+
     return (sameNameReferences + resolvedViaAlias).toSet()
   }
 
   /**
    * Collects imports of all declarations for a given file recursively.
    */
-  private fun collectImports(file: PsiFile, visited: MutableSet<PsiFile> = hashSetOf()): Collection<PsiFile> {
+  private fun collectImports(file: PsiFile, name: String, visited: MutableSet<PsiFile> = hashSetOf()): Collection<PsiFile> {
     if (!visited.add(file)) {
       return emptySet()
     }
@@ -106,24 +103,11 @@ object SolResolver {
     //   import {a as A} from "./a.sol";
     //
     val imports = file.childrenOfType<SolImportDirective>()
-    val resolvedImportedFiles = imports.mapNotNull {
-      it.importPath?.reference?.resolve()?.containingFile
-    }
-    return resolvedImportedFiles + resolvedImportedFiles.map { collectImports(it, visited) }.flatten()
+    val resolvedImportedFiles = imports
+      .filterNot { it.importAliasedPairList.any { it.importAlias != null && it.userDefinedTypeName.name == name } }
+      .mapNotNull { it.importPath?.reference?.resolve()?.containingFile }
+    return resolvedImportedFiles + resolvedImportedFiles.map { collectImports(it, name, visited) }.flatten()
   }
-
-  private fun resolveContract(element: PsiElement): Set<SolContractDefinition> =
-    resolveUsingImports(SolContractDefinition::class.java, element, element.containingFile, true)
-  private fun resolveEnum(element: PsiElement): Set<SolNamedElement> =
-    resolveInnerType<SolEnumDefinition>(element) { it.enumDefinitionList } + resolveUsingImports(SolEnumDefinition::class.java, element, element.containingFile, true)
-
-  private fun resolveStruct(element: PsiElement): Set<SolNamedElement> =
-    resolveInnerType<SolStructDefinition>(element) { it.structDefinitionList } + resolveUsingImports(SolStructDefinition::class.java, element, element.containingFile, true)
-
-  private fun resolveUserDefinedValueType(element: PsiElement): Set<SolNamedElement> =
-    resolveInnerType<SolUserDefinedValueTypeDefinition>(
-      element,
-      { it.userDefinedValueTypeDefinitionList }) + resolveUsingImports(SolUserDefinedValueTypeDefinition::class.java, element, element.containingFile, true)
 
   private fun resolveBuiltinValueType(element: PsiElement): Set<SolNamedElement> {
     val id = (element as? SolUserDefinedTypeNameElement)?.findIdentifiers()?.firstOrNull() ?:
@@ -133,70 +117,12 @@ object SolResolver {
   }
 
 
-  private fun resolveEvent(element: PsiElement): Set<SolNamedElement> =
-    resolveInnerType<SolEventDefinition>(element) { it.eventDefinitionList }
-
-  private fun resolveError(element: PsiElement): Set<SolNamedElement> =
-    resolveInnerType<SolErrorDefinition>(element) { it.errorDefinitionList } + resolveUsingImports(SolErrorDefinition::class.java, element, element.containingFile, true)
-
-  private inline fun <reified T : SolNamedElement> resolveInFile(element: PsiElement) : Set<T> {
-    return element.parentOfType<SolidityFile>()
-      ?.children
-      ?.filterIsInstance<T>()
-      ?.filter { it.name == element.text }
-      ?.toSet() ?: emptySet()
-  }
-
-  private fun <T : SolNamedElement> resolveInnerType(
-    element: PsiElement,
-    f: (SolContractDefinition) -> List<T>
-  ): Set<T> {
-    val inheritanceSpecifier = element.parentOfType<SolInheritanceSpecifier>()
-    return if (inheritanceSpecifier != null) {
-      emptySet()
-    } else {
-      val names = if (element is SolUserDefinedTypeNameElement) {
-        element.findIdentifiers()
-      } else {
-        element.wrap()
-      }
-      when {
-        names.size > 2 -> emptySet()
-        names.size > 1 -> resolveTypeNameUsingImports(names[0])
-          .filterIsInstance<SolContractDefinition>()
-          .firstOrNull()
-          ?.let { resolveInnerType(it, names[1].nameOrText!!, f) }
-          ?: emptySet()
-
-        else -> element.parentOfType<SolContractDefinition>()
-          ?.let {
-            names[0].nameOrText?.let { nameOrText ->
-              resolveInnerType(it, nameOrText, f)
-            }
-          }
-          ?: emptySet()
-      }
-    }
-  }
-
   private val PsiElement.nameOrText
     get() = if (this is PsiNamedElement) {
       this.name
     } else {
       this.text
     }
-
-  private fun <T : SolNamedElement> resolveInnerType(
-    contract: SolContractDefinition,
-    name: String,
-    f: (SolContractDefinition) -> List<T>
-  ): Set<T> {
-    val supers = contract.collectSupers
-      .mapNotNull { it.reference?.resolve() }.filterIsInstance<SolContractDefinition>() + contract
-    return supers.flatMap(f)
-      .filter { it.name == name }
-      .toSet()
-  }
 
   fun resolveTypeName(element: SolReferenceElement): Collection<SolNamedElement> = StubIndex.getElements(
     SolGotoClassIndex.KEY,
@@ -396,7 +322,11 @@ object SolResolver {
             .filterIsInstance<SolFunctionDefinition>()
 
           val imports = scope.children.asSequence().filterIsInstance<SolImportDirective>()
-            .mapNotNull {  it.importPath?.reference?.resolve()?.containingFile }
+            .mapNotNull {
+              if (it.importAliasedPairList.let { it.isEmpty() || it.any { it.importAlias?.name == place.nameOrText } }) {
+                nullIfError { it.importPath?.reference?.resolve()?.containingFile }
+              } else null
+            }
             .map { lexicalDeclarations(visitedScopes, it, place) }
             .flatten()
           imports + contracts + constantVariables + freeFunctions

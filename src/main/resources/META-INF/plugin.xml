@@ -85,6 +85,7 @@
     -->
     <idea-version since-build="222.4554.10"/>
 
+    <!-- See https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html for the full list of modules -->
     <depends>com.intellij.modules.lang</depends>
     <!--
         The below might not be strictly necessary, however, it's required as per
@@ -93,6 +94,7 @@
     -->
     <depends>com.intellij.modules.platform</depends>
     <depends optional="true" config-file="diagramsPlugin.xml">com.intellij.diagram</depends>
+    <depends optional="true" config-file="javascriptPlugin.xml">JavaScript</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <fileType name="T-Sol File"

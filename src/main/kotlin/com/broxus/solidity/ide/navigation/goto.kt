@@ -1,5 +1,8 @@
 package com.broxus.solidity.ide.navigation
 
+import com.broxus.solidity.lang.psi.SolNamedElement
+import com.broxus.solidity.lang.stubs.SolGotoClassIndex
+import com.broxus.solidity.lang.stubs.SolNamedElementIndex
 import com.intellij.navigation.ChooseByNameContributor
 import com.intellij.navigation.GotoClassContributor
 import com.intellij.navigation.NavigationItem
@@ -7,9 +10,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StubIndex
 import com.intellij.psi.stubs.StubIndexKey
-import com.broxus.solidity.lang.psi.SolNamedElement
-import com.broxus.solidity.lang.stubs.SolGotoClassIndex
-import com.broxus.solidity.lang.stubs.SolNamedElementIndex
 
 abstract class SolNavigationContributorBase<T>(
   private val indexKey: StubIndexKey<String, T>,
@@ -39,7 +39,7 @@ abstract class SolNavigationContributorBase<T>(
     return StubIndex.getElements(indexKey, name, project, scope, clazz).toTypedArray<NavigationItem>()
   }
 
-  override fun getQualifiedName(item: NavigationItem?): String? = item?.name
+  override fun getQualifiedName(item: NavigationItem): String? = item.name
 
   override fun getQualifiedNameSeparator(): String = "."
 }

@@ -726,13 +726,6 @@ decodes the <code>cell</code> and returns the values.
 							/**
 							*/
 							function toLowerCase() returns (string);
-							/**
-                @custom:no_validation
-							*/
-							function format(string template, Type varargs) returns (string);
-							/**
-							*/
-							function stoi(string inputStr) returns (optional(int) /*result*/);
         }
     """)
   }
@@ -1983,6 +1976,15 @@ causes a Panic error and thus state change reversion if the condition is not met
               <b>Note:</b> For long strings dumps only the first 127 symbols.
               */
               function logtvm(string log);
+              
+              /**
+              @custom:no_validation
+              */
+              function format(string template, Type varargs) returns (string);
+              /**
+              */
+              function stoi(string inputStr) returns (optional(int) /*result*/);
+
       }
     """)
   }

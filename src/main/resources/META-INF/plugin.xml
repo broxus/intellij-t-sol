@@ -239,6 +239,13 @@
                          shortName="TSolValidateFunctionArgumentsInspection"
                          implementationClass="com.broxus.solidity.ide.inspections.ValidateFunctionArgumentsInspection"/>
 
+        <localInspection language="T-Sol" groupName="T-Sol"
+                                 displayName="Element is never used"
+                                 enabledByDefault="true"
+                                 level="WEAK WARNING"
+                                 shortName="TSolUnusedElementInspection"
+                                 implementationClass="com.broxus.solidity.ide.inspections.UnusedElementInspection"/>
+
         <errorHandler implementation="com.broxus.solidity.ide.SentryReportSubmitter"/>
 
         <defaultLiveTemplates file="/liveTemplates/Solidity.xml"/>

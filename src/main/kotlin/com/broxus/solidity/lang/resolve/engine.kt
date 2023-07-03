@@ -1,5 +1,6 @@
 package com.broxus.solidity.lang.resolve
 
+import com.broxus.solidity.childrenOfType
 import com.broxus.solidity.lang.core.SolidityFile
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.psi.impl.SolNewExpressionElement
@@ -16,8 +17,10 @@ import com.intellij.openapi.util.RecursionManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StubIndex
 import com.intellij.psi.util.*
+import com.intellij.util.Processors
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSuperclassOf
 
@@ -92,21 +95,55 @@ object SolResolver {
     return (sameNameReferences + resolvedViaAlias).toSet()
   }
 
+  private val exportElements = setOf(
+    SolContractDefinition::class.java,
+    SolConstantVariableDeclaration::class.java,
+    SolEnumDefinition::class.java,
+    SolErrorDefinition::class.java,
+    SolStructDefinition::class.java,
+  )
+
+  fun collectUsedElements(o: SolImportDirective): List<String> {
+    val pathes = collectImports(listOf(o))
+    val current = o.containingFile.descendants().filter { it is SolUserDefinedTypeName || it is SolVarLiteral }
+      .mapNotNull { it.reference?.resolve() as? SolNamedElement }
+      .filter { it.containingFile != o.containingFile }
+      .mapNotNull { it.name }
+      .toSet()
+    val importScope = GlobalSearchScope.filesScope(o.project, pathes.map { it.virtualFile })
+//    val onlyNames = o.userDefinedTypeName?.name?.let { setOf(it) }
+//      ?: o.importAliasedPairList.mapNotNull { it.userDefinedTypeName.name }.takeIf { it.isNotEmpty() }?.toSet()
+
+    val allKeys = HashSet<String>()
+    StubIndex.getInstance().processAllKeys(SolNamedElementIndex.KEY, Processors.cancelableCollectProcessor(allKeys), importScope)
+    val imported = allKeys.filter { StubIndex.getElements(SolNamedElementIndex.KEY, it, o.project, importScope, SolNamedElement::class.java).isNotEmpty() }.toSet()
+
+    val used = imported.intersect(current)
+      .filter {
+        StubIndex.getElements(SolNamedElementIndex.KEY, it, o.project, importScope, SolNamedElement::class.java)
+          .all { e -> exportElements.any { it.isAssignableFrom(e.javaClass) } }
+      }
+    return used
+  }
+
+  fun collectImports(file: PsiFile, notWithName: String = "", visited: MutableSet<PsiFile> = hashSetOf()): Collection<PsiFile> {
+    return collectImports(file.childrenOfType<SolImportDirective>(), notWithName, visited)
+  }
+
   /**
    * Collects imports of all declarations for a given file recursively.
    */
-  private fun collectImports(file: PsiFile, name: String, visited: MutableSet<PsiFile> = hashSetOf()): Collection<PsiFile> {
-    if (!visited.add(file)) {
+  fun collectImports(imports: Collection<SolImportDirective>, notWithName: String = "", visited: MutableSet<PsiFile> = hashSetOf()): Collection<PsiFile> {
+    if (!visited.add((imports.firstOrNull() ?: return emptyList()).containingFile)) {
       return emptySet()
     }
     // TODO: the below code includes all declarations and ignores named imports, e.g. like the one below
     //   import {a as A} from "./a.sol";
     //
-    val imports = file.childrenOfType<SolImportDirective>()
     val resolvedImportedFiles = imports
-      .filterNot { it.importAliasedPairList.any { it.importAlias != null && it.userDefinedTypeName.name == name } }
+      .filterNot { it.importAliasedPairList.any { it.importAlias != null && it.userDefinedTypeName.name == notWithName } }
       .mapNotNull { it.importPath?.reference?.resolve()?.containingFile }
-    return resolvedImportedFiles + resolvedImportedFiles.map { collectImports(it, name, visited) }.flatten()
+    return resolvedImportedFiles + resolvedImportedFiles.map { collectImports(it, notWithName, visited) }.flatten()
   }
 
   private fun resolveBuiltinValueType(element: PsiElement): Set<SolNamedElement> {

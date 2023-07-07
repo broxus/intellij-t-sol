@@ -137,7 +137,18 @@ class SolContextCompletionContributor : CompletionContributor(), DumbAware {
         }
       }
     )
+    extend(CompletionType.BASIC, spdxLicenceExpression(),
+      object : CompletionProvider<CompletionParameters>() {
+        override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+          val elements = spdxs.map {  LookupElementBuilder.create(it.key).withTailText(" ${it.value}") }
+          val res = result.withPrefixMatcher(CamelHumpMatcher(result.prefixMatcher.prefix, false))
+          res.addAllElements(elements)
+        }
+      }
+    )
   }
+
+  private val spdxs = this.javaClass.getResourceAsStream("/spdx/spdx_licenselist.csv")?.let { String(it.readAllBytes()).lineSequence().drop(1).mapNotNull { it.split(",").take(2).takeIf { it.size >= 2 }?.let { it[1] to it[0] } }.toMap() } ?: emptyMap()
 
   private fun mappingExpression() = ObjectPattern.Capture(object : InitialPatternCondition<SolMapExpression>(SolMapExpression::class.java) {
     override fun accepts(o: Any?, context: ProcessingContext?): Boolean {

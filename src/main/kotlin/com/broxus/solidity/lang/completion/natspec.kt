@@ -1,12 +1,12 @@
 package com.broxus.solidity.lang.completion
 
+import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.project.DumbAware
-import com.intellij.patterns.PlatformPatterns
 import com.intellij.patterns.PlatformPatterns.psiElement
+import com.intellij.patterns.StandardPatterns
 import com.intellij.util.ProcessingContext
-import com.broxus.solidity.lang.core.SolidityTokenTypes
 
 // https://docs.soliditylang.org/en/develop/natspec-format.html#tags
 private val NATSPEC_TAGS = arrayListOf(
@@ -39,7 +39,7 @@ class SolNatSpecCompletionContributor : CompletionContributor(), DumbAware {
       NatSpecCompletionProvider(""))
     extend(
       CompletionType.BASIC,
-      psiElement(SolidityTokenTypes.COMMENT),
+      psiElement(SolidityTokenTypes.COMMENT).withoutText(StandardPatterns.string().contains(SPDX_LICENSE_IDENTIFIER)),
       NatSpecCompletionProvider("@"))
   }
 }

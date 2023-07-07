@@ -4,9 +4,13 @@ import com.broxus.solidity.lang.core.SolidityFile
 import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.psi.*
 import com.intellij.patterns.ElementPattern
+import com.intellij.patterns.InitialPatternCondition
+import com.intellij.patterns.ObjectPattern
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.patterns.StandardPatterns
+import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
+import com.intellij.util.ProcessingContext
 
 
 fun emitStartStatement() =
@@ -56,4 +60,13 @@ fun memberAccessExpression(): ElementPattern<PsiElement> =
 
 fun pathImportExpression(): ElementPattern<PsiElement> =
   psiElement(SolidityTokenTypes.STRINGLITERAL).inside(SolImportPath::class.java)
+
+const val SPDX_LICENSE_IDENTIFIER = "// SPDX-License-Identifier:"
+
+fun spdxLicenceExpression(): ObjectPattern.Capture<PsiComment> = ObjectPattern.Capture(object : InitialPatternCondition<PsiComment>(PsiComment::class.java) {
+  override fun accepts(o: Any?, context: ProcessingContext?): Boolean {
+    val element = o as? PsiComment ?: return false
+    return element.text.contains(SPDX_LICENSE_IDENTIFIER)
+  }
+})
 

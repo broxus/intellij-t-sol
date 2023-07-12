@@ -246,6 +246,13 @@
                                  shortName="TSolUnusedElementInspection"
                                  implementationClass="com.broxus.solidity.ide.inspections.UnusedElementInspection"/>
 
+        <localInspection language="T-Sol" groupName="T-Sol"
+                                 displayName="Member is not defined"
+                                 enabledByDefault="true"
+                                 level="ERROR"
+                                 shortName="TSolMemberAccessInspection"
+                                 implementationClass="com.broxus.solidity.ide.inspections.ValidateMemberAccessInspection"/>
+
         <errorHandler implementation="com.broxus.solidity.ide.SentryReportSubmitter"/>
 
         <defaultLiveTemplates file="/liveTemplates/Solidity.xml"/>

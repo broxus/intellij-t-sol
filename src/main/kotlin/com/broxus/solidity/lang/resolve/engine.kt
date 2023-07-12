@@ -50,6 +50,11 @@ object SolResolver {
     // If the elements has no name or text, we can't resolve it.
     val elementName = element.nameOrText ?: return emptySet()
 
+    var outerContract = (element as? SolUserDefinedTypeName)?.findIdentifiers()?.takeIf { it.size == 2 }?.first()?.text
+    if (outerContract != null) {
+      file.childrenOfType<SolImportDirective>().flatMap { it.importAliasedPairList }.find { it.importAlias?.identifier?.text == outerContract }?.let { outerContract = it.userDefinedTypeName.name }
+    }
+
     // Resolve aliases of the following form:
     // import {Wallet as ExternalWallet} from "./wallet.sol";
     val resolvedViaAlias = when {
@@ -83,16 +88,25 @@ object SolResolver {
     fun PsiElement.insideImport() = withAliases && parentOfType<SolImportDirective>() != null
 
     val resolvedImportedFiles = collectImports(file, elementName.takeIf { !element.insideImport() } ?: "")
+    val hierarchy by lazy { element.findContract()?.let { c -> (listOf(c) + c.collectSupers).mapNotNull { it.name } }}
     val sameNameReferences = elements.filter { e -> target.any { it.isSuperclassOf(e::class) } }.filter {
       val containingFile = it.containingFile
       // During completion, IntelliJ copies PSI files, and therefore we need to ensure that we compare
       // files against its original file.
       val originalFile = file.originalFile
       // Below, either include
-      !element.insideImport() && containingFile == originalFile || containingFile in resolvedImportedFiles
+      val contract by lazy { it.findContract() }
+
+      (!element.insideImport() && containingFile == originalFile || containingFile in resolvedImportedFiles)
+        && ((outerContract != null && contract?.name == outerContract)
+        || outerContract == null && (contract != null && it != contract && hierarchy?.contains(contract?.name ?: "") == true || it.isTopLevel))
     }
 
-    return (sameNameReferences + resolvedViaAlias).toSet()
+    val sorted = element.takeIf { sameNameReferences.size > 1 }?.let {
+      sameNameReferences.findBest { if (it.parentOfType<SolContractDefinition>()?.let { hierarchy?.contains(it.name) } == true) 0 else Int.MAX_VALUE}
+    } ?: sameNameReferences
+
+    return (sorted + resolvedViaAlias).toSet()
   }
 
   private val exportElements = setOf(

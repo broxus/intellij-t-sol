@@ -1,5 +1,6 @@
 package com.broxus.solidity.lang.psi
 
+import com.broxus.solidity.lang.core.SolidityFile
 import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.resolve.ref.SolReference
 import com.broxus.solidity.lang.types.SolMember
@@ -13,7 +14,10 @@ interface SolElement : PsiElement {
   override fun getReference(): PsiReference?
 }
 
-interface SolNamedElement : SolElement, PsiNamedElement, NavigatablePsiElement
+interface SolNamedElement : SolElement, PsiNamedElement, NavigatablePsiElement {
+  val isTopLevel : Boolean
+    get() = parent is SolidityFile
+}
 
 enum class Visibility {
   PRIVATE,

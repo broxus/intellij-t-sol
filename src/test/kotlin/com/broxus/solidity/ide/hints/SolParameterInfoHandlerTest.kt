@@ -80,7 +80,7 @@ class SolParameterInfoHandlerTest : SolTestBase() {
         }
     
         contract A is Base {
-            function foo(uint256 a) {}
+            function foo(uint256 a) override {}
             
             function foo(string a) {}
 

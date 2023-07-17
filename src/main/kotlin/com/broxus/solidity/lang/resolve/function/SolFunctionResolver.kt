@@ -1,6 +1,7 @@
 package com.broxus.solidity.lang.resolve.function
 
 import com.broxus.solidity.ide.navigation.findAllImplementations
+import com.broxus.solidity.lang.psi.FunctionInheritance
 import com.broxus.solidity.lang.psi.SolContractDefinition
 import com.broxus.solidity.lang.psi.SolFunctionDefinition
 import com.broxus.solidity.lang.psi.impl.LinearizationImpossibleException
@@ -20,6 +21,7 @@ object SolFunctionResolver {
   }
 
   fun collectOverriden(func: SolFunctionDefinition): Collection<SolFunctionDefinition> {
+    if (func.inheritance != FunctionInheritance.OVERRIDE) return emptyList()
     val contract = func.parentOfType<SolContractDefinition>() ?: return emptyList()
     val parents = try {
       SolContract(contract).linearizeParents().map { it.ref }

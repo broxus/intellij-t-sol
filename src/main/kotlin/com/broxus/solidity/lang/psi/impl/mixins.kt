@@ -134,7 +134,11 @@ abstract class SolContractOrLibMixin : SolStubbedNamedElementImpl<SolContractOrL
     }
 }
 
-abstract class SolConstructorDefMixin(node: ASTNode) : SolElementImpl(node), SolConstructorDefinition {
+interface SolConstructorOrFunctionDef {
+  fun getBlock(): SolBlock?
+}
+
+abstract class SolConstructorDefMixin(node: ASTNode) : SolElementImpl(node), SolConstructorDefinition, SolConstructorOrFunctionDef {
   override val referenceNameElement: PsiElement
     get() = this
 
@@ -155,7 +159,7 @@ abstract class SolConstructorDefMixin(node: ASTNode) : SolElementImpl(node), Sol
   override fun getIcon(flags: Int) = SolidityIcons.CONTRACT_FILE
 }
 
-abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefStub>, SolFunctionDefinition {
+abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefStub>, SolFunctionDefinition, SolConstructorOrFunctionDef {
   override val referenceNameElement: PsiElement
     get() = findChildByType(IDENTIFIER)!!
 
@@ -197,6 +201,11 @@ abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefSt
       .mapNotNull { safeValueOf<Visibility>(it) }
       .firstOrNull()
       ?: Visibility.PUBLIC
+
+  override val inheritance: FunctionInheritance?
+    get() = functionVisibilitySpecifierList.find { it.overrideSpecifier != null  || it.virtualSpecifier != null }?.let {
+      if (it.overrideSpecifier != null) FunctionInheritance.OVERRIDE else FunctionInheritance.VIRTUAL
+    }
 
   override fun getPossibleUsage(contextType: ContextType) =
     if (isPossibleToUse(contextType))

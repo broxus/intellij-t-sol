@@ -58,13 +58,13 @@ class SolFunctionResolveTest : SolResolveTestBase() {
         }
 
         contract A is Base {
-            function doit2() {
+            function doit2() override {
                     //x
             }
         }
 
         contract B is A {
-            function doit() {
+            function doit() override {
                 doit2();
                 //^
             }

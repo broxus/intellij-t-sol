@@ -59,6 +59,8 @@ interface SolConstantVariable : SolNamedElement {}
 val specialFunctionTypes = setOf(SolidityTokenTypes.RECEIVE, SolidityTokenTypes.FALLBACK,
   SolidityTokenTypes.ONBOUNCE, SolidityTokenTypes.ONTICKTOCK)
 
+enum class FunctionInheritance { OVERRIDE, VIRTUAL}
+
 interface SolFunctionDefElement : SolHasModifiersElement, SolMember, SolCallableElement {
   /** The contract can be null in the case of free functions. */
   val contract: SolContractDefinition?
@@ -67,6 +69,7 @@ interface SolFunctionDefElement : SolHasModifiersElement, SolMember, SolCallable
   val returns: SolParameterList?
   val isConstructor: Boolean
   val visibility: Visibility
+  val inheritance: FunctionInheritance?
 }
 
 inline fun <reified T : Enum<*>> safeValueOf(name: String): T? =

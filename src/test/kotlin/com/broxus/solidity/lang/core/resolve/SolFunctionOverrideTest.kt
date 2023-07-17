@@ -13,23 +13,23 @@ class SolFunctionOverrideTest : SolResolveTestBase() {
         }
 
         contract B is A {
-            function test(uint test1) {
+            function test(uint test1) override {
                      //^
 
             }
 
-            function test(uint128 test2) {
+            function test(uint128 test2) override {
 
             }
 
         }
 
         contract C is B {
-            function test(uint256 test2) {
+            function test(uint256 test2) override  {
                      //Y
             }
 
-            function test(uint128 test) {
+            function test(uint128 test) override {
 
             }
         }

@@ -175,6 +175,7 @@
         <definitionsScopedSearch implementation="com.broxus.solidity.ide.navigation.SolContractImplementationSearcher"/>
 
         <lang.foldingBuilder language="T-Sol" implementationClass="com.broxus.solidity.ide.SolidityFoldingBuilder"/>
+        <customFoldingProvider implementation="com.broxus.solidity.ide.VisualStudioCustomFoldingProvider"/>
 
         <lang.findUsagesProvider language="T-Sol" implementationClass="com.broxus.solidity.ide.SolFindUsagesProvider"/>
 

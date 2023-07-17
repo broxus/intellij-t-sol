@@ -204,7 +204,7 @@ object SolResolver {
           }
         }
         element.parent is SolModifierInvocation -> {
-          (element.parent as SolModifierInvocation).reference?.multiResolve()?.filterIsInstance<SolNamedElement>() ?: emptyList()
+          (element.parent as SolModifierInvocation).reference?.multiResolve()?.filterIsInstance<SolNamedElement>()?.takeIf { it.isNotEmpty() } ?: resolveVarLiteral(element)
         }
         else -> {
           resolveVarLiteral(element)
@@ -260,8 +260,8 @@ object SolResolver {
 
   fun resolveContractMembers(contract: SolContractDefinition, skipThis: Boolean = false): List<SolMember> {
     val members = if (!skipThis)
-      contract.stateVariableDeclarationList as List<SolMember> + contract.functionDefinitionList  +
-        contract.structDefinitionList.map { SolStructConstructor(it) }
+      contract.stateVariableDeclarationList as List<SolMember> + contract.functionDefinitionList +
+        contract.structDefinitionList.map { SolStructConstructor(it) } + contract.enumDefinitionList.map { SolEnum(it) }
     else
       emptyList()
     return members + contract.supers
@@ -281,7 +281,7 @@ object SolResolver {
     stop: (PsiElement) -> Boolean = { false }
   ): Sequence<SolNamedElement> {
     val globalType = SolInternalTypeFactory.of(place.project).globalType
-    return lexicalDeclarations(visitedScopes, globalType.ref, place) + lexicalDeclRec(visitedScopes, place, stop).distinct() + place.getAliases() + resolveTypeNameUsingImports(place)
+    return lexicalDeclarations(visitedScopes, globalType.ref, place) +  lexicalDeclRec(visitedScopes, place, stop).distinct() + place.getAliases() + resolveTypeNameUsingImports(place)
   }
 
   private fun lexicalDeclRec(
@@ -322,7 +322,7 @@ object SolResolver {
           scope.structDefinitionList
         ).flatten()
           .map { lexicalDeclarations(visitedScopes, it, place) }
-          .flatten() + scope.structDefinitionList + scope.eventDefinitionList + scope.errorDefinitionList
+          .flatten() + scope.structDefinitionList + scope.eventDefinitionList + scope.errorDefinitionList + scope.enumDefinitionList
         val extendsScope = scope.supers.asSequence()
           .map { resolveTypeName(it).firstOrNull() }
           .filterNotNull()

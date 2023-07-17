@@ -1,6 +1,7 @@
 package com.broxus.solidity.ide.inspections
 
 import com.broxus.solidity.lang.psi.*
+import com.broxus.solidity.lang.psi.impl.SolConstructorOrFunctionDef
 import com.broxus.solidity.lang.resolve.SolResolver.collectUsedElements
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemHighlightType
@@ -8,6 +9,7 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.search.searches.ReferencesSearch
+import com.intellij.psi.util.parents
 
 class UnusedElementInspection : LocalInspectionTool() {
 
@@ -20,8 +22,6 @@ class UnusedElementInspection : LocalInspectionTool() {
           holder.registerProblem(o, "Unused import directive", ProblemHighlightType.LIKE_UNUSED_SYMBOL)
         }
       }
-
-
 
       override fun visitContractDefinition(o: SolContractDefinition) {
         o.identifier?.checkForUsage(o, holder, "Contract '${o.name}' is never used")
@@ -36,7 +36,7 @@ class UnusedElementInspection : LocalInspectionTool() {
       }
 
       override fun visitFunctionDefinition(o: SolFunctionDefinition) {
-        o.identifier?.checkForUsage(o, holder, "Function '${o.name}' is never used")
+        o.identifier?.takeIf { o.visibility != Visibility.EXTERNAL }?.checkForUsage(o, holder, "Function '${o.name}' is never used")
       }
 
       override fun visitStructDefinition(o: SolStructDefinition) {
@@ -52,7 +52,7 @@ class UnusedElementInspection : LocalInspectionTool() {
         }
 
       override fun visitParameterDef(o: SolParameterDef) {
-        o.identifier?.checkForUsage(o, holder, "Parameter '${o.name}' is never used")
+        o.identifier?.takeIf { o.parents(false).filterIsInstance<SolConstructorOrFunctionDef>().firstOrNull()?.getBlock() != null }?.checkForUsage(o, holder, "Parameter '${o.name}' is never used")
       }
 
       override fun visitModifierDefinition(o: SolModifierDefinition) {

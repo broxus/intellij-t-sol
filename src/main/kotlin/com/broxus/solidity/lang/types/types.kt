@@ -235,6 +235,10 @@ data class SolContract(val ref: SolContractDefinition, val builtin: Boolean = fa
     } ?: emptyList()
   }
 
+  fun linearizeParentsOrNull(): List<SolContractDefinition>? {
+    return runCatching { linearizeParents().map { it.ref } }.getOrNull()
+  }
+
   override fun getParents(): List<SolContract> {
     return ref.supers
       .flatMap { it.reference?.multiResolve() ?: emptyList() }
@@ -261,7 +265,7 @@ data class SolContract(val ref: SolContractDefinition, val builtin: Boolean = fa
   override fun toString() = ref.name ?: ref.text ?: "$ref"
 }
 
-data class SolStruct(val ref: SolStructDefinition, val builtin : Boolean = false) : SolUserType {
+data class SolStruct(val ref: SolStructDefinition, val builtin : Boolean = false) : SolUserType, SolMember {
   override fun isAssignableFrom(other: SolType): Boolean =
     other is SolStruct && ref == other.ref
 
@@ -274,6 +278,14 @@ data class SolStruct(val ref: SolStructDefinition, val builtin : Boolean = false
 
   override val isBuiltin: Boolean
     get() = builtin
+
+  override fun getName(): String? = ref.name
+
+  override fun parseType(): SolType = this
+
+  override fun resolveElement(): SolNamedElement? = ref
+
+  override fun getPossibleUsage(contextType: ContextType): Usage? = null
 }
 
 data class SolStructVariableDeclaration(
@@ -302,9 +314,17 @@ data class SolStructConstructor(val ref: SolStructDefinition) : SolMember, SolCa
 
 }
 
-data class SolEnum(val ref: SolEnumDefinition) : SolUserType {
+data class SolEnum(val ref: SolEnumDefinition) : SolUserType, SolMember {
   override fun isAssignableFrom(other: SolType): Boolean =
     other is SolEnum && ref == other.ref
+
+  override fun getName(): String? = ref.name
+
+  override fun parseType(): SolType = this
+
+  override fun resolveElement(): SolNamedElement? = ref
+
+  override fun getPossibleUsage(contextType: ContextType): Usage? = null
 
   override fun toString() = ref.name ?: ref.text ?: "$ref"
 

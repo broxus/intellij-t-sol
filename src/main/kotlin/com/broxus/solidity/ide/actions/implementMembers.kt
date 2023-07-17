@@ -1,7 +1,6 @@
 package com.broxus.solidity.ide.actions
 
 import com.broxus.solidity.lang.psi.*
-import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.resolve.function.SolFunctionResolver
 import com.broxus.solidity.lang.types.getSolType
 import com.intellij.codeInsight.CodeInsightActionHandler
@@ -37,6 +36,7 @@ class ImplementMembersAction : PresentableActionHandlerBasedAction() {
 }
 
 class ImplementMethodsHandler : ContextAwareActionHandler, LanguageCodeInsightActionHandler {
+
   override fun isAvailableForQuickList(editor: Editor, file: PsiFile, dataContext: DataContext): Boolean {
     return false
   }
@@ -45,38 +45,43 @@ class ImplementMethodsHandler : ContextAwareActionHandler, LanguageCodeInsightAc
 
   override fun invoke(project: Project, editor: Editor, file: PsiFile) {
     val context = findContextContract(editor, file) ?: return
+    invoke(context)
+  }
+
+  fun invoke(context: SolContractDefinition) {
     val candidates = collectCandidates(context)
     val parents = mutableMapOf<SolContractDefinition, SolMemberElement<*>>()
-    val chooser = MemberChooserBuilder<SolMemberElement<SolFunctionDefinition>>(project).createBuilder(
+    val chooser = MemberChooserBuilder<SolMemberElement<SolFunctionDefinition>>(context.project).createBuilder(
       candidates.map {
-        val parent = it.el.contract?.let { c -> parents.computeIfAbsent(c) { SolMemberElement(c, null, c.name ?: "N/A", c.getIcon(0)) } }
+        val parent = it.el.contract?.let { c ->
+          parents.computeIfAbsent(c) {
+            SolMemberElement(c, null, c.name ?: "N/A", c.getIcon(0))
+          }
+        }
         val signiture = it.el.let { "${it.name}(${it.parameters.joinToString { it.signature() }})${it.returns?.let { " returns (${it.parameterDefList.joinToString { it.signature() }})" } ?: ""}" }
-        SolMemberElement(it.el, parent, signiture, it.el.getIcon(0)) }.toTypedArray()
-    )
+        SolMemberElement(it.el, parent, signiture, it.el.getIcon(0))
+      }.toTypedArray()
+      )
     chooser.show()
     chooser.selectedElements?.takeIf { it.isNotEmpty() }?.let {
       runWriteAction {
         implementMembers(it, context)
       }
-    }
+      }
   }
 
   private fun implementMembers(candidates: List<SolMemberElement<SolFunctionDefinition>>, context: SolContractDefinition) {
     val factory = SolPsiFactory(context.project)
     val start = context.lastChild.textOffset
     candidates.forEach {
-      context.addBefore(factory.createFunction("${it.el.text.replace(";", "")} {}\n"), context.lastChild)
+      val func = context.addBefore(factory.createFunction("${it.el.text.replace(";", "")} {\n}"), context.lastChild)
+      context.addAfter(factory.createNewLine(), func)
     }
     CodeStyleManager.getInstance(context.project).reformatText(context.containingFile, start, context.lastChild.endOffset)
   }
 
   private fun collectCandidates(context: SolContractDefinition): List<CandidateInfo> {
-    val supers = context.collectSupers
-    val funcs = context.functionDefinitionList
-    val superMembers = supers.flatMap { SolResolver.resolveTypeName(it) }
-      .filterIsInstance<SolContractDefinition>()
-      .flatMap { it.functionDefinitionList.mapNotNull { it.takeIf { funcs.none { f -> SolFunctionResolver.signatureEquals(f, it) } } } }
-    return superMembers.map { CandidateInfo(it) }
+    return SolFunctionResolver.collectNotImplemented(context).map { CandidateInfo(it) }
   }
 
 

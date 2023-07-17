@@ -9,6 +9,16 @@ import com.broxus.solidity.lang.types.SolContract
 import com.broxus.solidity.lang.types.getSolType
 
 object SolFunctionResolver {
+
+  fun collectNotImplemented(contract: SolContractDefinition): List<SolFunctionDefinition> {
+    val allContracts = (SolContract(contract).linearizeParentsOrNull() ?: return emptyList()).asReversed() + contract
+    val notImplemented = allContracts.map { it.functionDefinitionList }.reduce { all, cur ->
+      val newAll = all.filter { it.block == null && cur.none { c -> c.block != null && signatureEquals(c, it) } }
+      newAll + cur
+    }
+    return notImplemented.filter { it.block == null }
+  }
+
   fun collectOverriden(func: SolFunctionDefinition): Collection<SolFunctionDefinition> {
     val contract = func.parentOfType<SolContractDefinition>() ?: return emptyList()
     val parents = try {

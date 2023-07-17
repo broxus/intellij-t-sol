@@ -33,7 +33,7 @@ class SolPsiFactory(val project: Project) {
       ?: error("Failed to create struct: `$importPath`")
   }
 
-  fun createNewLine(project: Project): PsiElement {
+  fun createNewLine(): PsiElement {
     return PsiParserFacade.SERVICE.getInstance(project).createWhiteSpaceFromText("\n")
   }
 

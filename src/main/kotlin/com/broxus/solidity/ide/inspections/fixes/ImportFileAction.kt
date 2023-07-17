@@ -120,7 +120,7 @@ class ImportFileAction(
             ?: file.children.filterIsInstance<SolPragmaDirective>().firstOrNull()
           val factory = SolPsiFactory(project)
           file.addAfter(factory.createImportDirective(buildImportPath(file.virtualFile, to.virtualFile)), after)
-          file.addAfter(factory.createNewLine(project), after)
+          file.addAfter(factory.createNewLine(), after)
           SolImportOptimizer().processFile(file).run()
         }
       }

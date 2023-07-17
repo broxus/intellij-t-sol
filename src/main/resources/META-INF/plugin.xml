@@ -253,6 +253,13 @@
                                  level="ERROR"
                                  shortName="TSolMemberAccessInspection"
                                  implementationClass="com.broxus.solidity.ide.inspections.ValidateMemberAccessInspection"/>
+        <localInspection language="T-Sol" groupName="T-Sol"
+                         displayName="Members are not implemented"
+                         enabledByDefault="true"
+                         level="ERROR"
+                         shortName="TSolUnimplementedMemberInspection"
+                         implementationClass="com.broxus.solidity.ide.inspections.UnimplementedMemberInspection"/>
+
 
         <errorHandler implementation="com.broxus.solidity.ide.SentryReportSubmitter"/>
 

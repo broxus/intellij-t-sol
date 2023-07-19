@@ -233,7 +233,7 @@
                          shortName="TSolLinearizationImpossibleInspection"
                          implementationClass="com.broxus.solidity.ide.inspections.LinearizationImpossibleInspection"/>
 
-        <localInspection language="T-Sol" groupName="Solidity"
+        <localInspection language="T-Sol" groupName="T-Sol"
                          displayName="Function call arguments are not matched with the parameters of function definition"
                          enabledByDefault="true"
                          level="ERROR"

@@ -594,7 +594,10 @@ Sets the value associated with key, but only if key is present in the <code>mapp
   val arrayType: SolContract by lazy {
     contract("""
       contract ${internalise("Array")} {
-          uint64 length;
+            /**
+            * yields the fixed length of the byte array. The length of memory arrays is fixed (but dynamic, i.e. it can depend on runtime parameters) once they are created.
+            */
+          uint256 length;
           
             /**
 Returns status flag whether the array is empty (its length is 0).

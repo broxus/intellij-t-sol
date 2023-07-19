@@ -4,7 +4,7 @@ class ValidateFunctionArgumentsInspectionTest : SolInspectionsTestBase(ValidateF
   fun testTypeAssertFailure() = checkByText("""
         contract a {
             function a() {
-                assert(/*@error descr="Argument of type 'string' is not assignable to parameter of type 'bool'"@*/"myString"/*@/error@*/);
+                require(/*@error descr="Argument of type 'string' is not assignable to parameter of type 'bool'"@*/"myString"/*@/error@*/, "myMsg");
             }
         }
     """)
@@ -12,7 +12,7 @@ class ValidateFunctionArgumentsInspectionTest : SolInspectionsTestBase(ValidateF
   fun testTypeAssertSuccess() = checkByText("""
         contract a {
             function a() {
-                assert(true);
+                require(true, "myMsg");
             }
         }
     """)

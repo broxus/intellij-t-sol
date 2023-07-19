@@ -57,7 +57,7 @@ class ValidateFunctionArgumentsInspection : LocalInspectionTool() {
                   }
                 }) {
                 holder.registerProblem(
-                    element.parents(true).first { it.textLength > 0 }, wrongTypes.takeIf { it.isNotEmpty() }
+                    wrongElement.parents(true).first { it.textLength > 0 }, wrongTypes.takeIf { it.isNotEmpty() }
                   ?: wrongNumberOfArgs)
               }
             }

@@ -127,8 +127,9 @@ class SolInternalTypeFactory(project: Project) {
               (uint8 a, uint16 b) = slice.decode(uint8, uint16);
               (uint16 num0, uint32 num1, address addr) = slice.decode(uint16, uint32, address);</pre></code>
                @custom:no_validation
+               @custom:typeArgument Type:Type
               */              
-              function decode(TypeA a, TypeB varargs) returns (TypeA /*a*/, TypeB /*b*/);
+              function decode(Type varargs) returns (Type);
               /**
               Sequentially decodes values of the specified types from the <code>TvmSlice</code> if the <code>TvmSlice</code> holds sufficient data for all specified types. Otherwise, returns null.
               
@@ -138,8 +139,9 @@ class SolInternalTypeFactory(project: Project) {
               optional(uint) a = slice.decodeQ(uint);
               optional(uint8, uint16) b = slice.decodeQ(uint8, uint16);</pre></code>
               @custom:no_validation
+              @custom:typeArgument Type:Type
               */              
-              function decodeQ(TypeA a, TypeB varargs) returns (optional(TypeA, TypeB)); 
+              function decodeQ(Type varargs) returns (optional(Type)); 
               /**
               Loads a cell from the <code>TvmSlice</code> reference.
               */              
@@ -171,8 +173,9 @@ class SolInternalTypeFactory(project: Project) {
               /**
               Decodes parameters of the function or constructor (if contract type is provided). This function is usually used in <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#onbounce">onBounce</a> function.
               @custom:no_validation
+              @custom:typeArgument Type:FunctionOrContract, TypeRet:DecodedElement
               */              
-              function decodeFunctionParams(FunctionOrContractName functionOrContract) returns (TypeA /*a*/, TypeB /*b*/);
+              function decodeFunctionParams(Type functionOrContract) returns (TypeRet);
               /**
               Decode state variables from slice that is obtained from the field data of stateInit
               
@@ -205,8 +208,10 @@ class SolInternalTypeFactory(project: Project) {
               		// s.empty()
               	}
               }</pre></code>
+              @custom:typeArgument Type:ContractName
+              
               */              
-              function decodeStateVars(ContractName) returns (uint256 /*pubkey*/, uint64 /*timestamp*/, bool /*constructorFlag*/, Type1 /*var1*/, Type2 /*var2*/); 
+              function decodeStateVars(Type contractName) returns (uint256 /*pubkey*/, uint64 /*timestamp*/, bool /*constructorFlag*/, Type1 /*var1*/, Type2 /*var2*/); 
               /**
               Skips the first <code>length</code> bits and <code>refs</code> references from the <code>TvmSlice</code>.
               */              
@@ -285,6 +290,7 @@ Example:
 int16 b = 22;
 TvmBuilder builder;
 builder.store(a, b, uint(33));</pre></code> @custom:no_validation
+               @custom:typeArgument Type
 							*/
 							function store(Type varargs); 
 							/**
@@ -500,6 +506,9 @@ Example:
   val mappingType: SolContract by lazy {
     contract(
         """
+      /**
+       @custom:typeArgument KeyType=from,ValueType=to
+      */
       contract ${internalise("Mapping")} {
 							/**
 Returns the item of <code>ValueType</code> with index key. Throws an <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvm-exception-codes">exception</a> if key is not in the mapping.
@@ -593,6 +602,9 @@ Sets the value associated with key, but only if key is present in the <code>mapp
 
   val arrayType: SolContract by lazy {
     contract("""
+      /**
+       @custom:typeArgument Type=type
+      */
       contract ${internalise("Array")} {
             /**
             * yields the fixed length of the byte array. The length of memory arrays is fixed (but dynamic, i.e. it can depend on runtime parameters) once they are created.
@@ -621,6 +633,9 @@ Dynamic storage arrays and <code>bytes</code> (not <code>string</code>) have a m
 
   val optionalType: SolContract by lazy {
     contract("""
+      /**
+       @custom:typeArgument Type=T1
+      */
       contract ${internalise("Optional")} {
 
 							/**
@@ -645,6 +660,9 @@ Deletes content of the <code>optional</code>.
 
   val vectorType: SolContract by lazy {
     contract("""
+      /**
+       @custom:typeArgument Type=T1
+      */
       contract ${internalise("Vector")} {
 
 							/**
@@ -671,17 +689,18 @@ Checks whether the <code>vector</code> is empty.
   val abiType: SolContract by lazy {
     contract("""
       contract ${internalise("Abi")} {
-          // todo varargs
 							/**
-creates <code>cell</code> from the values.
- @custom:no_validation
+                creates <code>cell</code> from the values.
+                @custom:no_validation
+                @custom:typeArgument Type
 							*/
-							function encode(TypeA varargs) returns (TvmCell /*cell*/);
+							function encode(Type varargs) returns (TvmCell /*cell*/);
 							/**
-decodes the <code>cell</code> and returns the values.
- @custom:no_validation
+                decodes the <code>cell</code> and returns the values.
+               @custom:no_validation
+               @custom:typeArgument Type:TypeSequence
 							*/
-							function decode(TvmCell cell, TypeA varargs) returns (TypeA);
+							function decode(TvmCell cell, Type varargs) returns (Type);
       }
     """)
   }
@@ -690,8 +709,9 @@ decodes the <code>cell</code> and returns the values.
     contract("""
       contract ${internalise("Struct")} {
 							/**
+               @custom:typeArgument Type:DecodedElement
 							*/
-							function unpack() returns (TypeA /*a*/, TypeB /*b*/);
+							function unpack() returns (Type);
       }
     """)
   }
@@ -736,9 +756,10 @@ decodes the <code>cell</code> and returns the values.
   val rndType: SolContract by lazy {
     contract("""
       contract ${internalise("Rnd")} {
-							/**
-							*/
-							function next(Type/*[Type limit]*/) returns (Type); 
+              /**
+               @custom:typeArgument Type:Int
+              */
+              function next(Type limit) returns (Type); 
 							/**
 							*/
 							function next() returns (uint256); 
@@ -881,7 +902,9 @@ Expected output for the example:
 	-14D
 	-101001101</pre></code>
 							*/
-							function hexdump(T a);
+							function hexdump(TvmCell a);
+              function hexdump(int a);
+              function hexdump(uint a);
 							/**
 Dumps cell data or integer. Note that for cells this function dumps data only from the first cell. <code>T</code> must be an integer type or TvmCell.
 
@@ -907,7 +930,10 @@ Expected output for the example:
 	-14D
 	-101001101</pre></code>
 							*/
-							function bindump(T a);
+							function bindump(TvmCell a);
+              function bindump(int a);
+              function bindump(uint a);
+
 							/**
 This command creates an output action that would change this smart contract code to that given by the <code>TvmCell</code> <storng>newCode</storng> (this change will take effect only after the successful termination of the current run of the smart contract).
 
@@ -1635,11 +1661,13 @@ See example of how to use this function:
 							/**
 							Returns the minimal (maximal) value of the passed arguments. <code>T</code> should be an integer or fixed point type
                 @custom:no_validation
+                @custom:typeArgument T:Number
 							*/
 							function min(T a, T varargs) returns (T);
 							/**
 							Returns the minimal (maximal) value of the passed arguments. <code>T</code> should be an integer or fixed point type
                 @custom:no_validation
+                @custom:typeArgument T:Number
 							*/
 							function max(T a, T varargs) returns (T);
 							/**
@@ -1647,6 +1675,7 @@ See example of how to use this function:
 
 							Example:
 							<code>(uint a, uint b) = math.minmax(20, 10); // (10, 20)</code>
+              @custom:typeArgument T:Number
 							*/
 							function minmax(T a, T varargs) returns (T /*min*/, T /*max*/);
 							/**
@@ -1656,17 +1685,9 @@ See example of how to use this function:
 							<code><pre>int a = math.abs(-4123); // 4123
 							int b = -333;
 							int c = math.abs(b); // 333</pre></code>
+              @custom:typeArgument T:Number
 							*/
-							function abs(intM val) returns (intM);
-							/**
-							Computes the absolute value of the given integer.
-
-							Example:
-							<code><pre>int a = math.abs(-4123); // 4123
-							int b = -333;
-							int c = math.abs(b); // 333</pre></code>
-							*/
-							function abs(fixedMxN val) returns (fixedMxN);
+							function abs(T val) returns (T);
 							/**
 							Computes the value modulo 2^power. Note that power should be a constant integer.
 
@@ -1686,6 +1707,7 @@ See example of how to use this function:
 								
 							fixed32x2 a = 0.25;
 							fixed32x2 res = math.divc(a, 2); // res == 0.13</pre></code>
+              @custom:typeArgument T:Number
 							*/
 							function divc(T a, T b) returns (T);
 							/**
@@ -1697,6 +1719,7 @@ See example of how to use this function:
 								
 							fixed32x2 a = 0.25;
 							fixed32x2 res = math.divc(a, 2); // res == 0.13</pre></code>
+              @custom:typeArgument T:Number
 							*/
 							function divr(T a, T b) returns (T);
 							/**
@@ -1711,6 +1734,7 @@ See example of how to use this function:
 							int f = 3;
 							int g = 2;
 							(int h, int p) = math.muldivmod(e, f, g); // (-2, 1)</pre></code>
+              @custom:typeArgument T:Int
 							*/
 							function muldivmod(T a, T b, T c) returns (T /*result*/, T /*remainder*/);
 							/**
@@ -1720,6 +1744,7 @@ See example of how to use this function:
 							<code><pre>uint res = math.muldiv(3, 7, 2); // res == 10
 							uint res = math.muldivr(3, 7, 2); // res == 11
 							uint res = math.muldivc(3, 7, 2); // res == 11</pre></code>
+              @custom:typeArgument T:Int
 							*/
 							function muldiv(T a, T b, T c) returns (T);
 							/**
@@ -1734,6 +1759,7 @@ See example of how to use this function:
 							int f = 3;
 							int g = 2;
 							(int h, int p) = math.muldivmod(e, f, g); // (-2, 1)</pre></code>
+              @custom:typeArgument T:Int
 							*/
 							function muldivmod(T a, T b, T c) returns (T /*result*/, T /*remainder*/);
 							/**
@@ -1743,6 +1769,7 @@ See example of how to use this function:
 							<code><pre>uint res = math.muldiv(3, 7, 2); // res == 10
 							uint res = math.muldivr(3, 7, 2); // res == 11
 							uint res = math.muldivc(3, 7, 2); // res == 11</pre></code>
+              @custom:typeArgument T:Int
 							*/
 							function muldivr(T a, T b, T c) returns (T);
 							/**
@@ -1757,6 +1784,7 @@ See example of how to use this function:
 							int f = 3;
 							int g = 2;
 							(int h, int p) = math.muldivmod(e, f, g); // (-2, 1)</pre></code>
+              @custom:typeArgument T:Int
 							*/
 							function muldivmod(T a, T b, T c) returns (T /*result*/, T /*remainder*/);
 							/**
@@ -1766,6 +1794,7 @@ See example of how to use this function:
 							<code><pre>uint res = math.muldiv(3, 7, 2); // res == 10
 							uint res = math.muldivr(3, 7, 2); // res == 11
 							uint res = math.muldivc(3, 7, 2); // res == 11</pre></code>
+              @custom:typeArgument T:Int
 							*/
 							function muldivc(T a, T b, T c) returns (T);
 							/**
@@ -1778,6 +1807,7 @@ See example of how to use this function:
 							int e = -1;
 							int f = 3;
 							(int h, int p) = math.divmod(e, f);</pre></code>
+              @custom:typeArgument T:Int
 							*/
 							function divmod(T a, T b) returns (T /*result*/, T /*remainder*/);
 							/**
@@ -1982,6 +2012,7 @@ causes a Panic error and thus state change reversion if the condition is not met
               
               /**
               @custom:no_validation
+              @custom:typeArgument Type              
               */
               function format(string template, Type varargs) returns (string);
               /**
@@ -1993,7 +2024,7 @@ causes a Panic error and thus state change reversion if the condition is not met
   }
 
 
-  private fun contract(@Language("Solidity") contractBody: String) =
+  private fun contract(@Language("T-Sol") contractBody: String) =
     SolContract(psiFactory.createContract(contractBody), true)
 
 }

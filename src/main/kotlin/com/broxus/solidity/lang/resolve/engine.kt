@@ -210,7 +210,9 @@ object SolResolver {
           resolveVarLiteral(element)
             .findBest {
               when (it) {
-                is SolStateVariableDeclaration -> 0
+                is SolVariableDeclaration -> 1
+                is SolParameterDef -> 10
+                is SolStateVariableDeclaration -> 100
                 else -> Int.MAX_VALUE
               }
             }

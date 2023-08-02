@@ -2,7 +2,7 @@ package com.broxus.solidity.ide.inspections
 
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.psi.impl.SolConstructorOrFunctionDef
-import com.broxus.solidity.lang.resolve.SolResolver.collectUsedElements
+import com.broxus.solidity.lang.resolve.SolResolver
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
@@ -11,13 +11,18 @@ import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.util.parents
 
+private const val LARGE_FILE_SIZE = 15 * 1024
+
 class UnusedElementInspection : LocalInspectionTool() {
 
 
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
     return object : SolVisitor() {
       override fun visitImportDirective(o: SolImportDirective) {
-        val used = collectUsedElements(o)
+        if (o.containingFile.virtualFile.length > LARGE_FILE_SIZE) {
+          return
+        }
+        val used = SolResolver.collectUsedElements(o)
         if (used.isEmpty()) {
           holder.registerProblem(o, "Unused import directive", ProblemHighlightType.LIKE_UNUSED_SYMBOL)
         }

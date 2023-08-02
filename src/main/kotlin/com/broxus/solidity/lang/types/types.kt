@@ -412,7 +412,7 @@ sealed class SolArray(val type: SolType) : SolType {
 
 object SolBytes : SolPrimitiveType {
   override fun isAssignableFrom(other: SolType): Boolean =
-    other == SolBytes
+    other == SolBytes || other == SolString
 
   override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).bytesType)
 

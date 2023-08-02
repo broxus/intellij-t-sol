@@ -12,6 +12,31 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <b>v1.4</b>
+        Features:
+        <ul>
+          <li>Support for var*Int, functionID and emptyMap. Support null for Optional type</li>
+          <li>Support for size of int types in increments of 1</li>
+          <li>Color scheme for json <a href="https://github.com/broxus/intellij-t-sol/issues/#22">#22</a></li>
+          <li>Showing diagram of the contracts <a href="https://github.com/broxus/intellij-t-sol/issues/#26">#26</li>
+          <li>Support inline refactoring <a href="https://github.com/broxus/intellij-t-sol/issues/#39">#39</li>
+          <li>Support for import aliases <a href="https://github.com/broxus/intellij-t-sol/issues/#30">#30</a></li>
+          <li>Unused elements inspection <a href="https://github.com/broxus/intellij-t-sol/issues/#43">#43</a></li>
+          <li>SPDX License suggestions in autocomplete <a href="https://github.com/broxus/intellij-t-sol/issues/#41">#41</a></li>
+          <li>Validate member access expressions</li>
+          <li>Support element folding (including custom regions)</li>
+          <li>Unimplemented members inspection</li>
+          <li>Automatically remove unused elements when optimizing imports</li>
+          <li>Treat function as overridden with 'override' modifier only</li>
+          <li>Sort import definitions after applying the suggested import <a href="https://github.com/broxus/intellij-t-sol/issues/#40">#40</a></li>
+        </ul>
+        Bugfixes:
+        <ul>
+          <li>Fix resolving nested elements</li>
+          <li>Do not show hints for varargs</li>
+          <li>Fix parent constructor reference</li>
+          <li>Modifiers from contracts defined in node modules are not detected <a href="https://github.com/broxus/intellij-t-sol/issues/#38">#38</a></li>
+        </ul>
         <b>v1.3</b>
         Features:
         <ul>

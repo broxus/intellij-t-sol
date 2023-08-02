@@ -1,7 +1,7 @@
 buildscript {
     repositories {
         mavenCentral()
-        maven { url 'https://jitpack.io'}
+        maven { url 'https://jitpack.io' }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -52,7 +52,7 @@ clean.doFirst {
 intellij {
     pluginName = 'IntelliJ-T-Sol'
 
-    version = '2022.2.5'
+    version = '2023.1' // "232-EAP-SNAPSHOT"
     type = 'IU'
     downloadSources = true
     updateSinceUntilBuild = false

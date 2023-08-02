@@ -47,8 +47,7 @@ contract A is test{}""")
     InlineFile("""import "./rec1.tsol"; contract A is tes/*caret*/{}""")
 
     myFixture.completeBasic()
-    checkResult("""import "./rec1.tsol";
-import "./test.tsol";
+    checkResult("""import "./test.tsol";
 
 contract A is test{}""")
   }

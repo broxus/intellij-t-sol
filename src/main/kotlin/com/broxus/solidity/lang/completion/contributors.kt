@@ -75,6 +75,14 @@ class SolContextCompletionContributor : CompletionContributor(), DumbAware {
     )
 
 
+    extend(CompletionType.BASIC, pragma(),
+      object : CompletionProvider<CompletionParameters>() {
+        override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+          result.addAllElements(listOf("ever-solidity", "AbiHeader", "copyleft", "ignoreIntOverflow", "msgValue").map { LookupElementBuilder.create("$it ") })
+        }
+      }
+    )
+
     extend(CompletionType.BASIC, pragmaAll(),
       object : CompletionProvider<CompletionParameters>() {
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
@@ -84,6 +92,7 @@ class SolContextCompletionContributor : CompletionContributor(), DumbAware {
         }
       }
     )
+
 
     extend(CompletionType.BASIC, mappingExpression(),
       object : CompletionProvider<CompletionParameters>() {

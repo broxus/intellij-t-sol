@@ -78,7 +78,7 @@ class SolContextCompletionContributor : CompletionContributor(), DumbAware {
     extend(CompletionType.BASIC, pragma(),
       object : CompletionProvider<CompletionParameters>() {
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-          result.addAllElements(listOf("ever-solidity", "AbiHeader", "copyleft", "ignoreIntOverflow", "msgValue").map { LookupElementBuilder.create("$it ") })
+          result.addAllElements(listOf("ever-solidity", "AbiHeader", "copyleft", "ignoreIntOverflow", "msgValue", "upgrade").map { LookupElementBuilder.create("$it ") })
         }
       }
     )

@@ -72,7 +72,7 @@ object SolBoolean : SolPrimitiveType {
 
 object SolString : SolPrimitiveType {
   override fun isAssignableFrom(other: SolType): Boolean =
-    other == SolString
+    other == SolString || (other as? SolContract)?.ref?.name == SolInternalTypeFactory::tvmSlice.name
 
   override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).stringType)
 
@@ -262,6 +262,7 @@ data class SolContract(val ref: SolContractDefinition, val builtin: Boolean = fa
         other.ref == ref
           || other.ref.collectSupers.flatMap { SolResolver.resolveTypeNameUsingImports(it) }.contains(ref)
       }
+      is SolString, is SolBytes -> this.ref.name == SolInternalTypeFactory::tvmSlice.name
       else -> false
     }
 
@@ -420,7 +421,7 @@ sealed class SolArray(val type: SolType) : SolType {
 
 object SolBytes : SolPrimitiveType {
   override fun isAssignableFrom(other: SolType): Boolean =
-    other == SolBytes || other == SolString
+    other == SolBytes || other == SolString || (other as? SolContract)?.ref?.name == SolInternalTypeFactory::tvmSlice.name
 
   override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).bytesType)
 

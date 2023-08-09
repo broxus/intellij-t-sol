@@ -236,6 +236,7 @@ fun inferExprType(expr: SolExpression?): SolType {
       when (val arrType = inferExprType(expr.expressionList.firstOrNull())) {
         is SolArray -> arrType.type
         is SolMapping -> arrType.to
+        is SolBytes -> SolFixedBytes(1)
         else -> SolUnknown
       }
     }

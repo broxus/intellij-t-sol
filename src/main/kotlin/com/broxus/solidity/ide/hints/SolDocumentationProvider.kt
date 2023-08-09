@@ -21,6 +21,7 @@ import com.intellij.psi.util.siblings
 
 const val NO_VALIDATION_TAG = "@custom:no_validation"
 const val TYPE_ARGUMENT_TAG = "@custom:typeArgument"
+const val DEPRECATED_TAG = "@custom:deprecated"
 
 fun PsiElement.comments(): List<PsiElement> {
   return CachedValuesManager.getCachedValue(this) {
@@ -52,7 +53,7 @@ class SolDocumentationProvider : AbstractDocumentationProvider() {
   companion object {
     val abiHeaders = mapOf(
       "pubkey" to ("uint256" to "optional public key that the message can be signed with"),
-      "time" to ("uint64" to "local time when message was created. Used for replay protection"),
+      "notime" to ("" to "disables time abi header, which is enabled by default. Abi header time – uint64 local time when message was created, used for replay protection"),
       "expire" to ("uint32" to "time when the message should be meant as expired"))
     fun isAbiHeaderValue(element: PsiElement?) = element?.prevSibling?.text == "AbiHeader"
   }

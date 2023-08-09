@@ -128,8 +128,19 @@ class SolInternalTypeFactory(project: Project) {
               (uint16 num0, uint32 num1, address addr) = slice.decode(uint16, uint32, address);</pre></code>
                @custom:no_validation
                @custom:typeArgument Type:Type
+               @custom:deprecated
               */              
               function decode(Type varargs) returns (Type);
+              /**
+              Sequentially decodes values of the specified types from the <code>TvmSlice</code>. Supported types: <code>uintN</code>, <code>intN</code>, <code>bytesN</code>, <code>bool</code>, <code>ufixedMxN</code>, <code>fixedMxN</code>, <code>address</code>, <code>contract</code>, <code>TvmCell</code>, <code>bytes</code>, <code>string</code>, <code>mapping</code>, <code>ExtraCurrencyCollection</code>, <code>array</code>, <code>optional</code> and <code>struct</code>. Example:
+              
+              <code><pre>TvmSlice slice = ...;
+              (uint8 a, uint16 b) = slice.decode(uint8, uint16);
+              (uint16 num0, uint32 num1, address addr) = slice.decode(uint16, uint32, address);</pre></code>
+               @custom:no_validation
+               @custom:typeArgument Type:Type
+              */              
+              function load(Type varargs) returns (Type);
               /**
               Sequentially decodes values of the specified types from the <code>TvmSlice</code> if the <code>TvmSlice</code> holds sufficient data for all specified types. Otherwise, returns null.
               
@@ -140,8 +151,21 @@ class SolInternalTypeFactory(project: Project) {
               optional(uint8, uint16) b = slice.decodeQ(uint8, uint16);</pre></code>
               @custom:no_validation
               @custom:typeArgument Type:Type
+              @custom:deprecated
               */              
               function decodeQ(Type varargs) returns (optional(Type)); 
+                            /**
+              Sequentially decodes values of the specified types from the <code>TvmSlice</code> if the <code>TvmSlice</code> holds sufficient data for all specified types. Otherwise, returns null.
+              
+              Supported types: <code>uintN</code>, <code>intN</code>, <code>bytesN</code>, <code>bool</code>, <code>ufixedMxN</code>, <code>fixedMxN</code>, <code>address</code>, <code>contract</code>, <code>TvmCell</code>, <code>bytes</code>, <code>string</code>, <code>mapping</code>, <code>ExtraCurrencyCollection</code>, and <code>array</code>.
+              
+              <code><pre>TvmSlice slice = ...;
+              optional(uint) a = slice.decodeQ(uint);
+              optional(uint8, uint16) b = slice.decodeQ(uint8, uint16);</pre></code>
+              @custom:no_validation
+              @custom:typeArgument Type:Type
+              */              
+              function loadQ(Type varargs) returns (optional(Type)); 
               /**
               Loads a cell from the <code>TvmSlice</code> reference.
               */              
@@ -152,12 +176,22 @@ class SolInternalTypeFactory(project: Project) {
               function loadRefAsSlice() returns (TvmSlice);
               /**
               Loads a signed integer with the given bitSize from the <code>TvmSlice</code>.
+              @custom:deprecated
               */              
               function loadSigned(uint16 bitSize) returns (int); 
               /**
+              Loads a signed integer with the given bitSize from the <code>TvmSlice</code>.
+              */              
+              function loadInt(uint16 bitSize) returns (int); 
+              /**
               Loads an unsigned integer with the given bitSize from the <code>TvmSlice</code>.
+              @custom:deprecated
               */              
               function loadUnsigned(uint16 bitSize) returns (uint); 
+              /**
+              Loads an unsigned integer with the given bitSize from the <code>TvmSlice</code>.
+              */              
+              function loadUint(uint16 bitSize) returns (uint); 
               /**
               Loads (deserializes) <strong>VarUInteger 16</strong> and returns an unsigned 128-bit integer. See <a href="https://github.com/ton-blockchain/ton/blob/master/crypto/block/block.tlb">TL-B scheme</a>.
               */              
@@ -174,8 +208,51 @@ class SolInternalTypeFactory(project: Project) {
               Decodes parameters of the function or constructor (if contract type is provided). This function is usually used in <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#onbounce">onBounce</a> function.
               @custom:no_validation
               @custom:typeArgument Type:FunctionOrContract, TypeRet:DecodedElement
+              @custom:deprecated
               */              
               function decodeFunctionParams(Type functionOrContract) returns (TypeRet);
+              /**
+              Decodes parameters of the function or constructor (if contract type is provided). This function is usually used in <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#onbounce">onBounce</a> function.
+              @custom:no_validation
+              @custom:typeArgument Type:FunctionOrContract, TypeRet:DecodedElement
+              */              
+              function loadFunctionParams(Type functionOrContract) returns (TypeRet);              
+              /**
+              Decode state variables from slice that is obtained from the field data of stateInit
+              
+              Example:
+              
+              <code><pre>contract A {
+              	uint a = 111;
+              	uint b = 22;
+              	uint c = 3;
+              	uint d = 44;
+              	address e = address(12);
+              	address f;
+              }
+              
+              contract B {
+              	function f(TvmCell data) public pure {
+              		TvmSlice s = data.toSlice();
+              		(uint256 pubkey, uint64 timestamp, bool flag,
+              			uint a, uint b, uint c, uint d, address e, address f) = s.decodeStateVars(A);
+              			
+              		// pubkey - pubkey of the contract A
+              		// timestamp - timestamp that used for replay protection
+              		// flag - always equals to true
+              		// a == 111
+              		// b == 22
+              		// c == 3
+              		// d == 44
+              		// e == address(12)
+              		// f == address(0)
+              		// s.empty()
+              	}
+              }</pre></code>
+              @custom:typeArgument Type:ContractName
+              @custom:deprecated              
+              */              
+              function decodeStateVars(Type contractName) returns (uint256 /*pubkey*/, uint64 /*timestamp*/, bool /*constructorFlag*/, Type1 /*var1*/, Type2 /*var2*/); 
               /**
               Decode state variables from slice that is obtained from the field data of stateInit
               
@@ -211,7 +288,7 @@ class SolInternalTypeFactory(project: Project) {
               @custom:typeArgument Type:ContractName
               
               */              
-              function decodeStateVars(Type contractName) returns (uint256 /*pubkey*/, uint64 /*timestamp*/, bool /*constructorFlag*/, Type1 /*var1*/, Type2 /*var2*/); 
+              function loadStateVars(Type contractName) returns (uint256 /*pubkey*/, uint64 /*timestamp*/, bool /*constructorFlag*/, Type1 /*var1*/, Type2 /*var2*/); 
               /**
               Skips the first <code>length</code> bits and <code>refs</code> references from the <code>TvmSlice</code>.
               */              
@@ -220,6 +297,104 @@ class SolInternalTypeFactory(project: Project) {
               Skips the first <code>length</code> bits and <code>refs</code> references from the <code>TvmSlice</code>.
               */              
               function skip(uint length, uint refs);
+              
+              /**
+              */              
+              function loadZeroes();
+              /**
+              */              
+              function loadOnes();
+              /**
+              */              
+              function loadSame();
+              /**
+              */              
+              function loadUintQ();
+              /**
+              */              
+              function loadSliceQ();
+              /**
+              */              
+              function loadIntLE2();
+              /**
+              */              
+              function loadIntLE4();
+              /**
+              */              
+              function loadIntLE8();
+              /**
+              */              
+              function loadUintLE2();
+              /**
+              */              
+              function loadUintLE4();
+              /**
+              */              
+              function loadUintLE8();
+              /**
+              */              
+              function loadIntLE4Q();
+              /**
+              */              
+              function loadIntLE8Q();
+              /**
+              */              
+              function loadUintLE4Q();
+              /**
+              */              
+              function loadUintLE8Q();
+              
+              /**
+              */              
+              function preload();
+              /**
+              */              
+              function preloadQ();
+              /**
+              */              
+              function preloadRef();
+              /**
+              */              
+              function preloadInt();
+              /**
+              */              
+              function preloadIntQ();
+              /**
+              */              
+              function preloadUint();
+              /**
+              */              
+              function preloadUintQ();
+              /**
+              */              
+              function preloadSlice();
+              /**
+              */              
+              function preloadSliceQ();
+              /**
+              */              
+              function preloadIntLE4();
+              /**
+              */              
+              function preloadIntLE8();
+              /**
+              */              
+              function preloadUintLE4();
+              /**
+              */              
+              function preloadUintLE8();
+              /**
+              */              
+              function preloadIntLE4Q();
+              /**
+              */              
+              function preloadIntLE8Q();
+              /**
+              */              
+              function preloadUintLE4Q();
+              /**
+              */              
+              function preloadUintLE8Q();
           }
         """)
   }
@@ -303,12 +478,22 @@ Stores <code>n</code> binary zeroes into the <code>TvmBuilder</code>.
 							function storeZeroes(uint n); 
 							/**
 Stores a signed integer value with given bitSize in the <code>TvmBuilder</code>.
+@custom:deprecated
 							*/
-							function storeSigned(int256 value, uint16 bitSize); 
+							function storeSigned(int256 value, uint16 bitSize);
+ 							/**
+Stores a signed integer value with given bitSize in the <code>TvmBuilder</code>.
+							*/
+							function storeInt(int256 value, uint16 bitSize); 
+							/**
+Stores an unsigned integer value with given bitSize in the <code>TvmBuilder</code>.
+@custom:deprecated
+							*/
+							function storeUnsigned(uint256 value, uint16 bitSize); 
 							/**
 Stores an unsigned integer value with given bitSize in the <code>TvmBuilder</code>.
 							*/
-							function storeUnsigned(uint256 value, uint16 bitSize); 
+							function storeUInt(uint256 value, uint16 bitSize); 
 							/**
 Stores <code>TvmBuilder b</code>/<code>TvmCell c</code>/<code>TvmSlice s</code> in the reference of the <code>TvmBuilder</code>.
 							*/
@@ -330,6 +515,28 @@ See example of how to work with TVM specific types:
 <li><a href="https://github.com/tonlabs/samples/blob/master/solidity/15_MessageReceiver.sol">Message_parsing</a></li>
 							*/
 							function storeTons(uint128 value); 
+							/**
+							*/
+							function storeSame();
+ 							/**
+							*/
+							function storeIntLE2(); 
+ 							/**
+							*/
+							function storeIntLE4(); 
+ 							/**
+							*/
+							function storeIntLE8(); 
+ 							/**
+							*/
+							function storeUintLE2(); 
+ 							/**
+							*/
+							function storeUintLE4(); 
+ 							/**
+							*/
+							function storeUintLE8(); 
+ 
             }
           """)
   }
@@ -345,7 +552,14 @@ See example of how to work with TVM specific types:
   val msgType: SolContract by lazy {
     contract("""
       contract ${internalise("Msg")} {
-          bytes public data;
+          /**
+            Returns the whole message.
+          */
+          TvmCell public data;
+          /**
+          Returns the payload (message body) of an inbound message.
+          */
+          TvmSlice body;
           uint public gas;
           address public sender;
           uint128 public value;
@@ -357,6 +571,24 @@ See example of how to work with TVM specific types:
           TvmSlice data;
           
           bool hasStateInit; 
+          
+          /**
+          Returns:
+          <ul>
+          <li>the forward fee for the internal inbound message.</li>
+          <li>0 for the external inbound message.</li>
+          </ul>
+          */
+          varUint16 forwardFee;
+                    
+          /**
+          Returns:
+          <ul>          
+          <li>the field import_fee for external inbound message. Note: field import_fee is set offchain by user as they want and does not reflect the real import fee of the message.</li>
+          <li>0 for the internal inbound message.</li>
+          </ul>
+          */
+          varUint16 importFee;
           
 							/**
 Returns public key that is used to check the message signature. If the message isn't signed then it's equal to <code>0</code>. See also: <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#contract-execution">Contract execution</a>,<a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#pragma-abiheader">pragma AbiHeader</a>.
@@ -373,9 +605,14 @@ Returns public key that is used to check the message signature. If the message i
           uint public gasprice;
           address public origin;
           
+          /**
+            @custom:deprecated
+          */
           uint64 public timestamp;
+          
+          uint64 public logicaltime;
            
-          uint64 public storageFee; 
+          uint120 public storageFee; 
       }
     """)
   }
@@ -497,7 +734,7 @@ Example:
 <code>(int8 wid, uint addr) = address(this).unpack();</code>
  @custom:no_validation
 							*/
-							function unpack() returns (int8 /*wid*/, uint256 /*value*/);
+							function unpack() returns (int32 /*wid*/, uint256 /*value*/);
       }
     """)
 
@@ -596,6 +833,11 @@ Sets the value associated with key, but only if key is present in the <code>mapp
  Returns all values of the mapping as an array. Note: these functions iterate over the whole mapping, thus the cost is proportional to the mapping's size.
 							*/
 							function values() returns (ValueType[]);
+							/**
+ Deletes the key from the mapping map and returns an optional with the corresponding value. Returns an empty optional if the key does not exist.
+              */
+							function getDel(KeyType key) returns (optional(ValueType));
+
       }
     """)
   }
@@ -634,7 +876,8 @@ Dynamic storage arrays and <code>bytes</code> (not <code>string</code>) have a m
   val optionalType: SolContract by lazy {
     contract("""
       /**
-       @custom:typeArgument Type=T0
+       The template optional type manages an optional contained value, i.e. a value that may or may not be present.
+       @custom:typeArgument T=T0
       */
       contract ${internalise("Optional")} {
 
@@ -645,11 +888,19 @@ Checks whether the <code>optional</code> contains a value.
 							/**
 Returns the contained value, if the <code>optional</code> contains one. Otherwise, throws an exception.
 							*/
-							function get() returns (Type);
+							function get() returns (T);
+							/**
+Returns the contained value, if the optional contains one. Otherwise, returns default.
+							*/
+              function getOr(T default) returns (T);
+							/**
+Returns the contained value, if the optional contains one. Otherwise, returns the default value for T type.
+							*/
+              function getOrDefault() returns (T);
 							/**
 Replaces content of the <code>optional</code> with <strong>value</strong>.
 							*/
-							function set(Type value);
+							function set(T value);
 							/**
 Deletes content of the <code>optional</code>.
 							*/
@@ -950,7 +1201,7 @@ See example of how to use this function:
 							/**
 							Executes TVM instruction "CONFIGPARAM" (<a href="https://test.ton.org/tvm.pdf">TVM</a> - A.11.4. - F832). Returns the value of the global configuration parameter with integer index paramNumber as a <code>TvmCell</code> and a boolean status.
 							*/
-							function rawConfigParam(uint8 paramNumber) returns (TvmCell cell, bool status); 
+							function rawConfigParam(uint8 paramNumber) returns optional(TvmCell); 
 							/**
 							Creates an output action that reserves reserve nanotons. It is roughly equivalent to create an outbound message carrying reserve nanotons to oneself, so that the subsequent output actions would not be able to spend more money than the remainder. It's a wrapper for opcodes "RAWRESERVE" and "RAWRESERVEX". See <a href="https://test.ton.org/tvm.pdf">TVM</a>.
 
@@ -1899,11 +2150,11 @@ causes a Panic error and thus state change reversion if the condition is not met
               /**
                  require function can be used to check the condition and throw an exception if the condition is not met. The function takes condition and optional parameter: error code (unsigned integer).
               */
-              function require(bool condition, uint errorCode);
+              function require(bool condition, uint16 errorCode);
               /**
                  require function can be used to check the condition and throw an exception if the condition is not met. The function takes condition and optional parameters: error code (unsigned integer) and the object of any type.
               */
-              function require(bool condition, uint errorCode, Type exceptionArgument);
+              function require(bool condition, uint16 errorCode, Type exceptionArgument);
               
 							/**
 							In case of exception state variables of the contract are reverted to the state before <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmcommit">tvm.commit()</a> or to the state of the contract before it was called. Use error codes that are greater than 100 because other error codes can be <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#solidity-runtime-errors">reserved</a> <strong>Note</strong> if a nonconstant error code is passed as the function argument and the error code is less than 2 then the error code will be set to 100.
@@ -1921,11 +2172,11 @@ causes a Panic error and thus state change reversion if the condition is not met
 							/**
                 revert function can be used to throw exceptions. The function takes an optional error code (unsigned integer).
 							*/
-							function revert(uint errorCode);
+							function revert(uint16 errorCode);
 							/**
                 revert function can be used to throw exceptions. The function takes an optional error code (unsigned integer) and the object of any type.
 							*/
-							function revert(uint errorCode, Type exceptionArgument);
+							function revert(uint16 errorCode, Type exceptionArgument);
 							/**
 							In case of exception state variables of the contract are reverted to the state before <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmcommit">tvm.commit()</a> or to the state of the contract before it was called. Use error codes that are greater than 100 because other error codes can be <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#solidity-runtime-errors">reserved</a> <strong>Note</strong> if a nonconstant error code is passed as the function argument and the error code is less than 2 then the error code will be set to 100.
 							
@@ -2017,6 +2268,11 @@ causes a Panic error and thus state change reversion if the condition is not met
               /**
               */
               function stoi(string inputStr) returns (optional(int) /*result*/);
+              
+              /**
+              Returns the remaining gas. Supported only if <code>CapGasRemainingInsn</code> capability is set.
+              */
+              function gasleft() returns (uint64)
 
       }
     """)

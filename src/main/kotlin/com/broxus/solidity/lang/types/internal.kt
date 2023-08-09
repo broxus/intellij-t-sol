@@ -507,7 +507,7 @@ Example:
     contract(
         """
       /**
-       @custom:typeArgument KeyType=from,ValueType=to
+       @custom:typeArgument KeyType=KeyType,ValueType=ValueType
       */
       contract ${internalise("Mapping")} {
 							/**
@@ -634,7 +634,7 @@ Dynamic storage arrays and <code>bytes</code> (not <code>string</code>) have a m
   val optionalType: SolContract by lazy {
     contract("""
       /**
-       @custom:typeArgument Type=T1
+       @custom:typeArgument Type=T0
       */
       contract ${internalise("Optional")} {
 
@@ -661,7 +661,7 @@ Deletes content of the <code>optional</code>.
   val vectorType: SolContract by lazy {
     contract("""
       /**
-       @custom:typeArgument Type=T1
+       @custom:typeArgument Type=T0
       */
       contract ${internalise("Vector")} {
 
@@ -2012,7 +2012,6 @@ causes a Panic error and thus state change reversion if the condition is not met
               
               /**
               @custom:no_validation
-              @custom:typeArgument Type              
               */
               function format(string template, Type varargs) returns (string);
               /**

@@ -11,6 +11,7 @@ import com.broxus.solidity.lang.types.*
 import com.broxus.solidity.wrap
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.RecursionManager
+import com.intellij.openapi.util.UserDataHolder
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.stubs.IStubElementType
@@ -181,17 +182,12 @@ abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefSt
 
   override val callablePriority = 0
 
-  override fun parseType(): SolType {
-    return this.returns.let { list ->
-      when (list) {
-        null -> SolUnknown
-        else -> list.parameterDefList.let {
+  override fun parseType(): SolType? {
+    return this.returns?.parameterDefList?.let {
           when (it.size) {
-            1 -> getSolType(it[0].typeName)
-            else -> SolTuple(it.map { def -> getSolType(def.typeName) })
+            1 -> getSolType(it[0].typeName.copyContext(this))
+            else -> SolTuple(it.map { def -> getSolType(def.typeName.copyContext(this)) })
           }
-        }
-      }
     }
   }
 
@@ -250,10 +246,25 @@ abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefSt
 
   companion object {
     fun parseParameters(parameters: List<SolParameterDef>): List<Pair<String?, SolType>> {
-      return parameters.map { it.identifier?.text to getSolType(it.typeName) }
+      return parameters.map { it.identifier?.text to getSolType(it.typeName.copyContext(it)) }
     }
   }
 }
+
+fun <T: UserDataHolder> T.copyContext(parent: PsiElement): T {
+  parent.getUserData(resolveContextKey)?.let {
+    this.putUserData(resolveContextKey, it)
+  }
+  return this
+}
+
+fun <T: UserDataHolder> T.addContext(expr: SolExpression?): T {
+  expr?.let { this.putUserData(resolveContextKey, ResolveContext(it)) }
+  return this
+}
+
+
+data class ResolveContext(val expr: SolExpression)
 
 abstract class SolModifierDefMixin : SolStubbedNamedElementImpl<SolModifierDefStub>, SolModifierDefinition {
   override val contract: SolContractDefinition

@@ -4,6 +4,7 @@ import com.broxus.solidity.lang.completion.SolCompleter
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.psi.impl.SolFunctionDefMixin
 import com.broxus.solidity.lang.psi.impl.SolNewExpressionElement
+import com.broxus.solidity.lang.psi.impl.copyContext
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.resolve.canBeApplied
 import com.broxus.solidity.lang.resolve.function.SolFunctionResolver
@@ -165,7 +166,7 @@ class SolFunctionCallReference(element: SolFunctionCallExpression) : SolReferenc
 
   fun resolveFunctionCallAndFilter(): List<SolCallable> {
     return resolveFunctionCall()
-      .filter { it.canBeApplied(element.functionCallArguments) }
+      .filter { it.canBeApplied(element.functionCallArguments.copyContext(element)) }
   }
 }
 

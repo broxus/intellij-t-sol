@@ -4,6 +4,7 @@ import com.broxus.solidity.ide.SolidityIcons
 import com.broxus.solidity.lang.core.SolidityFile
 import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.psi.*
+import com.broxus.solidity.lang.psi.impl.addContext
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.types.SolInternalTypeFactory
 import com.broxus.solidity.lang.types.SolType
@@ -95,8 +96,10 @@ object FunctionCompletionProvider : CompletionProvider<CompletionParameters>() {
       contract.collectSupers.flatMap { SolResolver.resolveTypeName(it) } + contract
     }?.filterIsInstance<SolContractDefinition>() ?: emptyList())
 
+    val expr = parameters.originalPosition?.parentOfType<SolExpression>()
+
     val functions = availableRefs
-      .flatMap { it.functionDefinitionList }
+      .flatMap { it.functionDefinitionList.onEach { it.addContext(expr) } }
       .toFunctionLookups()
 
     val structs = availableRefs
@@ -136,7 +139,7 @@ fun SolCallableElement.toFunctionLookup(): LookupElementBuilder? {
 
 private fun funcOutType(elem: SolCallableElement): String {
   val type = elem.parseType()
-  return type.toString()
+  return type?.toString() ?: ""
 }
 
 private fun funcInType(elem: SolCallableElement): String {

@@ -39,7 +39,7 @@ interface SolUserDefinedType : SolNamedElement
 interface SolCallable {
   val callablePriority: Int
   fun getName(): String?
-  fun parseType(): SolType
+  fun parseType(): SolType?
   fun parseParameters(): List<Pair<String?, SolType>>
   fun resolveElement(): SolNamedElement?
 }

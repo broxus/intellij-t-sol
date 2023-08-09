@@ -20,8 +20,7 @@ import com.intellij.psi.util.descendantsOfType
 import com.intellij.psi.util.siblings
 
 const val NO_VALIDATION_TAG = "@custom:no_validation"
-
-
+const val TYPE_ARGUMENT_TAG = "@custom:typeArgument"
 
 fun PsiElement.comments(): List<PsiElement> {
   return CachedValuesManager.getCachedValue(this) {

@@ -1,9 +1,12 @@
 package com.broxus.solidity.lang.types
 
 import com.broxus.solidity.firstOrElse
+import com.broxus.solidity.ide.hints.TYPE_ARGUMENT_TAG
+import com.broxus.solidity.ide.hints.comments
 import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.psi.*
-import com.broxus.solidity.lang.psi.impl.SolMemberAccessElement
+import com.broxus.solidity.lang.psi.impl.*
+import com.broxus.solidity.lang.psi.parentOfType
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.resolve.canBeApplied
 import com.broxus.solidity.lang.resolve.ref.SolFunctionCallReference
@@ -11,11 +14,11 @@ import com.broxus.solidity.lang.resolve.ref.toLibraryFunDefinition
 import com.broxus.solidity.lang.types.SolArray.SolDynamicArray
 import com.broxus.solidity.lang.types.SolArray.SolStaticArray
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.CachedValueProvider
-import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiModificationTracker
+import com.intellij.psi.util.*
 import com.intellij.psi.util.elementType
 import kotlin.math.max
 
@@ -47,7 +50,7 @@ fun getSolType(type: SolTypeName?): SolType {
       }
     }
     is SolUserDefinedLocationTypeName ->
-      type.userDefinedTypeName?.let { getSolTypeFromUserDefinedTypeName(it) } ?: SolUnknown
+      type.userDefinedTypeName?.let { getSolTypeFromUserDefinedTypeName(it.copyContext(type)) } ?: SolUnknown
     is SolUserDefinedTypeName -> getSolTypeFromUserDefinedTypeName(type)
     is SolMappingTypeName -> when {
       type.typeNameList.size >= 2 -> SolMapping(
@@ -71,12 +74,31 @@ fun getSolType(type: SolTypeName?): SolType {
   }
 }
 
+fun PsiElement.findResolveContext() : ResolveContext? {
+  return this.parents(true).mapNotNull { it.getUserData(resolveContextKey) }.firstOrNull()
+}
+
 private fun getSolTypeFromUserDefinedTypeName(type: SolUserDefinedTypeName): SolType {
   val name = type.name
-  if (name != null && isInternal(name)) {
+  if (name != null) {
+    if (isInternal(name)) {
     val internalType = SolInternalTypeFactory.of(type.project).byName(name)
     return internalType ?: SolUnknown
   }
+    fun resolveByComments(comments : List<PsiElement>, stype: SolType? = null): SolType? =
+    comments.indexOfFirst { it.text == TYPE_ARGUMENT_TAG }.takeIf { it >= 1 }
+      ?.let { comments.getOrNull(it - 1)?.let { it.text.split("\n")[0] } }
+      ?.let { resolveTypeArgument(name, it, type.project, stype) }
+      ?.let {
+        return it
+      }
+    type.parentOfType<SolFunctionDefinition>(false)?.comments()?.let { resolveByComments(it) } ?: type.takeIf { it !is SolContractDefinition }?.parentOfType<SolContractDefinition>()?.let {
+      resolveByComments(it.comments(), type.findResolveContext()?.expr?.type ?: it.parseType())
+    }?.let {
+      return it
+    }
+  }
+
   val resolvedTypes = SolResolver.resolveTypeNameUsingImports(type)
   return resolvedTypes.asSequence()
     .map {
@@ -90,6 +112,21 @@ private fun getSolTypeFromUserDefinedTypeName(type: SolUserDefinedTypeName): Sol
     }
     .filterNotNull()
     .firstOrElse(SolUnknown)
+}
+
+fun resolveTypeArgument(name: String, typeText: String, project: Project, solType: SolType?): SolType? {
+  data class TypeArg(val name: String, val ref: String? = null, val bound: String? = null)
+  val types = typeText.split(",").map {
+    return@map if (it.contains("=")) it.split("=").let { TypeArg(it[0].trim(), ref = it.getOrNull(1)?.trim()) }
+    else it.split(":").let { TypeArg(it[0].trim(), bound = it.getOrNull(1)?.trim()) }
+  }
+  return types.find { it.name == name }?.let {
+    return it.ref?.let { ref ->
+       solType?.getRefs()?.find { it.name == ref }?.type
+    } ?: it.bound?.let { bound ->
+      (SolInternalTypeFactory.of(project).builtinByName(bound) as? SolTypeName)?.let { getSolType(it) }
+    } ?: SolUnknown
+  }
 }
 
 fun inferDeclType(decl: SolNamedElement): SolType {
@@ -187,7 +224,7 @@ fun inferExprType(expr: SolExpression?): SolType {
       (expr.reference as SolFunctionCallReference)
         .resolveFunctionCall()
         .firstOrNull { it.canBeApplied(expr.functionCallArguments) }
-        ?.parseType()
+        ?.let { (it as? SolFunctionDefMixin)?.parseType() ?: it.parseType() }
         ?: SolUnknown
     }
     is SolAndExpression,
@@ -234,6 +271,9 @@ private fun getNumericExpressionType(firstType: SolType, secondType: SolType): S
   }
 }
 
+
+val resolveContextKey = Key<ResolveContext>("broxus.ResolveContext")
+
 fun SolMemberAccessExpression.getMembers(): List<SolMember> {
   val expr = expression
   return when {
@@ -244,7 +284,7 @@ fun SolMemberAccessExpression.getMembers(): List<SolMember> {
     }
     else -> {
       val fromLibraries = (this as? SolMemberAccessElement)?.collectUsingForLibraryFunctions() ?: emptyList()
-      expr.type.getMembers(this.project) + fromLibraries.map { it.toLibraryFunDefinition() }
+      (expr.type.getMembers(this.project) + fromLibraries.map { it.toLibraryFunDefinition() }).onEach { it.addContext(expr) }
     }
   }
 }

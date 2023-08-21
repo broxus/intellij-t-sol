@@ -2132,7 +2132,7 @@ See example of how to use this function:
           $tvmType tvm;
           $rndType rnd;
           
-          uint now;
+          uint32 now;
 
 							/**
 causes a Panic error and thus state change reversion if the condition is not met - to be used for internal errors.

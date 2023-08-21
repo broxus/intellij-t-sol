@@ -18,10 +18,13 @@ class SolInternalTypeFactory(project: Project) {
 
   private val registry: Map<String, SolType> by lazy {
     listOf(
-      msgType,
-      txType,
-      blockType,
-      abiType,
+            abiType,
+            addressType,
+            arrayType,
+            globalType,
+            msgType,
+            txType,
+            blockType,
       mathType,
       tvmType,
       mappingType,
@@ -47,6 +50,14 @@ class SolInternalTypeFactory(project: Project) {
 
   fun builtinByName(name: String): SolNamedElement? = everBuiltinTypes[name]
 
+  fun builtinTypeByName(name: String, context: List<SolType>): SolType? = when (name) {
+    "Number" -> SolNumericType
+    "Int" -> SolInteger.INT_256
+    "Type" -> SolTypeType
+//    "TypeSequence" -> SolTypeSequence(context)
+    else -> null
+  }
+
   val tvmCell: SolContractDefinition by lazy {
     psiFactory.createContract("""
           contract TvmCell {
@@ -66,6 +77,8 @@ class SolInternalTypeFactory(project: Project) {
               Converts a <code>TvmCell</code> to <code>TvmSlice</code>.
               */              
               function toSlice() returns (TvmSlice); 
+              
+               // toSlice is the final function here!
           }
         """)
   }
@@ -127,10 +140,9 @@ class SolInternalTypeFactory(project: Project) {
               (uint8 a, uint16 b) = slice.decode(uint8, uint16);
               (uint16 num0, uint32 num1, address addr) = slice.decode(uint16, uint32, address);</pre></code>
                @custom:no_validation
-               @custom:typeArgument Type:Type
                @custom:deprecated
               */              
-              function decode(Type varargs) returns (Type);
+              function decode(Type varargs) returns (TypeSequence);
               /**
               Sequentially decodes values of the specified types from the <code>TvmSlice</code>. Supported types: <code>uintN</code>, <code>intN</code>, <code>bytesN</code>, <code>bool</code>, <code>ufixedMxN</code>, <code>fixedMxN</code>, <code>address</code>, <code>contract</code>, <code>TvmCell</code>, <code>bytes</code>, <code>string</code>, <code>mapping</code>, <code>ExtraCurrencyCollection</code>, <code>array</code>, <code>optional</code> and <code>struct</code>. Example:
               
@@ -138,9 +150,8 @@ class SolInternalTypeFactory(project: Project) {
               (uint8 a, uint16 b) = slice.decode(uint8, uint16);
               (uint16 num0, uint32 num1, address addr) = slice.decode(uint16, uint32, address);</pre></code>
                @custom:no_validation
-               @custom:typeArgument Type:Type
               */              
-              function load(Type varargs) returns (Type);
+              function load(Type varargs) returns (TypeSequence);
               /**
               Sequentially decodes values of the specified types from the <code>TvmSlice</code> if the <code>TvmSlice</code> holds sufficient data for all specified types. Otherwise, returns null.
               
@@ -150,10 +161,9 @@ class SolInternalTypeFactory(project: Project) {
               optional(uint) a = slice.decodeQ(uint);
               optional(uint8, uint16) b = slice.decodeQ(uint8, uint16);</pre></code>
               @custom:no_validation
-              @custom:typeArgument Type:Type
               @custom:deprecated
               */              
-              function decodeQ(Type varargs) returns (optional(Type)); 
+              function decodeQ(Type varargs) returns (optional(TypeSequence)); 
                             /**
               Sequentially decodes values of the specified types from the <code>TvmSlice</code> if the <code>TvmSlice</code> holds sufficient data for all specified types. Otherwise, returns null.
               
@@ -163,9 +173,8 @@ class SolInternalTypeFactory(project: Project) {
               optional(uint) a = slice.decodeQ(uint);
               optional(uint8, uint16) b = slice.decodeQ(uint8, uint16);</pre></code>
               @custom:no_validation
-              @custom:typeArgument Type:Type
               */              
-              function loadQ(Type varargs) returns (optional(Type)); 
+              function loadQ(Type varargs) returns (optional(TypeSequence)); 
               /**
               Loads a cell from the <code>TvmSlice</code> reference.
               */              
@@ -395,6 +404,7 @@ class SolInternalTypeFactory(project: Project) {
               /**
               */              
               function preloadUintLE8Q();
+               // preloadUintLE8Q is the final function here!
           }
         """)
   }
@@ -536,6 +546,8 @@ See example of how to work with TVM specific types:
  							/**
 							*/
 							function storeUintLE8(); 
+
+                            // storeUintLE8 is the final function here!
  
             }
           """)
@@ -590,13 +602,14 @@ See example of how to work with TVM specific types:
           */
           varUint16 importFee;
           
-							/**
+          /**
 Returns public key that is used to check the message signature. If the message isn't signed then it's equal to <code>0</code>. See also: <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#contract-execution">Contract execution</a>,<a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#pragma-abiheader">pragma AbiHeader</a>.
-							*/
-							function pubkey() returns (uint256);
+          */
+          function pubkey() returns (uint256);
+         // pubkey is the final function here!
           
       }
-    """)
+    """, "pubkey", "msg.")
   }
 
   val txType: SolContract by lazy {
@@ -614,7 +627,7 @@ Returns public key that is used to check the message signature. If the message i
            
           uint120 public storageFee; 
       }
-    """)
+    """, "storageFee", "tx.")
   }
 
   val addressType: SolContract by lazy {
@@ -735,111 +748,115 @@ Example:
  @custom:no_validation
 							*/
 							function unpack() returns (int32 /*wid*/, uint256 /*value*/);
+                            // unpack is the final function here!
       }
-    """)
+    """, "unpack", "address abc; abc.")
 
   }
 
   val mappingType: SolContract by lazy {
     contract(
-        """
-      /**
-       @custom:typeArgument KeyType=KeyType,ValueType=ValueType
-      */
-      contract ${internalise("Mapping")} {
-							/**
-Returns the item of <code>ValueType</code> with index key. Throws an <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvm-exception-codes">exception</a> if key is not in the mapping.
-							*/
-							function at(KeyType index) returns (ValueType);
-							/**
-Computes the minimal key in the <code>mapping</code> and returns an <code>optional</code> value containing that key and the associated value. If <code>mapping</code> is empty, this function returns an empty <code>optional</code>.
-							*/
-							function min() returns (optional(KeyType, ValueType));
-							/**
-Computes the maximal key in the <code>mapping</code> and returns an <code>optional</code> value containing that key and the associated value. If <code>mapping</code> is empty, this function returns an empty <code>optional</code>.
-							*/
-							function max() returns (optional(KeyType, ValueType));
-							/**
-Computes the minimal (maximal) key in the <code>mapping</code> that is lexicographically greater (less) than key and returns an <code>optional</code> value containing that key and the associated value. Returns an empty <code>optional</code> if there is no such key. If KeyType is an integer type, argument for this functions can not possibly fit <code>KeyType</code>.
-
-Example:
-
-<code><pre>KeyType key;
-	// init key
-	optional(KeyType, ValueType) nextPair = map.next(key);
-	optional(KeyType, ValueType) prevPair = map.prev(key);
-	
-	if (nextPair.hasValue()) {
-		(KeyType nextKey, ValueType nextValue) = nextPair.get(); // unpack optional value
-		// using nextKey and nextValue
-	}
-	
-	mapping(uint8 => uint) m;
-	optional(uint8, uint) = m.next(-1); // ok, param for next/prev can be negative 
-	optional(uint8, uint) = m.prev(65537); // ok, param for next/prev can not possibly fit to KeyType (uint8 in this case)</pre></code>
-							*/
-							function next(KeyType key) returns (optional(KeyType, ValueType));
-							/**
-Computes the minimal (maximal) key in the <code>mapping</code> that is lexicographically greater than or equal to (less than or equal to) <strong>key</strong> and returns an <code>optional</code> value containing that key and the associated value. Returns an empty <code>optional</code> if there is no such key. If KeyType is an integer type, argument for this functions can not possibly fit <code>KeyType</code>.
-							*/
-							function nextOrEq(KeyType key) returns (optional(KeyType, ValueType));
-							/**
-							Computes the minimal (maximal) key in the <code>mapping</code> that is lexicographically greater than or equal to (less than or equal to) <strong>key</strong> and returns an <code>optional</code> value containing that key and the associated value. Returns an empty <code>optional</code> if there is no such key. If KeyType is an integer type, argument for this functions can not possibly fit <code>KeyType</code>.
-							*/
-							function prevOrEq(KeyType key) returns (optional(KeyType, ValueType));
-							/**
-If mapping is not empty then this function computes the minimal (maximum) key of the <code>mapping</code>, deletes that key and the associated value from the <code>mapping</code> and returns an <code>optional</code> value containing that key and the associated value. Returns an empty <code>optional</code> if there is no such key.							*/
-							function delMin() returns (optional(KeyType, ValueType));
-							/**
-							If mapping is not empty then this function computes the minimal (maximum) key of the <code>mapping</code>, deletes that key and the associated value from the <code>mapping</code> and returns an <code>optional</code> value containing that key and the associated value. Returns an empty <code>optional</code> if there is no such key.							*/
-							function delMax() returns (optional(KeyType, ValueType));
-							/**
-Checks whether <strong>key</strong> is present in the <code>mapping</code> and returns an <code>optional</code> with the associated value. Returns an empty <code>optional</code> if there is no such key.
-							*/
-							function fetch(KeyType key) returns (optional(ValueType));
-							/**
-Returns whether key is present in the <code>mapping</code>.
-							*/
-							function exists(KeyType key) returns (bool);
-							/**
-Returns whether the <code>mapping</code> is empty.
-							*/
-							function empty() returns (bool);
-							/**
-Sets the value associated with key only if key is present in the <code>mapping</code> and returns the success flag.
-							*/
-							function replace(KeyType key, ValueType value) returns (bool);
-							/**
-Sets the value associated with key only if key is not present in the <code>mapping</code>.
-							*/
-							function add(KeyType key, ValueType value) returns (bool);
-							/**
-Sets the value associated with key, but also returns an <code>optional</code> with the previous value associated with the <strong>key</strong>, if any. Otherwise, returns an empty <code>optional</code>.
-							*/
-							function getSet(KeyType key, ValueType value) returns (optional(ValueType));
-							/**
-Sets the value associated with <stong>key</stong>, but only if key is not present in the <strong>mapping</strong>. Returns an <code>optional</code> with the old value without changing the dictionary if that value is present in the <code>mapping</code>, otherwise returns an empty <code>optional</code>.
-							*/
-							function getAdd(KeyType key, ValueType value) returns (optional(ValueType));
-							/**
-Sets the value associated with key, but only if key is present in the <code>mapping</code>. On success, returns an <code>optional</code> with the old value associated with the key. Otherwise, returns an empty <code>optional</code>.
-							*/
-							function getReplace(KeyType key, ValueType value) returns (optional(ValueType));
-							/**
- Returns all mapping's keys/values. Note: these functions iterate over the whole mapping, thus the cost is proportional to the mapping's size.
-							*/
-							function keys() returns (KeyType[]);
-							/**
- Returns all values of the mapping as an array. Note: these functions iterate over the whole mapping, thus the cost is proportional to the mapping's size.
-							*/
-							function values() returns (ValueType[]);
-							/**
- Deletes the key from the mapping map and returns an optional with the corresponding value. Returns an empty optional if the key does not exist.
-              */
-							function getDel(KeyType key) returns (optional(ValueType));
-
-      }
-    """)
+            """
+          /**
+           @custom:typeArgument KeyType=KeyType,ValueType=ValueType
+          */
+          contract ${internalise("Mapping")} {
+                                /**
+    Returns the item of <code>ValueType</code> with index key. Throws an <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvm-exception-codes">exception</a> if key is not in the mapping.
+                                */
+                                function at(KeyType index) returns (ValueType);
+                                /**
+    Computes the minimal key in the <code>mapping</code> and returns an <code>optional</code> value containing that key and the associated value. If <code>mapping</code> is empty, this function returns an empty <code>optional</code>.
+                                */
+                                function min() returns (optional(KeyType, ValueType));
+                                /**
+    Computes the maximal key in the <code>mapping</code> and returns an <code>optional</code> value containing that key and the associated value. If <code>mapping</code> is empty, this function returns an empty <code>optional</code>.
+                                */
+                                function max() returns (optional(KeyType, ValueType));
+                                /**
+    Computes the minimal (maximal) key in the <code>mapping</code> that is lexicographically greater (less) than key and returns an <code>optional</code> value containing that key and the associated value. Returns an empty <code>optional</code> if there is no such key. If KeyType is an integer type, argument for this functions can not possibly fit <code>KeyType</code>.
+    
+    Example:
+    
+    <code><pre>KeyType key;
+        // init key
+        optional(KeyType, ValueType) nextPair = map.next(key);
+        optional(KeyType, ValueType) prevPair = map.prev(key);
+        
+        if (nextPair.hasValue()) {
+            (KeyType nextKey, ValueType nextValue) = nextPair.get(); // unpack optional value
+            // using nextKey and nextValue
+        }
+        
+        mapping(uint8 => uint) m;
+        optional(uint8, uint) = m.next(-1); // ok, param for next/prev can be negative 
+        optional(uint8, uint) = m.prev(65537); // ok, param for next/prev can not possibly fit to KeyType (uint8 in this case)</pre></code>
+                                */
+                                function next(KeyType key) returns (optional(KeyType, ValueType));
+                                /**
+    Computes the minimal (maximal) key in the <code>mapping</code> that is lexicographically greater than or equal to (less than or equal to) <strong>key</strong> and returns an <code>optional</code> value containing that key and the associated value. Returns an empty <code>optional</code> if there is no such key. If KeyType is an integer type, argument for this functions can not possibly fit <code>KeyType</code>.
+                                */
+                                function nextOrEq(KeyType key) returns (optional(KeyType, ValueType));
+                                /**
+                                Computes the minimal (maximal) key in the <code>mapping</code> that is lexicographically greater than or equal to (less than or equal to) <strong>key</strong> and returns an <code>optional</code> value containing that key and the associated value. Returns an empty <code>optional</code> if there is no such key. If KeyType is an integer type, argument for this functions can not possibly fit <code>KeyType</code>.
+                                */
+                                function prevOrEq(KeyType key) returns (optional(KeyType, ValueType));
+                                /**
+    If mapping is not empty then this function computes the minimal (maximum) key of the <code>mapping</code>, deletes that key and the associated value from the <code>mapping</code> and returns an <code>optional</code> value containing that key and the associated value. Returns an empty <code>optional</code> if there is no such key.							*/
+                                function delMin() returns (optional(KeyType, ValueType));
+                                /**
+                                If mapping is not empty then this function computes the minimal (maximum) key of the <code>mapping</code>, deletes that key and the associated value from the <code>mapping</code> and returns an <code>optional</code> value containing that key and the associated value. Returns an empty <code>optional</code> if there is no such key.							*/
+                                function delMax() returns (optional(KeyType, ValueType));
+                                /**
+    Checks whether <strong>key</strong> is present in the <code>mapping</code> and returns an <code>optional</code> with the associated value. Returns an empty <code>optional</code> if there is no such key.
+                                */
+                                function fetch(KeyType key) returns (optional(ValueType));
+                                /**
+    Returns whether key is present in the <code>mapping</code>.
+                                */
+                                function exists(KeyType key) returns (bool);
+                                /**
+    Returns whether the <code>mapping</code> is empty.
+                                */
+                                function empty() returns (bool);
+                                /**
+    Sets the value associated with key only if key is present in the <code>mapping</code> and returns the success flag.
+                                */
+                                function replace(KeyType key, ValueType value) returns (bool);
+                                /**
+    Sets the value associated with key only if key is not present in the <code>mapping</code>.
+                                */
+                                function add(KeyType key, ValueType value) returns (bool);
+                                /**
+    Sets the value associated with key, but also returns an <code>optional</code> with the previous value associated with the <strong>key</strong>, if any. Otherwise, returns an empty <code>optional</code>.
+                                */
+                                function getSet(KeyType key, ValueType value) returns (optional(ValueType));
+                                /**
+    Sets the value associated with <stong>key</stong>, but only if key is not present in the <strong>mapping</strong>. Returns an <code>optional</code> with the old value without changing the dictionary if that value is present in the <code>mapping</code>, otherwise returns an empty <code>optional</code>.
+                                */
+                                function getAdd(KeyType key, ValueType value) returns (optional(ValueType));
+                                /**
+    Sets the value associated with key, but only if key is present in the <code>mapping</code>. On success, returns an <code>optional</code> with the old value associated with the key. Otherwise, returns an empty <code>optional</code>.
+                                */
+                                function getReplace(KeyType key, ValueType value) returns (optional(ValueType));
+                                /**
+     Returns all mapping's keys/values. Note: these functions iterate over the whole mapping, thus the cost is proportional to the mapping's size.
+                                */
+                                function keys() returns (KeyType[]);
+                                /**
+     Returns all values of the mapping as an array. Note: these functions iterate over the whole mapping, thus the cost is proportional to the mapping's size.
+                                */
+                                function values() returns (ValueType[]);
+                                /**
+     Deletes the key from the mapping map and returns an optional with the corresponding value. Returns an empty optional if the key does not exist.
+                  */
+                                function getDel(KeyType key) returns (optional(ValueType));
+                                 // getDel is the final function here!
+    
+          }
+        """,
+            "getDel",
+            "mapping(uint => string) stakes; stakes.")
   }
 
   val arrayType: SolContract by lazy {
@@ -869,8 +886,9 @@ Dynamic storage arrays and <code>bytes</code> (not <code>string</code>) have a m
             /**
 Dynamic storage arrays and <code>bytes</code> (not <code>string</code>) have a member function called <code>pop()</code> that you can use to remove an element from the end of the array. This also implicitly calls delete on the removed element. The function returns nothing.            */
           function pop() returns (Type);
+           // pop is the final function here!
       }
-    """)
+    """, "pop", "byte[] asdf; asdf.")
   }
 
   val optionalType: SolContract by lazy {
@@ -905,8 +923,9 @@ Replaces content of the <code>optional</code> with <strong>value</strong>.
 Deletes content of the <code>optional</code>.
 							*/
 							function reset();
+                            // reset is the final function here!
       }
-    """)
+    """, "reset", "optional(int) ad; ad.")
   }
 
   val vectorType: SolContract by lazy {
@@ -932,8 +951,9 @@ Returns length of the <code>vector</code>.
 Checks whether the <code>vector</code> is empty.
 							*/
 							function empty() returns (bool);
+                            // empty is the final function here!
       }
-    """)
+    """, "empty", "vector(string) ff; ff.")
   }
 
 
@@ -945,15 +965,16 @@ Checks whether the <code>vector</code> is empty.
                 @custom:no_validation
                 @custom:typeArgument Type
 							*/
-							function encode(Type varargs) returns (TvmCell /*cell*/);
+							function encode(AnyType varargs) returns (TvmCell /*cell*/);
 							/**
                 decodes the <code>cell</code> and returns the values.
                @custom:no_validation
                @custom:typeArgument Type:TypeSequence
 							*/
 							function decode(TvmCell cell, Type varargs) returns (Type);
+                    // decode is the final function here!
       }
-    """)
+    """, "decode", "abi.")
   }
 
   val structType: SolContract by lazy {
@@ -964,7 +985,7 @@ Checks whether the <code>vector</code> is empty.
 							*/
 							function unpack() returns (Type);
       }
-    """)
+    """, "", "")
   }
 
   val stringType: SolContract by lazy {
@@ -1000,8 +1021,9 @@ Checks whether the <code>vector</code> is empty.
 							/**
 							*/
 							function toLowerCase() returns (string);
+                            // toLowerCase is the final function here!
         }
-    """)
+    """, "toLowerCase", "\"aa\".")
   }
 
   val rndType: SolContract by lazy {
@@ -1026,8 +1048,9 @@ Checks whether the <code>vector</code> is empty.
 							/**
 							*/
 							function shuffle();
+                            // shuffle is the final function here!
         }
-    """)
+    """, "shuffle", "rnd.")
   }
 
 
@@ -1058,8 +1081,10 @@ Checks whether the <code>vector</code> is empty.
 							/**
 							*/
 							function append(bytes tail);
+
+                            // append is the final function here!
       }
-    """)
+    """, "append", "bytes bb; bb.")
   }
 
   val tvmType: SolContract by lazy {
@@ -1201,7 +1226,7 @@ See example of how to use this function:
 							/**
 							Executes TVM instruction "CONFIGPARAM" (<a href="https://test.ton.org/tvm.pdf">TVM</a> - A.11.4. - F832). Returns the value of the global configuration parameter with integer index paramNumber as a <code>TvmCell</code> and a boolean status.
 							*/
-							function rawConfigParam(uint8 paramNumber) returns optional(TvmCell); 
+							function rawConfigParam(uint8 paramNumber) returns (optional(TvmCell)); 
 							/**
 							Creates an output action that reserves reserve nanotons. It is roughly equivalent to create an outbound message carrying reserve nanotons to oneself, so that the subsequent output actions would not be able to spend more money than the remainder. It's a wrapper for opcodes "RAWRESERVE" and "RAWRESERVEX". See <a href="https://test.ton.org/tvm.pdf">TVM</a>.
 
@@ -1889,19 +1914,21 @@ See example of how to use this function:
                TvmCell stateInit 
            )
            returns (TvmCell);
-							/**
-							Send the internal/external message <code>msg</code> with <code>flag</code>. It's a wrapper for opcode <code>SENDRAWMSG</code> (<a href="https://test.ton.org/tvm.pdf">TVM</a> - A.11.10). Internal message <code>msg</code> can be generated by <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmbuildintmsg">tvm.buildIntMsg()</a> Possible values of <code>flag</code> are described here: <a href=""><address>.transfer()</a>
-							
-							<strong>Note</strong>: make sure that <code>msg</code> has a correct format and follows the <a href="https://github.com/ton-blockchain/ton/blob/master/crypto/block/block.tlb">TL-B scheme</a> of <code>Message X</code>. For example:\
-							<code><pre>TvmCell msg = ...
-							tvm.sendrawmsg(msg, 2);</pre></code>
+            /**
+            Send the internal/external message <code>msg</code> with <code>flag</code>. It's a wrapper for opcode <code>SENDRAWMSG</code> (<a href="https://test.ton.org/tvm.pdf">TVM</a> - A.11.10). Internal message <code>msg</code> can be generated by <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmbuildintmsg">tvm.buildIntMsg()</a> Possible values of <code>flag</code> are described here: <a href=""><address>.transfer()</a>
+            
+            <strong>Note</strong>: make sure that <code>msg</code> has a correct format and follows the <a href="https://github.com/ton-blockchain/ton/blob/master/crypto/block/block.tlb">TL-B scheme</a> of <code>Message X</code>. For example:\
+            <code><pre>TvmCell msg = ...
+            tvm.sendrawmsg(msg, 2);</pre></code>
 
-							If the function is called by external message and <code>msg</code> has a wrong format (for example, the field <code>init</code> of <code>Message X</code> is not valid) then the transaction will be replayed despite the usage of flag 2. It will happen because the transaction will fail at the action phase.
-							*/
-							function sendrawmsg(TvmCell msg, uint8 flag);
+            If the function is called by external message and <code>msg</code> has a wrong format (for example, the field <code>init</code> of <code>Message X</code> is not valid) then the transaction will be replayed despite the usage of flag 2. It will happen because the transaction will fail at the action phase.
+            */
+            function sendrawmsg(TvmCell msg, uint8 flag);
+            
+           // sendrawmsg is the final function here!
            
       }
-    """)
+    """, "sendrawmsg", "tvm.")
   }
 
 
@@ -1911,16 +1938,14 @@ See example of how to use this function:
            // todo varargs
 							/**
 							Returns the minimal (maximal) value of the passed arguments. <code>T</code> should be an integer or fixed point type
-                @custom:no_validation
                 @custom:typeArgument T:Number
 							*/
-							function min(T a, T varargs) returns (T);
+							function min(T varargs) returns (T);
 							/**
 							Returns the minimal (maximal) value of the passed arguments. <code>T</code> should be an integer or fixed point type
-                @custom:no_validation
                 @custom:typeArgument T:Number
 							*/
-							function max(T a, T varargs) returns (T);
+							function max(T varargs) returns (T);
 							/**
 							Returns minimal and maximal values of the passed arguments. <code>T</code> should be an integer or fixed point type
 
@@ -1928,7 +1953,7 @@ See example of how to use this function:
 							<code>(uint a, uint b) = math.minmax(20, 10); // (10, 20)</code>
               @custom:typeArgument T:Number
 							*/
-							function minmax(T a, T varargs) returns (T /*min*/, T /*max*/);
+							function minmax(T varargs) returns (T /*min*/, T /*max*/);
 							/**
 							Computes the absolute value of the given integer.
 
@@ -2073,9 +2098,11 @@ See example of how to use this function:
 							int8 sign = math.sign(0); // sign == 0</pre></code>
 							*/
 							function sign(int val) returns (int8);
+
+                           // sign is the final function here!
            
       }
-    """)
+    """, "sign", "math.")
   }
 
   val blockType: SolType by lazy {
@@ -2088,8 +2115,10 @@ See example of how to use this function:
                  uint32 timestamp;
                  
                  function blockhash(uint blockNumber) returns (bytes32);
+                 
+                 // blockhash is the final function here!
             }      
-        """)
+        """, "blockhash", "block.")
   }
 
   val globalType: SolContract by lazy {
@@ -2262,9 +2291,8 @@ causes a Panic error and thus state change reversion if the condition is not met
               function logtvm(string log);
               
               /**
-              @custom:no_validation
               */
-              function format(string template, Type varargs) returns (string);
+              function format(string template, AnyType varargs) returns (string);
               /**
               */
               function stoi(string inputStr) returns (optional(int) /*result*/);
@@ -2273,13 +2301,15 @@ causes a Panic error and thus state change reversion if the condition is not met
               Returns the remaining gas. Supported only if <code>CapGasRemainingInsn</code> capability is set.
               */
               function gasleft() returns (uint64)
-
+              
+              // gasleft is the final function here!
       }
-    """)
+    """, "gasleft", "")
   }
 
+  val finalElements = mutableMapOf<String, String>()
 
-  private fun contract(@Language("T-Sol") contractBody: String) =
-    SolContract(psiFactory.createContract(contractBody), true)
+  private fun contract(@Language("T-Sol") contractBody: String, elementName: String, code: String) =
+    SolContract(psiFactory.createContract(contractBody), true).also { if (elementName.isNotBlank()) finalElements[code] = elementName }
 
 }

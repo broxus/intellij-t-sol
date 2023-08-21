@@ -1,5 +1,8 @@
 package com.broxus.solidity.lang.completion
 
+import com.broxus.solidity.lang.types.SolInternalTypeFactory
+import kotlinx.collections.immutable.toImmutableMap
+
 class SolMemberAccessCompletionTest : SolCompletionTestBase() {
 
   fun testEmptyCompletion() = checkCompletion(hashSetOf("doSmth"), """
@@ -116,5 +119,20 @@ class SolMemberAccessCompletionTest : SolCompletionTestBase() {
       .mapValues { it.value.size }
     assertEquals(variants["doSmth1"], 1)
   }
+
+    fun testResolveFinalBuiltInFunctions() {
+        val reg = SolInternalTypeFactory.of(project)
+        reg.byName("")
+        reg.finalElements.toImmutableMap().forEach { code, name ->
+            checkCompletion(hashSetOf(name),"""
+                function doit() {
+                    $code/*caret*/;
+                }
+        """)
+
+
+      }
+    }
+
 
 }

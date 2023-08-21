@@ -418,9 +418,10 @@ private fun <T> Sequence<T>.takeWhileInclusive(pred: (T) -> Boolean): Sequence<T
 
 fun SolCallable.canBeApplied(arguments: SolFunctionCallArguments): Boolean {
   val callArgumentTypes = arguments.expressionList.map { it.type }
-  val parameters = parseParameters()
+  val parseParameters = parseParameters()
+  val parameters = parseParameters
     .map { it.second }
-  if (parameters.size != callArgumentTypes.size)
+  if (parameters.size != callArgumentTypes.size && parseParameters.none { it.first == "varargs" })
     return false
   return !parameters.zip(callArgumentTypes)
     .any { (paramType, argumentType) ->

@@ -2,16 +2,14 @@ package com.broxus.solidity.lang.types
 
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.psi.impl.Linearizable
+import com.broxus.solidity.lang.psi.parentOfType
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.types.SolInteger.Companion.UINT_160
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.util.UserDataHolderBase
-import com.intellij.psi.util.CachedValueProvider
-import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiModificationTracker
-import com.intellij.psi.util.descendants
+import com.intellij.psi.util.*
 import java.math.BigInteger
 import java.util.*
 
@@ -56,6 +54,36 @@ interface SolUserType : SolType {
 
 interface SolPrimitiveType : SolType
 interface SolNumeric : SolPrimitiveType
+
+object SolNumericType : SolNumeric {
+  override fun isAssignableFrom(other: SolType): Boolean {
+    return other is SolNumeric
+  }
+
+  override fun toString(): String {
+    return "<Numeric> Type"
+  }
+
+}
+
+interface SolInternalType : SolType
+
+data class SolTypeSequence(val types: List<SolType>) : SolInternalType {
+  override fun isAssignableFrom(other: SolType): Boolean = other is SolTypeSequence
+}
+
+object SolTypeType/*(val value: SolType)*/ : SolInternalType {
+  val supportedTypes = setOf(SolInteger::class, SolFixedBytes::class, SolBoolean::class, SolFixedNumber::class, SolAddress::class, SolContract::class, SolFixedBytes::class, SolString::class, SolMapping::class, SolArray::class, SolOptional::class, SolStruct::class)
+  override fun isAssignableFrom(other: SolType): Boolean {
+    return other is SolTypeType /*(other as? SolTypeType)?.value == value*/
+  }
+
+}
+
+data class SolTypeError(val details: String) : SolInternalType {
+  override fun isAssignableFrom(other: SolType): Boolean = false
+
+}
 
 object SolUnknown : SolPrimitiveType {
   override fun isAssignableFrom(other: SolType): Boolean = false
@@ -123,10 +151,27 @@ object SolAddress : SolPrimitiveType {
 
 }
 
+data class SolFixedNumber(val unsigned: Boolean, val size: Int, val decimaSize : Int) : SolNumeric {
+  override fun isAssignableFrom(other: SolType): Boolean =
+          when (other) {
+            is SolFixedNumber -> {
+              if (this.unsigned && !other.unsigned) {
+                false
+              } else if (!this.unsigned && other.unsigned) {
+                this.size - 2 >= other.size
+              } else {
+                this.size >= other.size
+              }
+            }
+            else -> false
+          }
+
+}
+
 data class SolInteger(val unsigned: Boolean, val size: Int, val isVarType : Boolean = false) : SolNumeric {
   companion object {
     val UINT_160 = SolInteger(true, 160)
-    val UINT_256 = SolInteger(true, 256)
+    val INT_256 = SolInteger(false, 256)
 
     fun parse(name: String): SolInteger {
       var unsigned = false
@@ -160,14 +205,15 @@ data class SolInteger(val unsigned: Boolean, val size: Int, val isVarType : Bool
     }
 
     private fun inferIntegerType(value: BigInteger, context: SolElement): SolInteger {
-      val expType : SolInteger? =
+      val expType : SolInteger? = if (context.parents(true).take(2).all { it.getUserData(inferExpIntTypesKey) != false }) {
         (context.parent?.parent as? SolFunctionCallArguments)?.let { args ->
-        args.expressionList.indexOfFirst { it.descendants().any { it == context } }.takeIf { it >= 0 }?. let { index ->
+          args.expressionList.indexOfFirst { it.descendants().any { it == context } }.takeIf { it >= 0 }?.let { index ->
             context.parentOfType<SolFunctionCallElement>()?.resolveDefinitions()?.takeIf { it.map { it.parseParameters().getOrNull(index)?.second }.toSet().size == 1 }?.let {
               it.first().parseParameters().getOrNull(index)?.second as? SolInteger
             }
+          }
         }
-      }
+      } else null
       return run {if (value == BigInteger.ZERO) return@run SolInteger(true, 8)
       val positive = value >= BigInteger.ZERO
       if (positive) {
@@ -456,7 +502,7 @@ data class SolFixedByte(val size: Int): SolPrimitiveType {
     val regex = "byte\\d*$".toRegex()
     fun parse(name: String): SolFixedByte {
       return if (name.startsWith("byte")) {
-        SolFixedByte(name.substring(4).toInt())
+        SolFixedByte(name.substring(4).toIntOrNull() ?: 1)
       } else {
         throw java.lang.IllegalArgumentException("should start with 'byte'")
       }

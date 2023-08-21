@@ -1,15 +1,15 @@
 package com.broxus.solidity.lang.resolve.ref
 
-import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiElementResolveResult
-import com.intellij.psi.PsiPolyVariantReferenceBase
-import com.intellij.psi.impl.source.resolve.ResolveCache
 import com.broxus.solidity.lang.core.SolidityTokenTypes.IDENTIFIER
 import com.broxus.solidity.lang.psi.SolElement
 import com.broxus.solidity.lang.psi.SolPsiFactory
 import com.broxus.solidity.lang.psi.SolReferenceElement
 import com.broxus.solidity.lang.psi.elementType
+import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiElementResolveResult
+import com.intellij.psi.PsiPolyVariantReferenceBase
+import com.intellij.psi.impl.source.resolve.ResolveCache
 
 abstract class SolReferenceBase<T : SolReferenceElement>(element: T) : PsiPolyVariantReferenceBase<T>(element), SolReference {
   override fun calculateDefaultRangeInElement() = TextRange(0, element.textRange.length)
@@ -30,7 +30,7 @@ abstract class SolReferenceBase<T : SolReferenceElement>(element: T) : PsiPolyVa
     return element
   }
 
-  override fun resolve(): SolElement? = super.resolve() as SolElement?
+  override fun resolve(): SolElement? = super.resolve() as? SolElement?
 
   protected open fun doRename(identifier: PsiElement, newName: String) {
     check(identifier.elementType == IDENTIFIER)

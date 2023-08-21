@@ -185,8 +185,8 @@ abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefSt
   override fun parseType(): SolType? {
     return this.returns?.parameterDefList?.let {
           when (it.size) {
-            1 -> getSolType(it[0].typeName.copyContext(this))
-            else -> SolTuple(it.map { def -> getSolType(def.typeName.copyContext(this)) })
+            1 -> getSolType(it[0].typeName)
+            else -> SolTuple(it.map { def -> getSolType(def.typeName) })
           }
     }
   }
@@ -246,7 +246,7 @@ abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefSt
 
   companion object {
     fun parseParameters(parameters: List<SolParameterDef>): List<Pair<String?, SolType>> {
-      return parameters.map { it.identifier?.text to getSolType(it.typeName.copyContext(it)) }
+      return parameters.map { it.identifier?.text to getSolType(it.typeName) }
     }
   }
 }

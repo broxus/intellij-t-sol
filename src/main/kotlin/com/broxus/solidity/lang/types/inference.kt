@@ -3,9 +3,13 @@ package com.broxus.solidity.lang.types
 import com.broxus.solidity.firstOrElse
 import com.broxus.solidity.ide.hints.TYPE_ARGUMENT_TAG
 import com.broxus.solidity.ide.hints.comments
+import com.broxus.solidity.ide.hints.isBuiltin
 import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.psi.*
-import com.broxus.solidity.lang.psi.impl.*
+import com.broxus.solidity.lang.psi.impl.ResolveContext
+import com.broxus.solidity.lang.psi.impl.SolFunctionDefMixin
+import com.broxus.solidity.lang.psi.impl.SolMemberAccessElement
+import com.broxus.solidity.lang.psi.impl.addContext
 import com.broxus.solidity.lang.psi.parentOfType
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.resolve.canBeApplied
@@ -14,7 +18,6 @@ import com.broxus.solidity.lang.resolve.ref.toLibraryFunDefinition
 import com.broxus.solidity.lang.types.SolArray.SolDynamicArray
 import com.broxus.solidity.lang.types.SolArray.SolStaticArray
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.psi.PsiElement
@@ -50,7 +53,7 @@ fun getSolType(type: SolTypeName?): SolType {
       }
     }
     is SolUserDefinedLocationTypeName ->
-      type.userDefinedTypeName?.let { getSolTypeFromUserDefinedTypeName(it.copyContext(type)) } ?: SolUnknown
+      type.userDefinedTypeName?.let { getSolTypeFromUserDefinedTypeName(it) } ?: SolUnknown
     is SolUserDefinedTypeName -> getSolTypeFromUserDefinedTypeName(type)
     is SolMappingTypeName -> when {
       type.typeNameList.size >= 2 -> SolMapping(
@@ -82,20 +85,23 @@ private fun getSolTypeFromUserDefinedTypeName(type: SolUserDefinedTypeName): Sol
   val name = type.name
   if (name != null) {
     if (isInternal(name)) {
-    val internalType = SolInternalTypeFactory.of(type.project).byName(name)
-    return internalType ?: SolUnknown
-  }
-    fun resolveByComments(comments : List<PsiElement>, stype: SolType? = null): SolType? =
-    comments.indexOfFirst { it.text == TYPE_ARGUMENT_TAG }.takeIf { it >= 1 }
-      ?.let { comments.getOrNull(it - 1)?.let { it.text.split("\n")[0] } }
-      ?.let { resolveTypeArgument(name, it, type.project, stype) }
-      ?.let {
+      val internalType = SolInternalTypeFactory.of(type.project).byName(name)
+      return internalType ?: SolUnknown
+    }
+    if (!type.isBuiltin()) {
+      fun resolveByComments(comments: List<PsiElement>, contextElement: SolFunctionDefinition?): SolType? =
+      comments.indexOfFirst { it.text == TYPE_ARGUMENT_TAG }.takeIf { it >= 1 }
+        ?.let { comments.getOrNull(it - 1)?.let { it.text.split("\n")[0] } }
+        ?.let { resolveTypeArgument(name, it, type, contextElement) }
+        ?.let {
+          return it
+        }
+      (type.parentOfType<SolFunctionDefinition>(false)?.let { f -> resolveByComments(f.comments(), f) } ?:
+      type.takeIf { it !is SolContractDefinition }?.parentOfType<SolContractDefinition>()?.let {
+        resolveByComments(it.comments(), null)
+      })?.let {
         return it
       }
-    type.parentOfType<SolFunctionDefinition>(false)?.comments()?.let { resolveByComments(it) } ?: type.takeIf { it !is SolContractDefinition }?.parentOfType<SolContractDefinition>()?.let {
-      resolveByComments(it.comments(), type.findResolveContext()?.expr?.type ?: it.parseType())
-    }?.let {
-      return it
     }
   }
 
@@ -114,18 +120,49 @@ private fun getSolTypeFromUserDefinedTypeName(type: SolUserDefinedTypeName): Sol
     .firstOrElse(SolUnknown)
 }
 
-fun resolveTypeArgument(name: String, typeText: String, project: Project, solType: SolType?): SolType? {
+fun resolveTypeArgument(name: String, typeText: String, type: SolUserDefinedTypeName, baseElement: SolFunctionDefinition?): SolType? {
   data class TypeArg(val name: String, val ref: String? = null, val bound: String? = null)
   val types = typeText.split(",").map {
     return@map if (it.contains("=")) it.split("=").let { TypeArg(it[0].trim(), ref = it.getOrNull(1)?.trim()) }
     else it.split(":").let { TypeArg(it[0].trim(), bound = it.getOrNull(1)?.trim()) }
   }
-  return types.find { it.name == name }?.let {
-    return it.ref?.let { ref ->
-       solType?.getRefs()?.find { it.name == ref }?.type
-    } ?: it.bound?.let { bound ->
-      (SolInternalTypeFactory.of(project).builtinByName(bound) as? SolTypeName)?.let { getSolType(it) }
+  val expr = type.findResolveContext()?.expr
+  return types.find { it.name == name }?.let { typeArg->
+    return typeArg.ref?.let { ref ->
+       expr?.type?.getRefs()?.find { it.name == ref }?.type
+    } ?: baseElement?.let { baseElement ->
+      val typeText2 = type.text
+      type.findResolveContext()?.expr?.parent?.parent?.childOfType<SolFunctionCallArguments>()?.expressionList?.let { actArgs ->
+        val parameters = baseElement.parameters
+        parameters.mapIndexedNotNull { i, p -> i.takeIf { p.typeName.text == typeText2 } }.let { typedIndexes ->
+          val varArgInd = parameters.indexOfFirst { it.identifier?.text == "varargs" }.takeIf { it >= 0 } ?: Int.MAX_VALUE
+          val typedTypes = actArgs.mapIndexedNotNull { i, a -> a.takeIf { i in typedIndexes || varArgInd < i }?.let { it.skipInferExpInt { inferExprType(it) } } }
+          val resolved = resolveCommonType(typedTypes)
+          val bound = typeArg.bound
+          if (bound != null && resolved !is SolTypeError) {
+              (SolInternalTypeFactory.of(type.project).builtinTypeByName(bound, typedTypes))?.let { b -> resolved.takeIf { b.isAssignableFrom(it) } ?: SolTypeError("Expect a sub type of $b, but $resolved found") } ?: resolved
+          } else {
+            resolved
+          }
+
+        }
+      }
     } ?: SolUnknown
+  }
+}
+
+fun resolveCommonType(typedTypes: List<SolType>) : SolType {
+  if (typedTypes.isEmpty()) {
+    return SolTypeError("No types inferred")
+  }
+  val groupBy = typedTypes.associateBy { it::class }
+  if (groupBy.size > 1) {
+    return SolTypeError("Incompatible types: ${groupBy.values}")
+  }
+  val type = typedTypes.first()
+  return when (type) {
+      is SolInteger -> typedTypes.maxBy { (it as SolInteger).size }
+    else -> type
   }
 }
 
@@ -236,7 +273,7 @@ fun inferExprType(expr: SolExpression?): SolType {
       when (val arrType = inferExprType(expr.expressionList.firstOrNull())) {
         is SolArray -> arrType.type
         is SolMapping -> arrType.to
-        is SolBytes -> SolFixedBytes(1)
+        is SolBytes -> if (expr.children.any { it.elementType == SolidityTokenTypes.COLON }) SolBytes else SolFixedBytes(1)
         else -> SolUnknown
       }
     }
@@ -274,6 +311,11 @@ private fun getNumericExpressionType(firstType: SolType, secondType: SolType): S
 
 
 val resolveContextKey = Key<ResolveContext>("broxus.ResolveContext")
+val inferExpIntTypesKey = Key<Boolean>("broxus.inferExpIntTypes")
+fun <T: PsiElement, R> T.skipInferExpInt(code: T.() -> R): R {
+  putUserData(inferExpIntTypesKey, false)
+  return code().also { putUserData(inferExpIntTypesKey, true) }
+}
 
 fun SolMemberAccessExpression.getMembers(): List<SolMember> {
   val expr = expression

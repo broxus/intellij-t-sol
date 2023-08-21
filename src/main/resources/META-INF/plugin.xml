@@ -1,5 +1,6 @@
-<idea-plugin>
+<idea-plugin require-restart="false">
     <id>com.broxus.t-sol</id>
+
     <name>T-Sol</name>
     <vendor email="hello@broxus.com" url="https://broxus.com">Broxus</vendor>
 
@@ -239,7 +240,7 @@
 
         <localInspection language="T-Sol" groupName="T-Sol"
                          displayName="Name can not be resolved"
-                         enabledByDefault="true"
+                         enabledByDefault="false"
                          level="WARNING"
                          shortName="TSolResolveNameInspection"
                          implementationClass="com.broxus.solidity.ide.inspections.ResolveNameInspection"/>
@@ -260,21 +261,21 @@
 
         <localInspection language="T-Sol" groupName="T-Sol"
                          displayName="Function call arguments are not matched with the parameters of function definition"
-                         enabledByDefault="true"
+                         enabledByDefault="false"
                          level="ERROR"
                          shortName="TSolValidateFunctionArgumentsInspection"
                          implementationClass="com.broxus.solidity.ide.inspections.ValidateFunctionArgumentsInspection"/>
 
         <localInspection language="T-Sol" groupName="T-Sol"
                                  displayName="Element is never used"
-                                 enabledByDefault="true"
+                                 enabledByDefault="false"
                                  level="WEAK WARNING"
                                  shortName="TSolUnusedElementInspection"
                                  implementationClass="com.broxus.solidity.ide.inspections.UnusedElementInspection"/>
 
         <localInspection language="T-Sol" groupName="T-Sol"
                                  displayName="Member is not defined"
-                                 enabledByDefault="true"
+                                 enabledByDefault="false"
                                  level="ERROR"
                                  shortName="TSolMemberAccessInspection"
                                  implementationClass="com.broxus.solidity.ide.inspections.ValidateMemberAccessInspection"/>

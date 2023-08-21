@@ -1,5 +1,7 @@
 package com.broxus.solidity.ide.inspections
 
+import com.broxus.solidity.ide.annotation.SolProblemsHolder
+import com.broxus.solidity.ide.annotation.convert
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.psi.impl.SolConstructorOrFunctionDef
 import com.broxus.solidity.lang.resolve.SolResolver
@@ -11,65 +13,101 @@ import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.util.parents
 
-private const val LARGE_FILE_SIZE = 15 * 1024
-
 class UnusedElementInspection : LocalInspectionTool() {
 
 
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
     return object : SolVisitor() {
       override fun visitImportDirective(o: SolImportDirective) {
-        if (o.containingFile.virtualFile.length > LARGE_FILE_SIZE) {
-          return
-        }
-        val used = SolResolver.collectUsedElements(o)
-        if (used.isEmpty()) {
-          holder.registerProblem(o, "Unused import directive", ProblemHighlightType.LIKE_UNUSED_SYMBOL)
-        }
+        inspectImportDirective(o, holder.convert())
       }
 
       override fun visitContractDefinition(o: SolContractDefinition) {
-        o.identifier?.checkForUsage(o, holder, "Contract '${o.name}' is never used")
+        inspectContractDefinition(o, holder.convert())
       }
 
       override fun visitConstantVariableDeclaration(o: SolConstantVariableDeclaration) {
-        o.identifier.checkForUsage(o, holder, "Constant '${o.name}' is never used")
+        inspectConstantVariableDeclaration(o, holder.convert())
       }
 
       override fun visitEnumDefinition(o: SolEnumDefinition) {
-        o.identifier?.checkForUsage(o, holder, "Enum '${o.name}' is never used")
+        inspectEnumDefinition(o, holder.convert())
       }
 
       override fun visitFunctionDefinition(o: SolFunctionDefinition) {
-        o.identifier?.takeIf { o.visibility != Visibility.EXTERNAL }?.checkForUsage(o, holder, "Function '${o.name}' is never used")
+        inspectFunctionDefinition(o, holder.convert())
       }
 
       override fun visitStructDefinition(o: SolStructDefinition) {
-        o.identifier?.checkForUsage(o, holder, "Struct '${o.name}' is never used")
+        inspectStructDefinition(o, holder.convert())
       }
 
       override fun visitStateVariableDeclaration(o: SolStateVariableDeclaration) {
-        o.identifier.checkForUsage(o, holder, "State variable '${o.name}' is never used")
+        inspectStateVariableDeclaration(o, holder.convert())
       }
 
         override fun visitVariableDeclaration(o: SolVariableDeclaration) {
-          o.identifier?.checkForUsage(o, holder, "Variable '${o.name}' is never used")
+          inspectVariableDeclaration(o, holder.convert())
         }
 
       override fun visitParameterDef(o: SolParameterDef) {
-        o.identifier?.takeIf { o.parents(false).filterIsInstance<SolConstructorOrFunctionDef>().firstOrNull()?.getBlock() != null }?.checkForUsage(o, holder, "Parameter '${o.name}' is never used")
+        inspectParameterDef(o, holder.convert())
       }
 
       override fun visitModifierDefinition(o: SolModifierDefinition) {
-        o.identifier?.checkForUsage(o, holder, "Modifier '${o.name}' is never used")
+        inspectModifierDefinition(o, holder.convert())
       }
     }
   }
+}
 
-  private fun PsiElement.checkForUsage(o: PsiElement, holder: ProblemsHolder, msg: String) {
-    if (ReferencesSearch.search(o).findFirst() == null) {
-      holder.registerProblem(this, msg, ProblemHighlightType.LIKE_UNUSED_SYMBOL)
-    }
+fun inspectStructDefinition(o: SolStructDefinition, holder: SolProblemsHolder) {
+  o.identifier?.checkForUsage(o, holder, "Struct '${o.name}' is never used")
+}
+
+fun inspectFunctionDefinition(o: SolFunctionDefinition, holder: SolProblemsHolder) {
+  o.identifier?.takeIf { o.visibility != Visibility.EXTERNAL }?.checkForUsage(o, holder, "Function '${o.name}' is never used")
+}
+
+fun inspectEnumDefinition(o: SolEnumDefinition, holder: SolProblemsHolder) {
+  o.identifier?.checkForUsage(o, holder, "Enum '${o.name}' is never used")
+}
+
+fun inspectConstantVariableDeclaration(o: SolConstantVariableDeclaration, holder: SolProblemsHolder) {
+  o.identifier.checkForUsage(o, holder, "Constant '${o.name}' is never used")
+}
+
+fun inspectContractDefinition(o: SolContractDefinition, holder: SolProblemsHolder) {
+  o.identifier?.checkForUsage(o, holder, "Contract '${o.name}' is never used")
+}
+
+fun inspectStateVariableDeclaration(o: SolStateVariableDeclaration, holder: SolProblemsHolder) {
+  o.identifier.checkForUsage(o, holder, "State variable '${o.name}' is never used")
+}
+
+fun inspectVariableDeclaration(o: SolVariableDeclaration, holder: SolProblemsHolder) {
+  o.identifier?.checkForUsage(o, holder, "Variable '${o.name}' is never used")
+}
+
+
+fun inspectParameterDef(o: SolParameterDef, holder: SolProblemsHolder) {
+  o.identifier?.takeIf { o.parents(false).filterIsInstance<SolConstructorOrFunctionDef>().firstOrNull()?.getBlock() != null }?.checkForUsage(o, holder, "Parameter '${o.name}' is never used")
+}
+
+fun inspectImportDirective(o: SolImportDirective, holder: SolProblemsHolder) {
+  val used = SolResolver.collectUsedElements(o)
+  if (used.isEmpty()) {
+    holder.registerProblem(o, "Unused import directive", ProblemHighlightType.LIKE_UNUSED_SYMBOL)
+  }
+}
+
+fun inspectModifierDefinition(o: SolModifierDefinition, holder: SolProblemsHolder) {
+  o.identifier?.checkForUsage(o, holder, "Modifier '${o.name}' is never used")
+}
+
+private fun PsiElement.checkForUsage(o: PsiElement, holder: SolProblemsHolder, msg: String) {
+  if (ReferencesSearch.search(o).findFirst() == null) {
+    holder.registerProblem(this, msg, ProblemHighlightType.LIKE_UNUSED_SYMBOL)
   }
 }
 

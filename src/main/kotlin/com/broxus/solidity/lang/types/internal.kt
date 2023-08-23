@@ -52,7 +52,7 @@ class SolInternalTypeFactory(project: Project) {
 
   fun builtinTypeByName(name: String, context: List<SolType>): SolType? = when (name) {
     "Number" -> SolNumericType
-    "Int" -> SolInteger.INT_256
+    "Int" -> SolInteger.MAX_INT_TYPE
     "Type" -> SolTypeType
 //    "TypeSequence" -> SolTypeSequence(context)
     else -> null

@@ -310,8 +310,8 @@ TypedDeclarationList ::= '(' TypedDeclarationItem*  ')' ;
 // TODO: remove storage declaration from all other places
 VariableDeclaration ::=
     var DeclarationList |
-    DeclarationList |
     TypedDeclarationList |
+    DeclarationList |
     TypeName StorageLocation? Identifier {
     implements = "com.broxus.solidity.lang.psi.SolNamedElement"
     mixin = "com.broxus.solidity.lang.psi.impl.SolVariableDeclarationMixin"

@@ -20,6 +20,7 @@ import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StubIndex
 import com.intellij.psi.util.*
+import com.intellij.refactoring.suggested.endOffset
 import com.intellij.util.Processors
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSuperclassOf
@@ -314,7 +315,11 @@ object SolResolver {
           ?: sequenceOf(scope)
       }
 
-      is SolVariableDefinition -> lexicalDeclarations(visitedScopes, scope.firstChild, place)
+      is SolVariableDefinition -> {
+        if (place.endOffset > scope.endOffset) {
+          lexicalDeclarations(visitedScopes, scope.firstChild, place)
+        } else emptySequence()
+      }
 
       is SolStateVariableDeclaration -> sequenceOf(scope)
       is SolContractDefinition -> {

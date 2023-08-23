@@ -137,7 +137,8 @@ class SolidityAnnotator : Annotator {
       is SolParameterDef -> inspectParameterDef(element, holder.convert())
       is SolImportDirective -> inspectImportDirective(element, holder.convert())
       is SolVarLiteral -> inspectVarLiteralRef(element, holder.convert())
-
+      is SolVariableDefinition -> inspectVariableDefinition(element, holder.convert())
+      is SolAssignmentExpression -> inspectAssigmentExpression(element, holder.convert())
 
     }
   }

@@ -43,6 +43,9 @@ interface SolType {
   }
   fun getRefs(): List<TypeRef> = emptyList()
 
+  val isResolved: Boolean
+    get() = this != SolUnknown && getRefs().all { it.type.isResolved }
+
   val isBuiltin: Boolean
     get() = true
 }
@@ -68,8 +71,18 @@ object SolNumericType : SolNumeric {
 
 interface SolInternalType : SolType
 
-data class SolTypeSequence(val types: List<SolType>) : SolInternalType {
-  override fun isAssignableFrom(other: SolType): Boolean = other is SolTypeSequence
+data class SolTypeSequence(val types: List<SolType>) : SolType {
+  override fun isAssignableFrom(other: SolType): Boolean {
+    return when  {
+      other is SolTypeSequence -> types.size == other.types.size && types.zip(other.types).all { it.first.isAssignableFrom(it.second) }
+      types.size == 1 -> types[0].isAssignableFrom(other)
+      else -> false
+    }
+  }
+
+  override fun toString(): String {
+    return "(${types.joinToString(separator = ",") { it.toString() }})"
+  }
 }
 
 object SolTypeType/*(val value: SolType)*/ : SolInternalType {
@@ -107,33 +120,39 @@ object SolString : SolPrimitiveType {
   override fun toString() = "string"
 }
 
-data class SolOptional(val types: List<SolType>) : SolType {
+interface SolTypedType<T: SolType> : SolType {
+
+  val type: SolType
+  override fun isAssignableFrom(other: SolType): Boolean {
+    TODO("Not yet implemented")
+  }
+}
+
+data class SolOptional(val type: SolType) : SolType {
   override fun isAssignableFrom(other: SolType): Boolean =
     when (other) {
-      is SolOptional -> other.types.size == this.types.size && other.types.mapIndexed { index, solType -> types[index].isAssignableFrom(solType) }.all { it }
-      else -> types.size == 1 && types[0].isAssignableFrom(other)
+      is SolOptional -> other.type == type
+      else -> other == type
     }
 
-  override fun getRefs(): List<TypeRef> = types.mapIndexed {i, t -> TypeRef("T$i", t) }
+  override fun getRefs(): List<TypeRef> = listOf(TypeRef("T0", type))
 
   override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).optionalType)
 
-  override fun toString() = "optional(${types.joinToString { it.toString() }})"
+  override fun toString() = "optional${if (type is SolTypeSequence) "$type" else "($type)"}"
 
 }
 
-data class SolVector(val types: List<SolType>) : SolType {
-  override fun isAssignableFrom(other: SolType): Boolean =
-    when (other) {
-      is SolVector -> other.types.size == this.types.size && other.types.mapIndexed { index, solType -> types[index].isAssignableFrom(solType) }.all { it }
-      else -> types.size == 1 && types[0].isAssignableFrom(other)
-    }
+data class SolVector(val type: SolType) : SolType {
+  override fun isAssignableFrom(other: SolType): Boolean {
+    return (other as? SolVector)?.type == type
+  }
 
-  override fun getRefs(): List<TypeRef> = types.mapIndexed {i, t -> TypeRef("T$i", t) }
+  override fun getRefs(): List<TypeRef> = listOf(TypeRef("T0", type))
 
   override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).vectorType)
 
-  override fun toString() = "SolVector(${types.joinToString { it.toString() }})"
+  override fun toString() = "SolVector($type)"
 
 }
 
@@ -172,6 +191,7 @@ data class SolInteger(val unsigned: Boolean, val size: Int, val isVarType : Bool
   companion object {
     val UINT_160 = SolInteger(true, 160)
     val INT_256 = SolInteger(false, 256)
+    val MAX_INT_TYPE = SolInteger(false, 258)
 
     fun parse(name: String): SolInteger {
       var unsigned = false
@@ -206,12 +226,20 @@ data class SolInteger(val unsigned: Boolean, val size: Int, val isVarType : Bool
 
     private fun inferIntegerType(value: BigInteger, context: SolElement): SolInteger {
       val expType : SolInteger? = if (context.parents(true).take(2).all { it.getUserData(inferExpIntTypesKey) != false }) {
-        (context.parent?.parent as? SolFunctionCallArguments)?.let { args ->
-          args.expressionList.indexOfFirst { it.descendants().any { it == context } }.takeIf { it >= 0 }?.let { index ->
-            context.parentOfType<SolFunctionCallElement>()?.resolveDefinitions()?.takeIf { it.map { it.parseParameters().getOrNull(index)?.second }.toSet().size == 1 }?.let {
-              it.first().parseParameters().getOrNull(index)?.second as? SolInteger
+        val parent = context.parent?.parent
+        when (parent) {
+          is SolFunctionCallArguments -> {
+            parent.expressionList.indexOfFirst { it.descendants().any { it == context } }.takeIf { it >= 0 }?.let { index ->
+              context.parentOfType<SolFunctionCallElement>()?.resolveDefinitions()?.takeIf { it.map { it.parseParameters().getOrNull(index)?.second }.toSet().size == 1 }?.let {
+                it.first().parseParameters().getOrNull(index)?.second as? SolInteger
+              }
             }
           }
+          is SolVariableDefinition -> {
+            val type = getSolType(parent.variableDeclaration.typeName)
+            (type as? SolInteger) ?: (type as? SolOptional)?.type as? SolInteger
+          }
+          else -> null
         }
       } else null
       return run {if (value == BigInteger.ZERO) return@run SolInteger(true, 8)
@@ -402,13 +430,7 @@ data class SolMapping(val from: SolType, val to: SolType) : SolType {
   }
 }
 
-data class SolTuple(val types: List<SolType>) : SolType {
-  override fun isAssignableFrom(other: SolType): Boolean = false
 
-  override fun toString(): String {
-    return "(${types.joinToString(separator = ",") { it.toString() }})"
-  }
-}
 
 sealed class SolArray(val type: SolType) : SolType {
   override fun getRefs(): List<TypeRef> = listOf(TypeRef(this::type.name, type))

@@ -3,7 +3,6 @@ package com.broxus.solidity.lang.types
 import com.broxus.solidity.firstOrElse
 import com.broxus.solidity.ide.hints.TYPE_ARGUMENT_TAG
 import com.broxus.solidity.ide.hints.comments
-import com.broxus.solidity.ide.hints.isBuiltin
 import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.psi.impl.ResolveContext
@@ -71,11 +70,13 @@ fun getSolType(type: SolTypeName?): SolType {
         else -> SolUnknown
       }
     }
-    is SolOptionalTypeName -> SolOptional(type.typeNameList.map { getSolType(it) })
-    is SolVectorTypeName -> SolVector(type.typeNameList.map { getSolType(it) })
+    is SolOptionalTypeName -> SolOptional(type.typeNameList.foldTypes())
+    is SolVectorTypeName -> SolVector(type.typeNameList.foldTypes())
     else -> SolUnknown
   }
 }
+
+private fun List<SolTypeName>.foldTypes() = this.map { getSolType(it) }.let { if (it.size == 1) it[0] else SolTypeSequence(it) }
 
 fun PsiElement.findResolveContext() : ResolveContext? {
   return this.parents(true).mapNotNull { it.getUserData(resolveContextKey) }.firstOrNull()
@@ -88,7 +89,6 @@ private fun getSolTypeFromUserDefinedTypeName(type: SolUserDefinedTypeName): Sol
       val internalType = SolInternalTypeFactory.of(type.project).byName(name)
       return internalType ?: SolUnknown
     }
-    if (!type.isBuiltin()) {
       fun resolveByComments(comments: List<PsiElement>, contextElement: SolFunctionDefinition?): SolType? =
       comments.indexOfFirst { it.text == TYPE_ARGUMENT_TAG }.takeIf { it >= 1 }
         ?.let { comments.getOrNull(it - 1)?.let { it.text.split("\n")[0] } }
@@ -102,7 +102,6 @@ private fun getSolTypeFromUserDefinedTypeName(type: SolUserDefinedTypeName): Sol
       })?.let {
         return it
       }
-    }
   }
 
   val resolvedTypes = SolResolver.resolveTypeNameUsingImports(type)
@@ -175,7 +174,7 @@ fun inferDeclType(decl: SolNamedElement): SolType {
       val declarationItemList = list.declarationItemList
       val declIndex = declarationItemList.indexOf(decl)
       when (inferred) {
-        is SolTuple -> {
+        is SolTypeSequence -> {
           // a workaround when declarations are not correctly resolved
           val hasTypeDeclarations = inferred.types.size * 2 == declarationItemList.size
           val index = if (hasTypeDeclarations) (declIndex - 1) / 2 else declIndex
@@ -283,9 +282,12 @@ fun inferExprType(expr: SolExpression?): SolType {
         ?.parseType()
         ?: SolUnknown
     }
-    is SolSeqExpression -> when {
-      expr.expressionList.isEmpty() -> SolUnknown
-      else -> inferExprType(expr.expressionList.firstOrNull())
+    is SolSeqExpression -> expr.expressionList.let {
+      when (it.size) {
+        0 -> SolUnknown
+        1 -> inferExprType(it[0])
+        else -> SolTypeSequence(it.map { inferExprType(it) })
+      }
     }
     is SolUnaryExpression ->
       inferExprType(expr.expression).let {

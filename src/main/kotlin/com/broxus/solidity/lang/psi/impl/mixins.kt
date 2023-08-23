@@ -186,7 +186,7 @@ abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefSt
     return this.returns?.parameterDefList?.let {
           when (it.size) {
             1 -> getSolType(it[0].typeName)
-            else -> SolTuple(it.map { def -> getSolType(def.typeName) })
+            else -> SolTypeSequence(it.map { def -> getSolType(def.typeName) })
           }
     }
   }

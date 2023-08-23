@@ -286,6 +286,12 @@
                          shortName="TSolUnimplementedMemberInspection"
                          implementationClass="com.broxus.solidity.ide.inspections.UnimplementedMemberInspection"/>
 
+        <localInspection language="T-Sol" groupName="T-Sol"
+                                 displayName="Assigment types validation"
+                                 enabledByDefault="false"
+                                 level="ERROR"
+                                 shortName="TSolAssigmentInspection"
+                                 implementationClass="com.broxus.solidity.ide.inspections.ValidateAssignmentInspection"/>
 
         <errorHandler implementation="com.broxus.solidity.ide.SentryReportSubmitter"/>
 

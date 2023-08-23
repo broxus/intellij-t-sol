@@ -3,6 +3,7 @@ package com.broxus.solidity.lang.resolve.ref
 import com.broxus.solidity.ide.inspections.fixes.ImportFileAction
 import com.broxus.solidity.lang.core.SolidityFile
 import com.broxus.solidity.lang.psi.impl.SolImportPathElement
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
@@ -22,20 +23,19 @@ class SolImportPathReference(element: SolImportPathElement) : SolReferenceBase<S
 
   companion object {
     fun findImportFile(file: VirtualFile, path: String): VirtualFile? {
-      val directFile = file.findFileByRelativePath("../$path")
-      return if (directFile != null) {
-        directFile
-      } else {
-        val npmFile = findNpmImportFile(file, path)
-        if (npmFile != null) {
-          return npmFile
-        }
-        val ethPmFile = findEthPMImportFile(file, path)
-        if (ethPmFile != null) {
-          return ethPmFile
-        }
-        findFoundryImportFile(file, path)
+      val directFile = if (path.startsWith("/")) LocalFileSystem.getInstance().findFileByPath(path) else file.findFileByRelativePath("../$path")
+      if (directFile != null) {
+        return directFile
       }
+      val npmFile = findNpmImportFile(file, path)
+      if (npmFile != null) {
+        return npmFile
+      }
+      val ethPmFile = findEthPMImportFile(file, path)
+      if (ethPmFile != null) {
+        return ethPmFile
+      }
+      return findFoundryImportFile(file, path)
     }
 
     private fun findNpmImportFile(file: VirtualFile, path: String): VirtualFile? {

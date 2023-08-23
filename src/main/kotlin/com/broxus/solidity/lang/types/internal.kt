@@ -3,6 +3,7 @@ package com.broxus.solidity.lang.types
 import com.broxus.solidity.lang.psi.SolContractDefinition
 import com.broxus.solidity.lang.psi.SolNamedElement
 import com.broxus.solidity.lang.psi.SolPsiFactory
+import com.broxus.solidity.lang.resolve.SolResolver
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import org.intellij.lang.annotations.Language
@@ -2308,6 +2309,8 @@ causes a Panic error and thus state change reversion if the condition is not met
   }
 
   val finalElements = mutableMapOf<String, String>()
+
+  val declarations = SolResolver.lexicalDeclarations(HashSet(), globalType.ref, globalType.ref).toList()
 
   private fun contract(@Language("T-Sol") contractBody: String, elementName: String, code: String) =
     SolContract(psiFactory.createContract(contractBody), true).also { if (elementName.isNotBlank()) finalElements[code] = elementName }

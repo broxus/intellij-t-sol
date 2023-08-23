@@ -283,8 +283,7 @@ object SolResolver {
     place: PsiElement,
     stop: (PsiElement) -> Boolean = { false }
   ): Sequence<SolNamedElement> {
-    val globalType = SolInternalTypeFactory.of(place.project).globalType
-    return lexicalDeclarations(visitedScopes, globalType.ref, place) +  lexicalDeclRec(visitedScopes, place, stop).distinct() + place.getAliases() + resolveTypeNameUsingImports(place)
+    return SolInternalTypeFactory.of(place.project).declarations.asSequence() +  lexicalDeclRec(visitedScopes, place, stop).distinct() + place.getAliases() + resolveTypeNameUsingImports(place)
   }
 
   private fun lexicalDeclRec(
@@ -298,7 +297,7 @@ object SolResolver {
       .flatMap { lexicalDeclarations(visitedScopes, it, place) }
   }
 
-  private fun lexicalDeclarations(
+  fun lexicalDeclarations(
     visitedScopes: HashSet<Pair<PsiElement, PsiElement>>,
     scope: PsiElement,
     place: PsiElement

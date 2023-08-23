@@ -117,7 +117,7 @@ class ImportFileAction(
       CommandProcessor.getInstance().runUndoTransparentAction {
         ApplicationManager.getApplication().runWriteAction {
           val after = file.children.filterIsInstance<SolImportDirective>().lastOrNull()
-            ?: file.children.filterIsInstance<SolPragmaDirective>().firstOrNull()
+            ?: file.children.filterIsInstance<SolPragmaDirective>().lastOrNull()
           val factory = SolPsiFactory(project)
           file.addAfter(factory.createImportDirective(buildImportPath(file.virtualFile, to.virtualFile)), after)
           file.addAfter(factory.createNewLine(), after)

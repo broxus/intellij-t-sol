@@ -118,28 +118,28 @@ object SolResolver {
     SolStructDefinition::class.java,
   )
 
-  fun collectUsedElements(o: SolImportDirective): List<String> {
+  fun collectUsedElements(o: SolImportDirective, importedNames: Set<String>): List<String> {
     val pathes = collectImports(listOf(o))
-    val current = o.containingFile.descendants().filter { it is SolUserDefinedTypeName || it is SolVarLiteral }
-      .mapNotNull { it.reference?.resolve() as? SolNamedElement }
-      .filter { it.containingFile != o.containingFile }
-      .mapNotNull { it.name }
-      .toSet()
     val importScope = GlobalSearchScope.filesScope(o.project, pathes.map { it.virtualFile })
-//    val onlyNames = o.userDefinedTypeName?.name?.let { setOf(it) }
-//      ?: o.importAliasedPairList.mapNotNull { it.userDefinedTypeName.name }.takeIf { it.isNotEmpty() }?.toSet()
 
     val allKeys = HashSet<String>()
     StubIndex.getInstance().processAllKeys(SolNamedElementIndex.KEY, Processors.cancelableCollectProcessor(allKeys), importScope)
     val imported = allKeys.filter { StubIndex.getElements(SolNamedElementIndex.KEY, it, o.project, importScope, SolNamedElement::class.java).isNotEmpty() }.toSet()
 
-    val used = imported.intersect(current)
+    val used = imported.intersect(importedNames)
       .filter {
         StubIndex.getElements(SolNamedElementIndex.KEY, it, o.project, importScope, SolNamedElement::class.java)
           .all { e -> exportElements.any { it.isAssignableFrom(e.javaClass) } }
       }
     return used
   }
+
+  fun collectImportedNames(root: PsiFile) =
+          root.descendants().filter { it is SolUserDefinedTypeName || it is SolVarLiteral }
+                  .mapNotNull { it.reference?.resolve() as? SolNamedElement }
+                  .filter { it.containingFile != root }
+                  .mapNotNull { it.name }
+                  .toSet()
 
   fun collectImports(file: PsiFile, notWithName: String = "", visited: MutableSet<PsiFile> = hashSetOf()): Collection<PsiFile> {
     return collectImports(file.childrenOfType<SolImportDirective>(), notWithName, visited)

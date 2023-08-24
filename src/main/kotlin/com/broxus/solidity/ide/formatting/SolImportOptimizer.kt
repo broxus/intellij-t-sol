@@ -16,7 +16,10 @@ class SolImportOptimizer : ImportOptimizer {
     val list = file.descendantsOfType<SolImportDirective>().toList().takeIf { it.size > 1 } ?: return Runnable{}
     val factory = PsiFileFactory.getInstance(file.project)
 
-    val unused = list.filter { SolResolver.collectUsedElements(it).isEmpty() }
+    val importedNames = SolResolver.collectImportedNames(file)
+
+    val unused = list.filter { SolResolver.collectUsedElements(it, importedNames).isEmpty() }
+
     val usedList = list.filterNot { unused.contains(it) }
 
     val sorted = usedList.sortedBy { it.text }.zip(usedList).map {

@@ -121,7 +121,7 @@ class ImportFileAction(
           val factory = SolPsiFactory(project)
           file.addAfter(factory.createImportDirective(buildImportPath(file.virtualFile, to.virtualFile)), after)
           file.addAfter(factory.createNewLine(), after)
-          SolImportOptimizer().processFile(file).run()
+          SolImportOptimizer().processFile(file, false).run()
         }
       }
     }

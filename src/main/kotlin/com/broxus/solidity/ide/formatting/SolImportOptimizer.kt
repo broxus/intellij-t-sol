@@ -13,12 +13,16 @@ class SolImportOptimizer : ImportOptimizer {
   override fun supports(file: PsiFile) = file.fileType == TSolidityFileType
 
   override fun processFile(file: PsiFile): Runnable {
+    return processFile(file, true)
+  }
+
+  fun processFile(file: PsiFile, removeUnused: Boolean): Runnable {
     val list = file.descendantsOfType<SolImportDirective>().toList().takeIf { it.size > 1 } ?: return Runnable{}
     val factory = PsiFileFactory.getInstance(file.project)
 
     val importedNames = SolResolver.collectImportedNames(file)
 
-    val unused = list.filter { SolResolver.collectUsedElements(it, importedNames).isEmpty() }
+    val unused = if (removeUnused) list.filter { SolResolver.collectUsedElements(it, importedNames).isEmpty() } else emptyList()
 
     val usedList = list.filterNot { unused.contains(it) }
 

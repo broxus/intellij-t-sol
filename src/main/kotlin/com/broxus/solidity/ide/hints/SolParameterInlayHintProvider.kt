@@ -4,12 +4,15 @@ package com.broxus.solidity.ide.hints
 import com.broxus.solidity.lang.psi.SolDeclarationItem
 import com.broxus.solidity.lang.psi.SolFunctionCallArguments
 import com.broxus.solidity.lang.psi.SolFunctionCallElement
+import com.broxus.solidity.lang.psi.SolImportDirective
+import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.types.inferDeclType
 import com.intellij.codeInsight.hints.InlayInfo
 import com.intellij.codeInsight.hints.InlayParameterHintsProvider
 import com.intellij.codeInsight.hints.Option
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
+import com.intellij.refactoring.suggested.endOffset
 
 class SolParameterInlayHintProvider : InlayParameterHintsProvider {
 
@@ -27,6 +30,21 @@ enum class HintType(
      private val description: String,
     defaultEnabled: Boolean
 ) {
+
+    IMPORT_HINT(
+      "myImportHintDescription",
+        true
+    ) {
+        override fun provideHints(e: PsiElement): List<InlayInfo> {
+            val item = e as? SolImportDirective ?: return emptyList()
+            if (item.importAliasedPairList.isNotEmpty()) return emptyList()
+            val used = SolResolver.collectUsedElements(item)
+
+            return if (used.isNotEmpty()) listOf(InlayInfo(used.joinToString(), e.endOffset, false, false, true)) else emptyList()
+        }
+
+        override fun isApplicable(e: PsiElement): Boolean = e is SolImportDirective
+    },
 
   TUPLE_HINT(
     "myTupleHintDescription",

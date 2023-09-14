@@ -157,7 +157,7 @@ object SolResolver {
   }
 
   fun collectImportedNames(root: PsiFile) =
-          root.descendants().filter { it is SolUserDefinedTypeName || it is SolVarLiteral }
+          root.descendants().filter { it is SolUserDefinedTypeName && it.parentOfType<SolImportDirective>() == null || it is SolVarLiteral }
                   .mapNotNull { it.reference?.resolve() as? SolNamedElement }
                   .filter { it.containingFile != root }
                   .mapNotNull { it.name }

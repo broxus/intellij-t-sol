@@ -86,18 +86,20 @@ abstract class SolContractOrLibMixin : SolStubbedNamedElementImpl<SolContractOrL
       .mapNotNull { it.userDefinedTypeName }
 
   override val collectSupers: Collection<SolUserDefinedTypeName>
-    get() = RecursionManager.doPreventingRecursion(this, true) {
+    get() =
       CachedValuesManager.getCachedValue(this) {
-        val collectedSupers = LinkedHashSet<SolUserDefinedTypeName>()
-        collectedSupers.addAll(supers)
-        collectedSupers.addAll(
-          supers.mapNotNull { it.reference?.resolve() }
-            .filterIsInstance<SolContractOrLibElement>()
-            .flatMap { it.collectSupers }
-        )
-        CachedValueProvider.Result.create(collectedSupers, PsiModificationTracker.MODIFICATION_COUNT)
-      }
-    } ?: emptyList()
+        val result = RecursionManager.doPreventingRecursion(this, true) {
+          val collectedSupers = LinkedHashSet<SolUserDefinedTypeName>()
+          collectedSupers.addAll(supers)
+          collectedSupers.addAll(
+                  supers.mapNotNull { it.reference?.resolve() }
+                          .filterIsInstance<SolContractOrLibElement>()
+                          .flatMap { it.collectSupers }
+          )
+          collectedSupers
+        } ?: emptyList()
+        CachedValueProvider.Result.create(result, PsiModificationTracker.MODIFICATION_COUNT)
+    }
 
   constructor(node: ASTNode) : super(node)
   constructor(stub: SolContractOrLibDefStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)

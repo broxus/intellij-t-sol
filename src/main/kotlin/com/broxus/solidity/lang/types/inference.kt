@@ -143,7 +143,6 @@ fun resolveTypeArgument(name: String, typeText: String, type: SolUserDefinedType
           } else {
             resolved
           }
-
         }
       }
     } ?: SolUnknown
@@ -342,10 +341,11 @@ val SolExpression.type: SolType
     if (ApplicationManager.getApplication().isUnitTestMode) {
       RecursionManager.disableMissedCacheAssertions {  }
     }
-    return RecursionManager.doPreventingRecursion(this, true) {
-      CachedValuesManager.getCachedValue(this) {
-        CachedValueProvider.Result.create(inferExprType(this), PsiModificationTracker.MODIFICATION_COUNT)
+    return CachedValuesManager.getCachedValue(this) {
+        val result = RecursionManager.doPreventingRecursion(this, false) {
+          inferExprType(this)
+        } ?: SolUnknown
+        CachedValueProvider.Result.create(result, PsiModificationTracker.MODIFICATION_COUNT)
       }
-    } ?: SolUnknown
   }
 

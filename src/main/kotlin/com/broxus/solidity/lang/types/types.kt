@@ -303,19 +303,15 @@ data class SolInteger(val unsigned: Boolean, val size: Int, val isVarType : Bool
 
 data class SolContract(val ref: SolContractDefinition, val builtin: Boolean = false) : SolUserType, Linearizable<SolContract> {
   override fun linearize(): List<SolContract> {
-    return RecursionManager.doPreventingRecursion(ref, true) {
-      CachedValuesManager.getCachedValue(ref) {
-        CachedValueProvider.Result.create(super.linearize(), PsiModificationTracker.MODIFICATION_COUNT)
+    return CachedValuesManager.getCachedValue(ref) {
+        CachedValueProvider.Result.create(RecursionManager.doPreventingRecursion(ref, true) {super.linearize() } ?: emptyList(), PsiModificationTracker.MODIFICATION_COUNT)
       }
-    } ?: emptyList()
   }
 
   override fun linearizeParents(): List<SolContract> {
-    return RecursionManager.doPreventingRecursion(ref, true) {
-      CachedValuesManager.getCachedValue(ref) {
-        CachedValueProvider.Result.create(super.linearizeParents(), PsiModificationTracker.MODIFICATION_COUNT)
+    return CachedValuesManager.getCachedValue(ref) {
+        CachedValueProvider.Result.create(RecursionManager.doPreventingRecursion(ref, true) { super.linearizeParents() } ?: emptyList(), PsiModificationTracker.MODIFICATION_COUNT)
       }
-    } ?: emptyList()
   }
 
   fun linearizeParentsOrNull(): List<SolContractDefinition>? {

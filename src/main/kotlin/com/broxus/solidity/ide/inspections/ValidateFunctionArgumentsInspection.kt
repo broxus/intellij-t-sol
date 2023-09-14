@@ -14,7 +14,6 @@ import com.broxus.solidity.lang.types.type
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
-import com.intellij.psi.util.parents
 
 fun SolFunctionCallArguments.getDefs(): List<SolFunctionDefElement>? {
   return ((parent.parent?.children?.firstOrNull() as? SolMemberAccessExpression)?.let {
@@ -69,9 +68,9 @@ fun inspectFunctionCallArguments(element: SolFunctionCallArguments, holder: SolP
                                 }
                             }
                         }) {
-                    holder.registerProblem(
-                            wrongElement.parents(true).first { it.textLength > 0 }, wrongTypes.takeIf { it.isNotEmpty() }
-                            ?: wrongNumberOfArgs)
+                    if (!wrongElement.textRange.isEmpty ) {
+                        holder.registerProblem(wrongElement, wrongTypes.takeIf { it.isNotEmpty() } ?: wrongNumberOfArgs)
+                    }
                 }
             }
         }

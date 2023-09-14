@@ -118,13 +118,35 @@ object SolResolver {
     SolStructDefinition::class.java,
   )
 
-  fun collectUsedElements(o: SolImportDirective, importedNames: Set<String>): List<String> {
-    val pathes = collectImports(listOf(o))
+  fun collectImportsCached(imports: List<SolImportDirective>): Collection<PsiFile> {
+    val resolvedImportedFiles = imports
+//        .filterNot { it.importAliasedPairList.any { it.importAlias != null } }
+        .mapNotNull { it.importPath?.reference?.resolve()?.containingFile }
+      return resolvedImportedFiles + resolvedImportedFiles.map {
+        CachedValuesManager.getCachedValue(it) {
+          CachedValueProvider.Result.create(collectImports(it.childrenOfType<SolImportDirective>()), PsiModificationTracker.MODIFICATION_COUNT)
+        }
+      }.flatten()
+  }
+
+  fun collectUsedElements(o: SolImportDirective): List<String> {
+    val containingFile = o.containingFile
+    val importedNames = CachedValuesManager.getManager(o.project).getCachedValue(containingFile) {
+      CachedValueProvider.Result.create(collectImportedNames(containingFile), containingFile)
+    }
+
+    val pathes = collectImportsCached(listOf(o))
     val importScope = GlobalSearchScope.filesScope(o.project, pathes.map { it.virtualFile })
 
-    val allKeys = HashSet<String>()
-    StubIndex.getInstance().processAllKeys(SolNamedElementIndex.KEY, Processors.cancelableCollectProcessor(allKeys), importScope)
-    val imported = allKeys.filter { StubIndex.getElements(SolNamedElementIndex.KEY, it, o.project, importScope, SolNamedElement::class.java).isNotEmpty() }.toSet()
+
+    val imported = pathes.flatMap {
+      CachedValuesManager.getCachedValue(it) {
+        val allKeys = HashSet<String>()
+        val scope = GlobalSearchScope.fileScope(it)
+        StubIndex.getInstance().processAllKeys(SolNamedElementIndex.KEY, Processors.cancelableCollectProcessor(allKeys), scope)
+        CachedValueProvider.Result.create(allKeys.filter { StubIndex.getElements(SolNamedElementIndex.KEY, it, scope.project!!, scope, SolNamedElement::class.java).isNotEmpty() }.toSet(), PsiModificationTracker.MODIFICATION_COUNT)
+      }
+    }
 
     val used = imported.intersect(importedNames)
       .filter {

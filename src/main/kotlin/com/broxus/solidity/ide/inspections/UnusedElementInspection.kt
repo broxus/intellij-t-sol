@@ -101,7 +101,7 @@ fun inspectImportDirective(o: SolImportDirective, holder: SolProblemsHolder) {
   val importedNames = CachedValuesManager.getManager(o.project).getCachedValue(containingFile) {
     CachedValueProvider.Result.create(SolResolver.collectImportedNames(containingFile), containingFile)
   }
-  val used = SolResolver.collectUsedElements(o, importedNames)
+  val used = SolResolver.collectUsedElements(o)
   if (used.isEmpty()) {
     holder.registerProblem(o, "Unused import directive", ProblemHighlightType.LIKE_UNUSED_SYMBOL)
   }

@@ -31,13 +31,13 @@ class ResolveNameInspection : LocalInspectionTool() {
 
 fun inspectVarLiteralRef(element: SolVarLiteral, holder: SolProblemsHolder) {
   checkReference(element) {
-    holder.registerProblem(element, "'${element.identifier.text}' is undefined", ProblemHighlightType.GENERIC_ERROR_OR_WARNING)
+    holder.registerProblem(element, "'${element.identifier.text}' is undefined", ProblemHighlightType.WARNING)
   }
 }
 
 fun inspectUserDefinedTypeName(element: SolUserDefinedTypeName, holder: SolProblemsHolder) {
   checkReference(element) {
-    holder.registerProblem(element, "Import file", ProblemHighlightType.GENERIC_ERROR_OR_WARNING, ImportFileFix(element))
+    holder.registerProblem(element, "Import file", ProblemHighlightType.WARNING, ImportFileFix(element))
   }
 }
 private fun checkReference(element: SolReferenceElement, report: () -> Unit) {

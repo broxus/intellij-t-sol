@@ -14,12 +14,9 @@ import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.colors.CodeInsightColors
-import com.intellij.openapi.editor.colors.TextAttributesKey
-import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.refactoring.suggested.endOffset
-import com.intellij.ui.JBColor
 
 class SolidityAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
@@ -171,8 +168,6 @@ interface SolProblemsHolder {
 
 }
 
-val createTempTextAttributesKey = TextAttributesKey.createTempTextAttributesKey("solUnused", TextAttributes().apply { foregroundColor = JBColor.GRAY })
-
 private fun AnnotationHolder.convert(): SolProblemsHolder {
   val dis = this;
   return object : SolProblemsHolder {
@@ -183,6 +178,7 @@ private fun AnnotationHolder.convert(): SolProblemsHolder {
       val severity = when (type) {
         ProblemHighlightType.GENERIC_ERROR_OR_WARNING -> HighlightSeverity.ERROR
         ProblemHighlightType.LIKE_UNUSED_SYMBOL -> HighlightSeverity.WEAK_WARNING
+        ProblemHighlightType.WARNING -> HighlightSeverity.WARNING
         else -> HighlightSeverity.ERROR
       }
       var builder = dis.newAnnotation(severity, descriptionTemplate).range(psiElement)

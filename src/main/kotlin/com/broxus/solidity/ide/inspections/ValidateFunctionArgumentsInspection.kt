@@ -8,7 +8,6 @@ import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.types.SolTypeError
-import com.broxus.solidity.lang.types.SolUnknown
 import com.broxus.solidity.lang.types.getSolType
 import com.broxus.solidity.lang.types.type
 import com.intellij.codeInspection.LocalInspectionTool
@@ -55,7 +54,7 @@ fun inspectFunctionCallArguments(element: SolFunctionCallArguments, holder: SolP
                                 args.zip(parameters).all { both ->
                                     val expType = getSolType(both.second.typeName)
                                     val actType = both.first.type
-                                    expType == SolUnknown || actType == SolUnknown || expType.isAssignableFrom(actType).also {
+                                    !expType.isResolved || !actType.isResolved || expType.isAssignableFrom(actType).also {
                                         if (!it) {
                                             if (expType is SolTypeError) {
                                                 wrongTypes = expType.details

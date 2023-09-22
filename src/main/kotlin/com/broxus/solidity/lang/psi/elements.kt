@@ -5,6 +5,7 @@ import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.resolve.ref.SolReference
 import com.broxus.solidity.lang.types.SolMember
 import com.broxus.solidity.lang.types.SolType
+import com.broxus.solidity.lang.types.findContract
 import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
@@ -13,6 +14,9 @@ import com.intellij.psi.PsiReference
 interface SolElement : PsiElement {
   override fun getReference(): PsiReference?
 }
+
+// Unable to move this inside the interface due to the `$DefaultImpls not found` error in runtime
+fun SolNamedElement.outerContract() = parent?.findContract()
 
 interface SolNamedElement : SolElement, PsiNamedElement, NavigatablePsiElement {
   val isTopLevel : Boolean

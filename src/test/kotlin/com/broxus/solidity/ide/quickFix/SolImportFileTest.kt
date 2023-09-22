@@ -13,7 +13,7 @@ class SolImportFileTest : SolQuickFixTestBase() {
 
     testQuickFix(
       "contract b is a {}",
-      "\nimport \"./a.tsol\";contract b is a {}"
+      "\nimport {a} from \"./a.tsol\";contract b is a {}"
     )
   }
 

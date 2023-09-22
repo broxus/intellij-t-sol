@@ -1,9 +1,7 @@
 package com.broxus.solidity.ide.inspections.fixes
 
 import com.broxus.solidity.ide.formatting.SolImportOptimizer
-import com.broxus.solidity.lang.psi.SolImportDirective
-import com.broxus.solidity.lang.psi.SolPragmaDirective
-import com.broxus.solidity.lang.psi.SolPsiFactory
+import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.nullIfError
 import com.intellij.codeInsight.hint.QuestionAction
 import com.intellij.ide.util.DefaultPsiElementCellRenderer
@@ -26,9 +24,9 @@ import javax.swing.JPanel
 import javax.swing.ListCellRenderer
 
 class ImportFileAction(
-  val editor: Editor,
-  private val file: PsiFile,
-  private val suggestions: Set<PsiFile>
+        val editor: Editor,
+        private val file: PsiFile,
+        private val suggestions: Set<SolNamedElement>
 ) : QuestionAction {
 
   val project: Project
@@ -38,7 +36,8 @@ class ImportFileAction(
     PsiDocumentManager.getInstance(project).commitAllDocuments()
 
     if (suggestions.size == 1) {
-      addImport(project, file, suggestions.first())
+      val suggestion = suggestions.first()
+      addImport(project, file, suggestion.containingFile, suggestion)
     } else {
       chooseFileToImport()
     }
@@ -47,7 +46,7 @@ class ImportFileAction(
   }
 
   private fun chooseFileToImport() {
-    val step = object : BaseListPopupStep<PsiFile>("File to import", suggestions.toMutableList()) {
+    val step = object : BaseListPopupStep<PsiFile>("File to Import", suggestions.toMutableList().map { it.containingFile }) {
       override fun isAutoSelectionEnabled(): Boolean {
         return false
       }
@@ -98,32 +97,39 @@ class ImportFileAction(
   }
 
   companion object {
-    fun isImportedAlready(file: PsiFile, to: PsiFile): Boolean {
+    fun isImportedAlready(file: PsiFile, to: PsiFile, recursive : Boolean = true, typeName : String? = null): Boolean {
       return if (file == to) {
         true
-      } else {
+      } else if (recursive) {
         RecursionManager.doPreventingRecursion(file, true) {
           file.children
             .filterIsInstance<SolImportDirective>()
-            .mapNotNull { nullIfError { it.importPath?.reference?.resolve()?.containingFile } }
+            .mapNotNull {import -> nullIfError {import.importPath?.reference?.resolve()?.containingFile }?.let { Pair( it, import.importAliasedPairList.isEmpty()) }
+                    .also { if (typeName != null && import.importAliasedPairList.let { it.isNotEmpty() && it.none { it.userDefinedTypeName.name == typeName } } ) return@mapNotNull null }
+            }
             .any {
-              isImportedAlready(it, to)
+              isImportedAlready(it.first, to, it.second)
             }
         } ?: false
-      }
+      } else false
     }
 
-    fun addImport(project: Project, file: PsiFile, to: PsiFile) {
+    fun addImport(project: Project, file: PsiFile, to: PsiFile, solUserDefinedTypeName: SolNamedElement? = null) {
       CommandProcessor.getInstance().runUndoTransparentAction {
         ApplicationManager.getApplication().runWriteAction {
           val after = file.children.filterIsInstance<SolImportDirective>().lastOrNull()
             ?: file.children.filterIsInstance<SolPragmaDirective>().lastOrNull()
           val factory = SolPsiFactory(project)
-          file.addAfter(factory.createImportDirective(buildImportPath(file.virtualFile, to.virtualFile)), after)
+          file.addAfter(createImport(factory, solUserDefinedTypeName?.let { (it.outerContract() ?: it).name?.let { listOf(it) }} ?: emptyList(), to.virtualFile, file.virtualFile), after)
           file.addAfter(factory.createNewLine(), after)
           SolImportOptimizer().processFile(file, false).run()
         }
       }
+    }
+
+    fun createImport(factory: SolPsiFactory, solUserDefinedTypeName: List<String>, file: VirtualFile, to: VirtualFile): SolImportDirective {
+      val content = "${(solUserDefinedTypeName.takeIf { it.isNotEmpty() }?.let { "{${it.joinToString(", ")}} from " } ?: "")}\"${buildImportPath(to, file)}\""
+      return factory.createImportDirective(content)
     }
 
     fun buildImportPath(source: VirtualFile, destination: VirtualFile): String {

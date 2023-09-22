@@ -197,7 +197,7 @@ fun inferDeclType(decl: SolNamedElement): SolType {
     is SolEnumValue -> inferDeclType(decl.parent as SolNamedElement)
     is SolParameterDef -> getSolType(decl.typeName)
     is SolStateVariableDeclaration -> getSolType(decl.typeName)
-    is SolImportAlias -> getSolType(decl.parentOfType<SolImportDirective>()?.importAliasedPairList?.getOrNull(0)?.userDefinedTypeName)
+    is SolImportAlias -> getSolType(decl.parentOfType<SolImportAliasedPair>()?.userDefinedTypeName)
     else -> SolUnknown
   }
 }

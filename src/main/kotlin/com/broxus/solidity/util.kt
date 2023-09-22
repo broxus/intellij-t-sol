@@ -4,7 +4,16 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.openapi.util.io.StreamUtil
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 
+
+fun <T> PsiElement.cache(preventRecursion : Boolean = true, block: () -> T) : T? {
+  return CachedValuesManager.getCachedValue(this) {
+    val result = if (preventRecursion) recursionGuard(this) {block()} else block()
+    CachedValueProvider.Result.createSingleDependency(result, this@cache)
+  }
+}
 fun <T> recursionGuard(key: Any, memoize: Boolean = true, block: Computable<T>): T? =
   RecursionManager.doPreventingRecursion(key, memoize, block)
 

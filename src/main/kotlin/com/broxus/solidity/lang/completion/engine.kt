@@ -142,8 +142,8 @@ class UserDefinedTypeLookupElement(val type: SolUserDefinedType) : LookupElement
   }
 
   override fun handleInsert(context: InsertionContext) {
-    if (!ImportFileAction.isImportedAlready(context.file, type.containingFile)) {
-      ImportFileAction.addImport(type.project, context.file, type.containingFile)
+    if (!ImportFileAction.isImportedAlready(context.file, type.containingFile, typeName = (type.outerContract() ?: type).name)) {
+      ImportFileAction.addImport(type.project, context.file, type.containingFile, type)
     }
   }
 }

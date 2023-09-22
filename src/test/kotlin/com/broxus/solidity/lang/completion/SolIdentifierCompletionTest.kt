@@ -23,7 +23,7 @@ class SolIdentifierCompletionTest : SolCompletionTestBase() {
 
     contract A is tes/*caret*/{}""").withCaret()
     myFixture.completeBasic()
-    myFixture.checkResult("""import "./test.tsol";
+    myFixture.checkResult("""import {test} from "./test.tsol";
 
 contract A is test{}""")
   }
@@ -47,7 +47,8 @@ contract A is test{}""")
     InlineFile("""import "./rec1.tsol"; contract A is tes/*caret*/{}""")
 
     myFixture.completeBasic()
-    checkResult("""import "./test.tsol";
+    checkResult("""import "./rec1.tsol";
+import {test} from "./test.tsol";
 
 contract A is test{}""")
   }

@@ -28,9 +28,9 @@ class SolPsiFactory(val project: Project) {
   }
 
 
-  fun createImportDirective(importPath: String): SolImportDirective {
-    return createFromText("import \"$importPath\";")
-      ?: error("Failed to create struct: `$importPath`")
+  fun createImportDirective(importContent: String): SolImportDirective {
+    return createFromText("import $importContent;")
+      ?: error("Failed to create import directive: `$importContent`")
   }
 
   fun createNewLine(): PsiElement {

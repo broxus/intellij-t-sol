@@ -21,10 +21,10 @@ class ImportFileFix(element: SolReferenceElement) : LocalQuickFixOnPsiElement(el
   override fun showHint(editor: Editor): Boolean {
     val element = startElement as SolReferenceElement?
     if (element != null) {
-      val suggestions = SolResolver.resolveTypeName(element).map { it.containingFile }.toSet()
+      val suggestions = SolResolver.resolveTypeName(element).toSet()
       val fixText: String? = when {
           suggestions.size == 1 -> {
-            val importPath = buildImportPath(element.containingFile.virtualFile, suggestions.first().virtualFile)
+            val importPath = buildImportPath(element.containingFile.virtualFile, suggestions.first().containingFile.virtualFile)
             "$familyName $importPath"
           }
           suggestions.isNotEmpty() -> familyName
@@ -58,18 +58,20 @@ class ImportFileFix(element: SolReferenceElement) : LocalQuickFixOnPsiElement(el
   override fun getText(): String = familyName
 
   override fun invoke(project: Project, file: PsiFile, element: PsiElement, endElement: PsiElement) {
-    val suggestions = SolResolver.resolveTypeName(element as SolReferenceElement).map { it.containingFile }.toSet()
+    val suggestions = SolResolver.resolveTypeName(element as SolReferenceElement).toSet()
     if (suggestions.size == 1) {
-      ImportFileAction.addImport(project, file, suggestions.first())
+      val suggestion = suggestions.first()
+      ImportFileAction.addImport(project, file, suggestion.containingFile, suggestion)
     }
   }
 
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
     val element = startElement as SolUserDefinedTypeName?
     if (element != null) {
-      val suggestions = SolResolver.resolveTypeName(element as SolReferenceElement).map { it.containingFile }.toSet()
+      val suggestions = SolResolver.resolveTypeName(element as SolReferenceElement).toSet()
       if (suggestions.size == 1) {
-        ImportFileAction.addImport(project, element.containingFile, suggestions.first())
+        val suggestion = suggestions.first()
+        ImportFileAction.addImport(project, element.containingFile, suggestion.containingFile, suggestion)
       }
     }
   }

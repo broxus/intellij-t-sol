@@ -129,8 +129,6 @@ class SolMemberAccessCompletionTest : SolCompletionTestBase() {
                     $code/*caret*/;
                 }
         """)
-
-
       }
     }
 

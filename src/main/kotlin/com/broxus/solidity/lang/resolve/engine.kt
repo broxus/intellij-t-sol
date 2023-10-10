@@ -14,6 +14,7 @@ import com.broxus.solidity.lang.stubs.SolNamedElementIndex
 import com.broxus.solidity.lang.types.*
 import com.broxus.solidity.nullIfError
 import com.broxus.solidity.wrap
+import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -90,7 +91,7 @@ object SolResolver {
     fun PsiElement.insideImport() = withAliases && parentOfType<SolImportDirective>() != null
 
     val resolvedImportedFiles = collectImports(file)
-    fun SolContractDefinition.hierarchy() = (listOf(this) + collectSupers + resolveContractNestedNames(this)).mapNotNull { it.name }
+    fun SolContractDefinition.hierarchy() = (listOf(this) + collectSupers + resolveContractNestedNames(this) + collectSupers.flatMap { (getSolType(it) as? SolContract)?.ref?.let { resolveContractNestedNames(it) } ?: emptyList() }).mapNotNull { it.name }
     val importHierarchy by lazy { outerContract?.let { (StubIndex.getElements(  SolNamedElementIndex.KEY, it, element.project, null, SolNamedElement::class.java).takeIf { it.size == 1 }?.iterator()?.next() as? SolContractDefinition)?.hierarchy() } }
     val hierarchy by lazy { element.findContract()?.hierarchy()}
     val ancestorsResolved by lazy { element.findContract()?.let { it.supers.all { it != element && resolveUsingImports(setOf(SolContractDefinition::class), it, file, true).isNotEmpty() } }}
@@ -102,9 +103,9 @@ object SolResolver {
       // Below, either include
       val contract by lazy { ref.findContract() }
 
-      (!element.insideImport() && containingFile == originalFile || resolvedImportedFiles.any { it.file == containingFile && (it.names.let { it.isEmpty() || it.contains(elementName) || it.contains(outerContract) }) } || ancestorsResolved == true && hierarchy?.contains(ref.name) == true )
-        && ((outerContract != null && importHierarchy?.contains(outerContract) ?: false)
-        || outerContract == null && (contract != null && ref != contract && hierarchy?.contains(contract?.name ?: "") == true || ref.isTopLevel))
+      (!element.insideImport() && containingFile == originalFile || resolvedImportedFiles.any { resolved-> resolved.names.let { (it.isEmpty() || it.mapNotNull { it.name }.contains(outerContract)) && resolved.file == containingFile || it.any { it.name == elementName && it.containingFile == containingFile }  }  }
+        || ancestorsResolved == true && hierarchy?.contains(ref.name) == true )
+        && ((outerContract != null && importHierarchy?.contains(outerContract) ?: false) || outerContract == null && (contract != null && ref != contract && hierarchy?.contains(contract?.name ?: "") == true || ref.isTopLevel))
     }
 
     val sorted = sameNameReferences.findBest { if (it.parentOfType<SolContractDefinition>()?.let { hierarchy?.contains(it.name) } == true) 0 else Int.MAX_VALUE}
@@ -126,7 +127,7 @@ object SolResolver {
 
     val importedNames = collectImportedNames(containingFile)
 
-    val pathes = collectImports(listOf(o)).map { it.file }
+    val pathes = collectImports(o).map { it.file }
     val importScope = GlobalSearchScope.filesScope(o.project, pathes.map { it.virtualFile })
 
     val imported = pathes.flatMap {
@@ -138,7 +139,11 @@ object SolResolver {
       }
     }
 
-    val used = imported.intersect(importedNames.mapNotNull { it.name }.toSet())
+    fun PsiElement.outerIdentifier() = (this as? SolUserDefinedTypeName)?.findIdentifiers()?.takeIf { it.size == 2 }?.firstOrNull()?.nameOrText ?: ""
+    val targetNames = importedNames.flatMap {
+      ((it.target.outerContract()?.let { listOf(it) } ?: emptyList()) + it.target + it.ref ).mapNotNull { it.name } + it.ref.outerIdentifier()
+    }.toSet()
+    val used = imported.intersect(targetNames)
       .filter {
         StubIndex.getElements(SolNamedElementIndex.KEY, it, o.project, importScope, SolNamedElement::class.java)
           .all { e -> exportElements.any { it.isAssignableFrom(e.javaClass) } }
@@ -148,27 +153,37 @@ object SolResolver {
     return used.takeIf { specificNames.isEmpty() } ?: used.filter { it in specificNames }
   }
 
-  fun collectImportedNames(root: PsiFile): Set<SolNamedElement> {
+  data class ImportedName(val ref: SolNamedElement, val target: SolNamedElement)
+
+  fun collectImportedNames(root: PsiFile): Set<ImportedName> {
     return CachedValuesManager.getCachedValue(root) {
       val result = root.descendants().filter { it is SolUserDefinedTypeName && it.parentOfType<SolImportDirective>() == null || it is SolVarLiteral }
-                  .mapNotNull { it.reference?.resolve() as? SolNamedElement }
-                  .mapNotNull {
-                    when {
+                  .mapNotNull { ref -> (ref.reference?.resolve() as? SolNamedElement)?.let { Pair(ref as? SolNamedElement ?: return@mapNotNull null, it) } }
+                  .mapNotNull { (ref, it) ->
+                    ImportedName(ref, when {
                         it.isBuiltin() -> null
                         it is SolConstructorDefinition -> it.findContract()
                         it.containingFile != root -> it
                         else -> (it.parent as? SolImportAliasedPair)?.userDefinedTypeName
-                    }
+                    } ?: return@mapNotNull null)
                   }.toSet()
       CachedValueProvider.Result.create(result, root)
     }
   }
 
-  data class ImportRecord(val file: PsiFile, val names: List<String>)
+  data class ImportRecord(val file: PsiFile, val names: List<SolNamedElement>)
 
   fun collectImports(file: PsiFile): Collection<ImportRecord> {
     return CachedValuesManager.getCachedValue(file) {
-      CachedValueProvider.Result.create(collectImports(file.childrenOfType<SolImportDirective>()).filter { it.file !== file }, file)
+      val result = collectImports(file.childrenOfType<SolImportDirective>()).filter { it.file !== file }
+      CachedValueProvider.Result.create(result, result.map { it.file } + file)
+    }
+  }
+
+  fun collectImports(import: SolImportDirective): Collection<ImportRecord> {
+    return CachedValuesManager.getCachedValue(import) {
+      val result = collectImports(listOf(import))
+      CachedValueProvider.Result.create(result, result.map { it.file } + import)
     }
   }
 
@@ -181,7 +196,10 @@ object SolResolver {
     }
 
     val (resolvedImportedFiles, concreteResolvedImportedFiles) = imports.partition { it.importAliasedPairList.isEmpty() }.toList()
-      .map { it.mapNotNull { ImportRecord(it.importPath?.reference?.resolve()?.containingFile ?: return@mapNotNull null, it.importAliasedPairList.mapNotNull { it.userDefinedTypeName.name }) } }
+      .map { it.mapNotNull { val containingFile = it.importPath?.reference?.resolve()?.containingFile ?: return@mapNotNull null
+        val names = (it.importAliasedPairList.takeIf { it.isNotEmpty() }?.mapNotNull { it.userDefinedTypeName.name?.let { tn -> containingFile.childrenOfType<SolContractDefinition>().find { it.name == tn } } } ?: containingFile.childrenOfType<SolContractDefinition>()).toList().flatMap { resolveContractNestedNames(it) + it }/*.mapNotNull { it.name }*/
+        ImportRecord(containingFile, names) }
+      }
 
     return concreteResolvedImportedFiles + resolvedImportedFiles + resolvedImportedFiles.map { collectImports(it.file.childrenOfType<SolImportDirective>(), visited) }.flatten()
   }
@@ -288,21 +306,27 @@ object SolResolver {
 
   fun resolveContractMembers(contract: SolContractDefinition, skipThis: Boolean = false): List<SolMember> {
     val members = if (!skipThis)
-      contract.stateVariableDeclarationList as List<SolMember> + contract.functionDefinitionList +
-        contract.structDefinitionList.map { SolStructConstructor(it) } + contract.enumDefinitionList.map { SolEnum(it) }
+      CachedValuesManager.getCachedValue(contract) {
+        val result = contract.stateVariableDeclarationList as List<SolMember> + contract.functionDefinitionList +
+                contract.structDefinitionList.map { SolStructConstructor(it) } + contract.enumDefinitionList.map { SolEnum(it) }
+        CachedValueProvider.Result.create(result, if (contract.isBuiltin()) ModificationTracker.NEVER_CHANGED else contract.parent)
+      }
     else
       emptyList()
-    return members + contract.supers
-      .map { resolveTypeName(it).firstOrNull() }
-      .filterIsInstance<SolContractDefinition>()
-      .flatMap { resolveContractMembers(it) }
+    val supers = contract.supers
+            .map { resolveTypeName(it).firstOrNull() }
+            .filterIsInstance<SolContractDefinition>()
+            .flatMap { resolveContractMembers(it) }
+    return if (supers.isEmpty()) members else members + supers
   }
 
-  fun resolveContractNestedNames(contract: SolContractDefinition, skipThis: Boolean = false): List<SolNamedElement> {
-    val members = if (!skipThis)
-        contract.structDefinitionList + contract.enumDefinitionList + contract.errorDefinitionList + contract.userDefinedValueTypeDefinitionList
-    else
-      emptyList()
+  private fun resolveContractNestedNames(contract: SolContractDefinition, skipThis: Boolean = false): List<SolNamedElement> {
+    val members = if (!skipThis) {
+      CachedValuesManager.getCachedValue(contract) {
+        val result = contract.structDefinitionList + contract.enumDefinitionList + contract.errorDefinitionList + contract.userDefinedValueTypeDefinitionList
+        CachedValueProvider.Result.create(result, if (contract.isBuiltin()) ModificationTracker.NEVER_CHANGED else contract.parent)
+      }
+    } else emptyList()
     return members + contract.supers
       .map { resolveTypeName(it).firstOrNull() }
       .filterIsInstance<SolContractDefinition>()

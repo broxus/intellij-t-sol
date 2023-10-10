@@ -78,8 +78,7 @@ class SolEnumResolveTest : SolResolveTestBase() {
         }
   """)
 
-/*
-  todo fix test fun testEnumFromOtherContract() = checkByCode("""
+  fun testEnumFromOtherContract() = checkByCode("""
         contract A {
             enum B { A1, A2 }
                //x
@@ -91,5 +90,4 @@ class SolEnumResolveTest : SolResolveTestBase() {
             }
         }
   """)
-*/
 }

@@ -329,7 +329,8 @@ fun SolMemberAccessExpression.getMembers(): List<SolMember> {
     }
     else -> {
       val fromLibraries = (this as? SolMemberAccessElement)?.collectUsingForLibraryFunctions() ?: emptyList()
-      (expr.type.getMembers(this.project) + fromLibraries.map { it.toLibraryFunDefinition() }).onEach { it.addContext(expr) }
+      (expr.type.getMembers(this.project).partition { it is SolNamedElement }.let { it.second + SolInternalTypeFactory.of(this.project).getDeclarations(this, it.first as List<SolNamedElement>).toList() as List<SolMember>}
+        + fromLibraries.map { it.toLibraryFunDefinition() }).onEach { it.addContext(expr) }
     }
   }
 }

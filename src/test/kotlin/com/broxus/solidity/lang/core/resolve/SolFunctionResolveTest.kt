@@ -417,10 +417,40 @@ class SolFunctionResolveTest : SolResolveTestBase() {
     testResolveBetweenFiles(file1, file2)
   }
 
+  fun testResolveVersionedBuitInElements() {
+    checkIsNotResolved("""
+        pragma ever-solidity <=0.61.0;
+        function a() {
+            gasToValue(1);
+                 //^
+        }
+      """)
+
+    checkIsResolved("""
+        pragma ever-solidity >=0.62.0;
+        function a() {
+            gasToValue(1); 
+               //^
+        }
+      """)
+    checkIsResolved("""
+      function a() {
+          gasToValue(1); 
+             //^
+      }
+    """)
+  }
+
   fun checkIsResolved(@Language("T-Sol") code: String) {
     val (refElement, _) = resolveInCode<SolFunctionCallExpression>(code)
     assertNotNull(refElement.reference?.resolve())
   }
+
+  fun checkIsNotResolved(@Language("T-Sol") code: String) {
+    val (refElement, _) = resolveInCode<SolFunctionCallExpression>(code)
+    assertNull(refElement.reference?.resolve())
+  }
+
 
   override fun checkByCode(@Language("T-Sol") code: String) {
     checkByCodeInternal<SolFunctionCallExpression, SolNamedElement>(code)

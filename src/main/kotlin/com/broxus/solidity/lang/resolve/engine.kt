@@ -320,7 +320,7 @@ object SolResolver {
     place: PsiElement,
     stop: (PsiElement) -> Boolean = { false }
   ): Sequence<SolNamedElement> {
-    return SolInternalTypeFactory.of(place.project).declarations.asSequence() +  lexicalDeclRec(visitedScopes, place, stop).distinct() + place.getAliases() + resolveTypeNameUsingImports(place)
+    return SolInternalTypeFactory.of(place.project).getDeclarations(place, SolInternalTypeFactory.of(place.project).allDeclarations) + lexicalDeclRec(visitedScopes, place, stop).distinct() + place.getAliases() + resolveTypeNameUsingImports(place)
   }
 
   private fun lexicalDeclRec(

@@ -1,12 +1,21 @@
 package com.broxus.solidity.lang.types
 
+import com.broxus.solidity.childrenOfType
+import com.broxus.solidity.ide.hints.VERSION_TAG
+import com.broxus.solidity.ide.hints.tagComments
 import com.broxus.solidity.lang.psi.SolContractDefinition
 import com.broxus.solidity.lang.psi.SolNamedElement
+import com.broxus.solidity.lang.psi.SolPragmaDirective
 import com.broxus.solidity.lang.psi.SolPsiFactory
 import com.broxus.solidity.lang.resolve.SolResolver
+import com.github.yuchi.semver.Range
+import com.github.yuchi.semver.SemVer
+import com.github.yuchi.semver.Version
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import org.intellij.lang.annotations.Language
+import kotlin.reflect.KProperty1
 
 class SolInternalTypeFactory(project: Project) {
   private val psiFactory: SolPsiFactory = SolPsiFactory(project)
@@ -151,6 +160,7 @@ class SolInternalTypeFactory(project: Project) {
               (uint8 a, uint16 b) = slice.decode(uint8, uint16);
               (uint16 num0, uint32 num1, address addr) = slice.decode(uint16, uint32, address);</pre></code>
                @custom:no_validation
+               @custom:version min=0.70.0
               */              
               function load(Type varargs) returns (TypeSequence);
               /**
@@ -174,6 +184,7 @@ class SolInternalTypeFactory(project: Project) {
               optional(uint) a = slice.decodeQ(uint);
               optional(uint8, uint16) b = slice.decodeQ(uint8, uint16);</pre></code>
               @custom:no_validation
+              @custom:version min=0.70.0
               */              
               function loadQ(Type varargs) returns (optional(TypeSequence)); 
               /**
@@ -191,6 +202,7 @@ class SolInternalTypeFactory(project: Project) {
               function loadSigned(uint16 bitSize) returns (int); 
               /**
               Loads a signed integer with the given bitSize from the <code>TvmSlice</code>.
+              @custom:version min=0.70.0              
               */              
               function loadInt(uint16 bitSize) returns (int); 
               /**
@@ -200,6 +212,7 @@ class SolInternalTypeFactory(project: Project) {
               function loadUnsigned(uint16 bitSize) returns (uint); 
               /**
               Loads an unsigned integer with the given bitSize from the <code>TvmSlice</code>.
+              @custom:version min=0.70.0              
               */              
               function loadUint(uint16 bitSize) returns (uint); 
               /**
@@ -225,6 +238,7 @@ class SolInternalTypeFactory(project: Project) {
               Decodes parameters of the function or constructor (if contract type is provided). This function is usually used in <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#onbounce">onBounce</a> function.
               @custom:no_validation
               @custom:typeArgument Type:FunctionOrContract, TypeRet:DecodedElement
+              @custom:version min=0.70.0              
               */              
               function loadFunctionParams(Type functionOrContract) returns (TypeRet);              
               /**
@@ -296,7 +310,7 @@ class SolInternalTypeFactory(project: Project) {
               	}
               }</pre></code>
               @custom:typeArgument Type:ContractName
-              
+              @custom:version min=0.70.0              
               */              
               function loadStateVars(Type contractName) returns (uint256 /*pubkey*/, uint64 /*timestamp*/, bool /*constructorFlag*/, Type1 /*var1*/, Type2 /*var2*/); 
               /**
@@ -309,102 +323,154 @@ class SolInternalTypeFactory(project: Project) {
               function skip(uint length, uint refs);
               
               /**
+               Returns the count <code>n</code> of leading zero bits in <code>TvmSlice</code>, and removes these bits from <code>TvmSlice</code>.
+              @custom:version min=0.68.0              
               */              
-              function loadZeroes();
+              function loadZeroes() returns (uint10 n);
               /**
+               Returns the count <code>n</code> of leading one bits in <code>TvmSlice</code>, and removes these bits from <code>TvmSlice</code>.
+              @custom:version min=0.68.0              
               */              
-              function loadOnes();
+              function loadOnes() returns (uint10 n);
               /**
+              Returns the count <code>n</code> of leading bits equal to <code>0 ≤ value ≤ 1</code> in <code>TvmSlice</code>, and removes these bits from <code>TvmSlice</code>.
+              @custom:version min=0.68.0              
               */              
-              function loadSame();
+              function loadSame() returns (uint10 n);
               /**
+              @custom:version min=0.70.0              
               */              
-              function loadUintQ();
+              function loadIntQ(uint9 bitSize) returns (optional(int));
               /**
+              @custom:version min=0.70.0              
               */              
-              function loadSliceQ();
+              function loadUintQ(uint9 bitSize) returns (optional(uint));
               /**
+              @custom:version min=0.70.0              
               */              
-              function loadIntLE2();
+              function loadSliceQ(uint10 bits) returns (optional(TvmSlice));
               /**
+              @custom:version min=0.70.0              
               */              
-              function loadIntLE4();
+              function loadSliceQ(uint10 bits, uint2 refs) returns (optional(TvmSlice));
               /**
+              @custom:version min=0.70.0              
               */              
-              function loadIntLE8();
+              function loadIntLE2() returns (int16);
               /**
+              @custom:version min=0.70.0              
               */              
-              function loadUintLE2();
+              function loadIntLE4() returns (int32);
               /**
+              @custom:version min=0.70.0              
               */              
-              function loadUintLE4();
+              function loadIntLE8() returns (int64);
               /**
+              @custom:version min=0.70.0              
               */              
-              function loadUintLE8();
+              function loadUintLE2() returns (uint16);
               /**
+              @custom:version min=0.70.0              
               */              
-              function loadIntLE4Q();
+              function loadUintLE4() returns (uint32);
               /**
+              @custom:version min=0.70.0              
               */              
-              function loadIntLE8Q();
+              function loadUintLE8() returns (uint64);
               /**
+              @custom:version min=0.70.0              
               */              
-              function loadUintLE4Q();
+              function loadIntLE4Q() returns (optional(int32));
               /**
+              @custom:version min=0.70.0              
               */              
-              function loadUintLE8Q();
+              function loadIntLE8Q() returns (optional(int64));
+              /**
+              @custom:version min=0.70.0              
+              */              
+              function loadUintLE4Q() returns (optional(uint32));
+              /**
+              @custom:version min=0.70.0              
+              */              
+              function loadUintLE8Q() returns (optional(uint64));;
               
               /**
+              @custom:version min=0.70.0              
+              
               */              
-              function preload();
+              function preload(Type varargs) returns (TypeSequence);
               /**
+              @custom:version min=0.70.0              
               */              
-              function preloadQ();
+              function preloadQ(Type varargs) returns (optional(TypeSequence));
               /**
+              @custom:version min=0.70.0              
               */              
-              function preloadRef();
+              function preloadRef() returns (TvmCell);
               /**
+              @custom:version min=0.70.0              
               */              
-              function preloadInt();
+              function preloadInt(uint9 bitSize) returns (int);
               /**
+              @custom:version min=0.70.0              
               */              
-              function preloadIntQ();
+              function preloadIntQ(uint9 bitSize) returns (optional(int));
               /**
+              @custom:version min=0.70.0              
               */              
-              function preloadUint();
+              function preloadUint(uint9 bitSize) returns (uint);
               /**
+              @custom:version min=0.70.0              
               */              
-              function preloadUintQ();
+              function preloadUintQ(uint9 bitSize) returns (optional(uint));
               /**
+              @custom:version min=0.70.0              
               */              
-              function preloadSlice();
+              function preloadSlice(uint10 bits) returns (TvmSlice);
               /**
+              @custom:version min=0.70.0              
               */              
-              function preloadSliceQ();
+              function preloadSlice(uint10 bits, uint refs) returns (TvmSlice);
               /**
+              @custom:version min=0.70.0              
               */              
-              function preloadIntLE4();
+              function preloadSliceQ(uint10 bits) returns (optional(TvmSlice));
               /**
+              @custom:version min=0.70.0              
               */              
-              function preloadIntLE8();
+              function preloadSliceQ(uint10 bits, uint4 refs) returns (optional(TvmSlice));
               /**
+              @custom:version min=0.70.0              
               */              
-              function preloadUintLE4();
+              function preloadIntLE4() returns (int32);
               /**
+              @custom:version min=0.70.0              
               */              
-              function preloadUintLE8();
+              function preloadIntLE8() returns (int64);
               /**
+              @custom:version min=0.70.0              
               */              
-              function preloadIntLE4Q();
+              function preloadUintLE4() returns (uint32);
               /**
+              @custom:version min=0.70.0              
               */              
-              function preloadIntLE8Q();
+              function preloadUintLE8() returns (uint64);
               /**
+              @custom:version min=0.70.0              
               */              
-              function preloadUintLE4Q();
+              function preloadIntLE4Q() returns (optional(int32));
               /**
+              @custom:version min=0.70.0              
               */              
-              function preloadUintLE8Q();
+              function preloadIntLE8Q() returns (optional(int64));
+              /**
+              @custom:version min=0.70.0              
+              */              
+              function preloadUintLE4Q() returns (optional(uint32));
+              /**
+              @custom:version min=0.70.0              
+              */              
+              function preloadUintLE8Q() returns (optional(uint64));
                // preloadUintLE8Q is the final function here!
           }
         """)
@@ -485,8 +551,14 @@ Stores <code>n</code> binary ones into the <code>TvmBuilder</code>.
 							function storeOnes(uint n); 
 							/**
 Stores <code>n</code> binary zeroes into the <code>TvmBuilder</code>.
+              @custom:version min=0.64.0
 							*/
 							function storeZeroes(uint n); 
+							/**
+              Stores <code>n</code> binary zeroes into the <code>TvmBuilder</code>.
+              @custom:version max=0.63.0
+							*/
+							function storeZeros(uint n); 
 							/**
 Stores a signed integer value with given bitSize in the <code>TvmBuilder</code>.
 @custom:deprecated
@@ -494,6 +566,7 @@ Stores a signed integer value with given bitSize in the <code>TvmBuilder</code>.
 							function storeSigned(int256 value, uint16 bitSize);
  							/**
 Stores a signed integer value with given bitSize in the <code>TvmBuilder</code>.
+              @custom:version min=0.70.0              
 							*/
 							function storeInt(int256 value, uint16 bitSize); 
 							/**
@@ -503,6 +576,7 @@ Stores an unsigned integer value with given bitSize in the <code>TvmBuilder</cod
 							function storeUnsigned(uint256 value, uint16 bitSize); 
 							/**
 Stores an unsigned integer value with given bitSize in the <code>TvmBuilder</code>.
+              @custom:version min=0.70.0              
 							*/
 							function storeUInt(uint256 value, uint16 bitSize); 
 							/**
@@ -527,26 +601,33 @@ See example of how to work with TVM specific types:
 							*/
 							function storeTons(uint128 value); 
 							/**
-							*/
-							function storeSame();
+              @custom:version min=0.68.0
+              */
+							function storeSame(uint10 n, uint1 value);
  							/**
+              @custom:version min=0.70.0
 							*/
-							function storeIntLE2(); 
+							function storeIntLE2(int16 value); 
  							/**
+              @custom:version min=0.70.0
 							*/
-							function storeIntLE4(); 
+							function storeIntLE4(int32 value); 
  							/**
+              @custom:version min=0.70.0
 							*/
-							function storeIntLE8(); 
+							function storeIntLE8(int64 value); 
  							/**
+              @custom:version min=0.70.0
 							*/
-							function storeUintLE2(); 
+							function storeUintLE2(uint16 value); 
  							/**
+              @custom:version min=0.70.0
 							*/
-							function storeUintLE4(); 
+							function storeUintLE4(uint32 value); 
  							/**
+              @custom:version min=0.70.0
 							*/
-							function storeUintLE8(); 
+							function storeUintLE8(uint64 value); 
 
                             // storeUintLE8 is the final function here!
  
@@ -591,6 +672,7 @@ See example of how to work with TVM specific types:
           <li>the forward fee for the internal inbound message.</li>
           <li>0 for the external inbound message.</li>
           </ul>
+          @custom:version min=0.71.0              
           */
           varUint16 forwardFee;
                     
@@ -600,6 +682,7 @@ See example of how to work with TVM specific types:
           <li>the field import_fee for external inbound message. Note: field import_fee is set offchain by user as they want and does not reflect the real import fee of the message.</li>
           <li>0 for the internal inbound message.</li>
           </ul>
+          @custom:version min=0.71.0              
           */
           varUint16 importFee;
           
@@ -620,10 +703,8 @@ Returns public key that is used to check the message signature. If the message i
           address public origin;
           
           /**
-            @custom:deprecated
+          @custom:version min=0.70.0
           */
-          uint64 public timestamp;
-          
           uint64 public logicaltime;
            
           uint120 public storageFee; 
@@ -747,6 +828,19 @@ Example:
 
 <code>(int8 wid, uint addr) = address(this).unpack();</code>
  @custom:no_validation
+               @custom:version max=0.70.0              
+							*/
+							function unpack() returns (int8 /*wid*/, uint256 /*value*/);
+							/**
+Parses <code>address</code> containing a valid <code>MsgAddressInt</code> (<code>addr_std</code>), applies rewriting from the anycast (if present) to the same-length prefix of the address, and returns both the workchain <code>wid</code> and the 256-bit address <code>value</code>. If the address <code>value</code> is not 256-bit, or if <code>address</code> is not a valid serialization of <code>MsgAddressInt</code>, throws a cell deserialization <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvm-exception-codes">exception</a> .
+
+It's wrapper for opcode <code>REWRITESTDADDR</code>.
+
+Example:
+
+<code>(int8 wid, uint addr) = address(this).unpack();</code>
+ @custom:no_validation
+               @custom:version min=0.71.0              
 							*/
 							function unpack() returns (int32 /*wid*/, uint256 /*value*/);
                             // unpack is the final function here!
@@ -850,6 +944,7 @@ Example:
                                 function values() returns (ValueType[]);
                                 /**
      Deletes the key from the mapping map and returns an optional with the corresponding value. Returns an empty optional if the key does not exist.
+                               @custom:version min=0.71.0              
                   */
                                 function getDel(KeyType key) returns (optional(ValueType));
                                  // getDel is the final function here!
@@ -910,10 +1005,12 @@ Returns the contained value, if the <code>optional</code> contains one. Otherwis
 							function get() returns (T);
 							/**
 Returns the contained value, if the optional contains one. Otherwise, returns default.
+              @custom:version min=0.71.0              
 							*/
               function getOr(T default) returns (T);
 							/**
 Returns the contained value, if the optional contains one. Otherwise, returns the default value for T type.
+              @custom:version min=0.71.0              
 							*/
               function getOrDefault() returns (T);
 							/**
@@ -1017,9 +1114,11 @@ Checks whether the <code>vector</code> is empty.
 							*/
 							function findLast(bytes1 symbol) returns (optional(uint32));
 							/**
+              @custom:version min=0.62.0
 							*/
 							function toUpperCase() returns (string);
 							/**
+              @custom:version min=0.62.0
 							*/
 							function toLowerCase() returns (string);
                             // toLowerCase is the final function here!
@@ -1109,6 +1208,7 @@ So if some user's public key will be stolen, then a hacker can spam with externa
 							/**
 Computes the amount of gas that can be bought for <code>value</code> nanotons, and sets <strong>gl</strong>
 accordingly in the same way as <code><a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmsetgaslimit">tvm.setGasLimit()</a></code>.
+              @custom:version min=0.63.0
 							*/
 							function buyGas(uint value);
 							/**
@@ -1936,7 +2036,6 @@ See example of how to use this function:
   val mathType: SolContract by lazy {
     contract("""
       contract ${internalise("Math")} {
-           // todo varargs
 							/**
 							Returns the minimal (maximal) value of the passed arguments. <code>T</code> should be an integer or fixed point type
                 @custom:typeArgument T:Number
@@ -2108,16 +2207,24 @@ See example of how to use this function:
 
   val blockType: SolType by lazy {
     contract("""
-            contract ${internalise("Block")}{
-                 address coinbase;
-                 uint difficulty;
-                 uint gasLimit;
-                 uint number;
-                 uint32 timestamp;
+      contract ${internalise("Block")}{
+          address coinbase;
+          uint difficulty;
+          uint gasLimit;
+          uint number;
+          /**
+            @custom:version min=0.68.0
+          */
+          uint32 public timestamp;
+          
+          /**
+            @custom:version max=0.67.0
+          */
+          uint64 public timestamp;
+          
+          function blockhash(uint blockNumber) returns (bytes32);
                  
-                 function blockhash(uint blockNumber) returns (bytes32);
-                 
-                 // blockhash is the final function here!
+           // blockhash is the final function here!
             }      
         """, "blockhash", "block.")
   }
@@ -2200,12 +2307,24 @@ causes a Panic error and thus state change reversion if the condition is not met
 
               /**
                  require function can be used to check the condition and throw an exception if the condition is not met. The function takes condition and optional parameter: error code (unsigned integer).
+              @custom:version min=0.68.0
               */
               function require(bool condition, uint16 errorCode);
               /**
                  require function can be used to check the condition and throw an exception if the condition is not met. The function takes condition and optional parameters: error code (unsigned integer) and the object of any type.
+              @custom:version min=0.68.0
               */
               function require(bool condition, uint16 errorCode, Type exceptionArgument);
+              /**
+                 require function can be used to check the condition and throw an exception if the condition is not met. The function takes condition and optional parameter: error code (unsigned integer).
+              @custom:version max=0.67.0
+              */
+              function require(bool condition, uint256 errorCode);
+              /**
+                 require function can be used to check the condition and throw an exception if the condition is not met. The function takes condition and optional parameters: error code (unsigned integer) and the object of any type.
+              @custom:version max=0.67.0
+              */
+              function require(bool condition, uint256 errorCode, Type exceptionArgument);
               
 							/**
 							In case of exception state variables of the contract are reverted to the state before <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmcommit">tvm.commit()</a> or to the state of the contract before it was called. Use error codes that are greater than 100 because other error codes can be <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#solidity-runtime-errors">reserved</a> <strong>Note</strong> if a nonconstant error code is passed as the function argument and the error code is less than 2 then the error code will be set to 100.
@@ -2222,12 +2341,24 @@ causes a Panic error and thus state change reversion if the condition is not met
 							function revert();
 							/**
                 revert function can be used to throw exceptions. The function takes an optional error code (unsigned integer).
+              @custom:version min=0.68.0
 							*/
 							function revert(uint16 errorCode);
 							/**
                 revert function can be used to throw exceptions. The function takes an optional error code (unsigned integer) and the object of any type.
+              @custom:version min=0.68.0
 							*/
 							function revert(uint16 errorCode, Type exceptionArgument);
+							/**
+                revert function can be used to throw exceptions. The function takes an optional error code (unsigned integer).
+              @custom:version max=0.67.0
+							*/
+							function revert(uint256 errorCode);
+							/**
+                revert function can be used to throw exceptions. The function takes an optional error code (unsigned integer) and the object of any type.
+              @custom:version max=0.67.0
+							*/
+							function revert(uint256 errorCode, Type exceptionArgument);
 							/**
 							In case of exception state variables of the contract are reverted to the state before <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmcommit">tvm.commit()</a> or to the state of the contract before it was called. Use error codes that are greater than 100 because other error codes can be <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#solidity-runtime-errors">reserved</a> <strong>Note</strong> if a nonconstant error code is passed as the function argument and the error code is less than 2 then the error code will be set to 100.
 							
@@ -2282,6 +2413,7 @@ causes a Panic error and thus state change reversion if the condition is not met
 
               /**
               Returns worth of <b>gas</b> in workchain <b>wid</b>. Throws an exception if <b>wid</b> is not equal to <code>0</code> or <code>-1</code>. If <code>wid</code> is omitted than used the contract's <code>wid</code>
+              @custom:version min=0.63.0
               */
               function gasToValue(uint128 gas) returns (uint128 value)
               /**
@@ -2291,6 +2423,7 @@ causes a Panic error and thus state change reversion if the condition is not met
               
               /**
               Counts how much <b>gas</b> could be bought on <b>value</b> nanotons in workchain <b>wid</b>. Throws an exception if <b>wid</b> is not equal to <code>0</code> or <code>-1</code>. If <code>wid</code> is omitted than used the contract's <code>wid</code>
+              @custom:version min=0.63.0
               */
               function valueToGas(uint128 value) returns (uint128 gas)
               /**
@@ -2321,6 +2454,7 @@ causes a Panic error and thus state change reversion if the condition is not met
               
               /**
               Returns the remaining gas. Supported only if <code>CapGasRemainingInsn</code> capability is set.
+              @custom:version min=0.71.0              
               */
               function gasleft() returns (uint64)
               
@@ -2331,7 +2465,26 @@ causes a Panic error and thus state change reversion if the condition is not met
 
   val finalElements = mutableMapOf<String, String>()
 
-  val declarations = SolResolver.lexicalDeclarations(HashSet(), globalType.ref, globalType.ref).toList()
+  val allDeclarations = SolResolver.lexicalDeclarations(HashSet(), globalType.ref, globalType.ref).toList()
+
+  data class ApiVersion(val min : Version?, val max: Version?) {
+    companion object {
+      fun parse(data: String): ApiVersion {
+        val elements = data.split(";").associate { it.split("=").let { it[0].trim() to it[1].trim() } }
+        fun parseProp(prop: KProperty1<ApiVersion, Version?>) = runCatching { elements[prop.name]?.let { Version(it) } }.getOrNull()
+        return ApiVersion(min = parseProp(ApiVersion::min), max = parseProp(ApiVersion::max))
+      }
+    }
+    fun compatible(pragmaRange: Range) : Boolean {
+      return (min?.let { !SemVer.isGreaterThenRange(it, pragmaRange) } ?: true) && (max?.let { !SemVer.isLessThenRange(it, pragmaRange) } ?: true)
+    }
+  }
+
+  fun <T: SolNamedElement> getDeclarations(place: PsiElement, solNamedElements: List<T>): Sequence<T> {
+    return (place.containingFile.childrenOfType<SolPragmaDirective>().find { it.identifier.text == "ever" }?.let{ it.pragmaAll?.text?.takeIf { it.startsWith("-solidity ") }?.removePrefix("-solidity ") }?.let{runCatching { Range(it.trim()) }.getOrNull()}?.let { pragma ->
+      solNamedElements.filter { it.tagComments(VERSION_TAG)?.let { ApiVersion.parse(it).compatible(pragma) } ?: true }
+    } ?: solNamedElements).asSequence()
+  }
 
   private fun contract(@Language("T-Sol") contractBody: String, elementName: String, code: String) =
     SolContract(psiFactory.createContract(contractBody), true).also { if (elementName.isNotBlank()) finalElements[code] = elementName }

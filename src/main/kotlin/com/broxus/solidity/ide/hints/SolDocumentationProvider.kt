@@ -22,6 +22,7 @@ import com.intellij.psi.util.siblings
 const val NO_VALIDATION_TAG = "@custom:no_validation"
 const val TYPE_ARGUMENT_TAG = "@custom:typeArgument"
 const val DEPRECATED_TAG = "@custom:deprecated"
+const val VERSION_TAG = "@custom:version"
 
 fun PsiElement.isBuiltin() = this.containingFile.virtualFile == null
 
@@ -40,6 +41,12 @@ fun PsiElement.comments(): List<PsiElement> {
     }
     CachedValueProvider.Result.create(res, if (isBuiltin()) ModificationTracker.NEVER_CHANGED else this.parent)
   }
+}
+
+fun PsiElement.tagComments(tag: String) : String? {
+  val comments = comments()
+  return comments.indexOfFirst { it.text == tag }.takeIf { it >= 0 }
+        ?.let { comments.getOrNull(it - 1)?.let { it.text.split("\n")[0] } }
 }
 
 private fun collectBlockComments(nonSolElements: List<PsiElement>): List<PsiElement> {

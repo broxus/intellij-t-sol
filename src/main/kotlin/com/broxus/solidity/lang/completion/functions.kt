@@ -92,14 +92,15 @@ object FunctionCompletionProvider : CompletionProvider<CompletionParameters>() {
   ) {
     val position = parameters.originalPosition
 
-    val availableRefs = listOf(SolInternalTypeFactory.of(parameters.editor.project!!).globalType.ref) + (getParentOfType(position, SolFunctionDefinition::class.java)?.contract?.let { contract ->
+    val project = parameters.editor.project ?: return
+    val availableRefs = listOf(SolInternalTypeFactory.of(project).globalType.ref) + (getParentOfType(position, SolFunctionDefinition::class.java)?.contract?.let { contract ->
       contract.collectSupers.flatMap { SolResolver.resolveTypeName(it) } + contract
     }?.filterIsInstance<SolContractDefinition>() ?: emptyList())
 
     val expr = parameters.originalPosition?.parentOfType<SolExpression>()
 
     val functions = availableRefs
-      .flatMap { it.functionDefinitionList.onEach { it.addContext(expr) } }
+      .flatMap { (if (expr != null) SolInternalTypeFactory.of(project).getDeclarations(expr, it.functionDefinitionList).toList() else it.functionDefinitionList).onEach { it.addContext(expr) } }
       .toFunctionLookups()
 
     val structs = availableRefs

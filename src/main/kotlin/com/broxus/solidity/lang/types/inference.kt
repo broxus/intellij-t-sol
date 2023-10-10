@@ -294,6 +294,7 @@ fun inferExprType(expr: SolExpression?): SolType {
           SolInteger(false, it.size)
         } else it
       }
+    is SolMetaTypeExpression -> SolMetaType(getSolType(expr.typeName))
     else -> SolUnknown
   }
 }

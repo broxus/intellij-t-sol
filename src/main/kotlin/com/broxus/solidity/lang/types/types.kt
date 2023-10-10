@@ -528,6 +528,20 @@ data class SolFixedByte(val size: Int): SolPrimitiveType {
   }
 }
 
+data class SolMetaType(val type: SolType): SolType {
+  override fun isAssignableFrom(other: SolType): Boolean {
+    return other is SolMetaType && this.type == other.type
+  }
+
+  override fun getMembers(project: Project): List<SolMember> {
+    return getSdkMembers(SolInternalTypeFactory.of(project).metaType)
+  }
+
+  override fun getRefs(): List<TypeRef> = listOf(TypeRef(this::type.name, type))
+
+  override fun toString(): String = "type($type)"
+}
+
 private const val INTERNAL_INDICATOR = "_sol1_s"
 
 fun internalise(name: String): String = "$name$INTERNAL_INDICATOR"

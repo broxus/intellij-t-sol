@@ -2122,6 +2122,27 @@ See example of how to use this function:
         """, "blockhash", "block.")
   }
 
+  val metaType: SolContract by lazy {
+    contract("""
+      /**
+       @custom:typeArgument T=type
+      */
+      contract ${internalise("MetaType")} {
+							/**
+                the smallest value representable by type <code>T</code>.
+              @custom:version min=0.70.0
+							*/
+							function min() returns (T);
+							/**
+                the largest value representable by type <code>T</code>.
+              @custom:version min=0.70.0
+							*/
+							function max() returns (T);
+      }
+    """, "append", "bytes bb; bb.")
+  }
+
+
   val globalType: SolContract by lazy {
     contract("""
       contract Global {

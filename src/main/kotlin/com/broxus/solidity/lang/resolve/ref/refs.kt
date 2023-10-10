@@ -6,7 +6,6 @@ import com.broxus.solidity.lang.psi.impl.SolFunctionDefMixin
 import com.broxus.solidity.lang.psi.impl.SolNewExpressionElement
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.resolve.canBeApplied
-import com.broxus.solidity.lang.resolve.function.SolFunctionResolver
 import com.broxus.solidity.lang.types.*
 import com.broxus.solidity.wrap
 import com.intellij.openapi.util.TextRange
@@ -122,14 +121,15 @@ class SolFunctionCallReference(element: SolFunctionCallExpression) : SolReferenc
   }
 
   private fun removeOverrides(callables: Collection<SolCallable>): Collection<SolCallable> {
-    val test = callables.filterIsInstance<SolFunctionDefinition>()
-    return callables
-      .filter {
-        when (it) {
-          is SolFunctionDefinition -> SolFunctionResolver.collectOverrides(it).intersect(test).isEmpty()
-          else -> true
-        }
-      }
+     return callables
+//    val test = callables.filterIsInstance<SolFunctionDefinition>()
+//    return callables
+//      .filter {
+//        when (it) {
+//          is SolFunctionDefinition -> SolFunctionResolver.collectOverrides(it).intersect(test).isEmpty()
+//          else -> true
+//        }
+//      }
   }
 
   private fun resolveElementaryTypeCasts(expr: SolPrimaryExpression): Collection<SolCallable> {

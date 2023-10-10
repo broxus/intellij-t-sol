@@ -120,14 +120,6 @@ object SolString : SolPrimitiveType {
   override fun toString() = "string"
 }
 
-interface SolTypedType<T: SolType> : SolType {
-
-  val type: SolType
-  override fun isAssignableFrom(other: SolType): Boolean {
-    TODO("Not yet implemented")
-  }
-}
-
 data class SolOptional(val type: SolType) : SolType {
   override fun isAssignableFrom(other: SolType): Boolean =
     when (other) {

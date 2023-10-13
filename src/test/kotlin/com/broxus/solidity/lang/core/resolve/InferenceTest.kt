@@ -1,10 +1,10 @@
 package com.broxus.solidity.lang.core.resolve
 
-import junit.framework.TestCase
 import com.broxus.solidity.lang.psi.SolContractDefinition
 import com.broxus.solidity.lang.psi.SolExpression
 import com.broxus.solidity.lang.psi.SolStructDefinition
 import com.broxus.solidity.lang.types.*
+import junit.framework.TestCase
 import org.intellij.lang.annotations.Language
 
 class InferenceTest : SolResolveTestBase() {
@@ -108,6 +108,24 @@ class InferenceTest : SolResolveTestBase() {
                          //^
             }
         }""")
+  }
+
+  fun testTypeArgument() {
+    checkType(SolString, """
+            function test() {
+                optional(string) test = "qwe";
+                test.get();
+                    //^
+            }
+        """)
+    checkType(SolInteger(true, 32), """
+            function test() {
+                uint32 v = 1;
+                math.abs(v);
+                    //^
+            }
+        """)
+
   }
 
   private fun checkType(type: SolType, @Language("T-Sol") code: String) {

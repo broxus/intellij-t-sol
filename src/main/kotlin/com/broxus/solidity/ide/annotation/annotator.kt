@@ -2,7 +2,6 @@ package com.broxus.solidity.ide.annotation
 
 import com.broxus.solidity.ide.colors.SolColor
 import com.broxus.solidity.ide.hints.startOffset
-import com.broxus.solidity.ide.inspections.*
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.psi.impl.SolErrorDefMixin
 import com.broxus.solidity.lang.resolve.SolResolver
@@ -41,7 +40,6 @@ class SolidityAnnotator : Annotator {
           "super" -> applyColor(holder, element.expression.firstChild, SolColor.KEYWORD)
           "msg", "block", "abi" -> applyColor(holder, element.expression.firstChild, SolColor.GLOBAL)
         }
-        inspectMemberAccess(element, holder.convert())
       }
       is SolErrorDefMixin -> {
         applyColor(holder, element.identifier, SolColor.KEYWORD)
@@ -63,21 +61,17 @@ class SolidityAnnotator : Annotator {
       }
       is SolContractDefinition -> {
         element.identifier?.let { applyColor(holder, it, SolColor.CONTRACT_NAME) }
-        inspectContractDefinition(element, holder.convert())
       }
       is SolStructDefinition -> {
         element.identifier?.let { applyColor(holder, it, SolColor.STRUCT_NAME) }
-        inspectStructDefinition(element, holder.convert())
       }
       is SolEnumDefinition -> {
         element.identifier?.let { applyColor(holder, it, SolColor.ENUM_NAME) }
-        inspectEnumDefinition(element, holder.convert())
       }
       is SolEventDefinition -> element.identifier?.let { applyColor(holder, it, SolColor.EVENT_NAME) }
       is SolUserDefinedValueTypeDefinition -> element.identifier?.let { applyColor(holder, it, SolColor.USER_DEFINED_VALUE_TYPE) }
       is SolConstantVariableDeclaration -> {
         applyColor(holder, element.identifier, SolColor.CONSTANT)
-        inspectConstantVariableDeclaration(element, holder.convert())
       }
       is SolStateVariableDeclaration -> {
         if (element.mutationModifier?.textMatches("constant") == true) {
@@ -85,7 +79,6 @@ class SolidityAnnotator : Annotator {
         } else {
           applyColor(holder, element.identifier, SolColor.STATE_VARIABLE)
         }
-        inspectStateVariableDeclaration(element, holder.convert())
       }
       is SolFunctionDefinition -> {
         val identifier = element.identifier
@@ -97,11 +90,9 @@ class SolidityAnnotator : Annotator {
             applyColor(holder, firstChildNode.textRange, SolColor.RECEIVE_FALLBACK_DECLARATION)
           }
         }
-        inspectFunctionDefinition(element, holder.convert())
       }
       is SolModifierDefinition -> {
         element.identifier?.let { applyColor(holder, it, SolColor.FUNCTION_DECLARATION) }
-        inspectModifierDefinition(element, holder.convert())
       }
       is SolModifierInvocation -> applyColor(holder, element.varLiteral.identifier, SolColor.MODIFIER_INVOCATION)
       is SolUserDefinedTypeName -> {
@@ -111,7 +102,6 @@ class SolidityAnnotator : Annotator {
           is SolUserDefinedValueTypeDefinition -> applyColor(holder, element, SolColor.USER_DEFINED_VALUE_TYPE)
         }
 
-        inspectUserDefinedTypeName(element, holder.convert())
       }
       is SolFunctionCallElement -> when(element.firstChild.text) {
         "keccak256" -> applyColor(holder, element.firstChild, SolColor.GLOBAL_FUNCTION_CALL)
@@ -129,14 +119,6 @@ class SolidityAnnotator : Annotator {
           }
         }
       }
-      is SolFunctionCallArguments -> inspectFunctionCallArguments(element, holder.convert())
-      is SolVariableDeclaration -> inspectVariableDeclaration(element, holder.convert())
-      is SolParameterDef -> inspectParameterDef(element, holder.convert())
-      is SolImportDirective -> inspectImportDirective(element, holder.convert())
-      is SolVarLiteral -> inspectVarLiteralRef(element, holder.convert())
-      is SolVariableDefinition -> inspectVariableDefinition(element, holder.convert())
-      is SolAssignmentExpression -> inspectAssigmentExpression(element, holder.convert())
-
     }
   }
   private fun applyColor(holder: AnnotationHolder, element: PsiElement, color: SolColor) {

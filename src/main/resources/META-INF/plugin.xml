@@ -249,7 +249,6 @@
         <localInspection language="T-Sol" groupName="T-Sol"
                          displayName="Suicide is deprecated. Use selfdestruct instead EIP 6"
                          enabledByDefault="true"
-                         shortName="TSolSelfdestructRenameInspection"
                          level="WARNING"
                          implementationClass="com.broxus.solidity.ide.inspections.SelfdestructRenameInspection"/>
 
@@ -257,63 +256,54 @@
                          displayName="Function has no modifiers and might modify owners of the contract"
                          enabledByDefault="true"
                          level="WARNING"
-                         shortName="TSolUnprotectedFunctionInspection"
                          implementationClass="com.broxus.solidity.ide.inspections.UnprotectedFunctionInspection"/>
 
         <localInspection language="T-Sol" groupName="T-Sol"
                          displayName="Name can not be resolved"
-                         enabledByDefault="false"
+                         enabledByDefault="true"
                          level="WARNING"
-                         shortName="TSolResolveNameInspection"
                          implementationClass="com.broxus.solidity.ide.inspections.ResolveNameInspection"/>
 
         <localInspection language="T-Sol" groupName="T-Sol"
                          displayName="No return statement"
                          enabledByDefault="true"
                          level="WARNING"
-                         shortName="TSolNoReturnInspection"
                          implementationClass="com.broxus.solidity.ide.inspections.NoReturnInspection"/>
 
         <localInspection language="T-Sol" groupName="T-Sol"
                          displayName="Linearization impossible"
                          enabledByDefault="true"
                          level="WARNING"
-                         shortName="TSolLinearizationImpossibleInspection"
                          implementationClass="com.broxus.solidity.ide.inspections.LinearizationImpossibleInspection"/>
 
         <localInspection language="T-Sol" groupName="T-Sol"
                          displayName="Function call arguments are not matched with the parameters of function definition"
-                         enabledByDefault="false"
+                         enabledByDefault="true"
                          level="ERROR"
-                         shortName="TSolValidateFunctionArgumentsInspection"
-                         implementationClass="com.broxus.solidity.ide.inspections.ValidateFunctionArgumentsInspection"/>
+                         implementationClass="com.broxus.solidity.ide.inspections.FunctionArgumentsInspection"/>
 
         <localInspection language="T-Sol" groupName="T-Sol"
                                  displayName="Element is never used"
-                                 enabledByDefault="false"
+                                 enabledByDefault="true"
                                  level="WEAK WARNING"
-                                 shortName="TSolUnusedElementInspection"
                                  implementationClass="com.broxus.solidity.ide.inspections.UnusedElementInspection"/>
 
         <localInspection language="T-Sol" groupName="T-Sol"
                                  displayName="Member is not defined"
-                                 enabledByDefault="false"
+                                 enabledByDefault="true"
                                  level="ERROR"
-                                 shortName="TSolMemberAccessInspection"
-                                 implementationClass="com.broxus.solidity.ide.inspections.ValidateMemberAccessInspection"/>
+                                 implementationClass="com.broxus.solidity.ide.inspections.MemberAccessInspection"/>
         <localInspection language="T-Sol" groupName="T-Sol"
                          displayName="Members are not implemented"
                          enabledByDefault="true"
                          level="ERROR"
-                         shortName="TSolUnimplementedMemberInspection"
                          implementationClass="com.broxus.solidity.ide.inspections.UnimplementedMemberInspection"/>
 
         <localInspection language="T-Sol" groupName="T-Sol"
                                  displayName="Assigment types validation"
-                                 enabledByDefault="false"
+                                 enabledByDefault="true"
                                  level="ERROR"
-                                 shortName="TSolAssigmentInspection"
-                                 implementationClass="com.broxus.solidity.ide.inspections.ValidateAssignmentInspection"/>
+                                 implementationClass="com.broxus.solidity.ide.inspections.AssignmentInspection"/>
 
         <errorHandler implementation="com.broxus.solidity.ide.SentryReportSubmitter"/>
 

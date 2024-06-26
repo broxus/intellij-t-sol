@@ -1,6 +1,6 @@
 package com.broxus.solidity.ide.inspections
 
-class ValidateFunctionArgumentsInspectionTest : SolInspectionsTestBase(ValidateFunctionArgumentsInspection()) {
+class ValidateFunctionArgumentsInspectionTest : SolInspectionsTestBase(FunctionArgumentsInspection()) {
   fun testTypeAssertFailure() = checkByText("""
         contract a {
             function a() {

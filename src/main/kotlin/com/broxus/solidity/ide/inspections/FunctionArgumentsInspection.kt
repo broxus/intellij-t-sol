@@ -7,6 +7,7 @@ import com.broxus.solidity.ide.hints.comments
 import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.resolve.SolResolver
+import com.broxus.solidity.lang.types.SolInternalTypeFactory
 import com.broxus.solidity.lang.types.SolTypeError
 import com.broxus.solidity.lang.types.getSolType
 import com.broxus.solidity.lang.types.type
@@ -22,7 +23,7 @@ fun SolFunctionCallArguments.getDefs(): List<SolFunctionDefElement>? {
   })?.filterIsInstance<SolFunctionDefElement>()
 }
 
-class ValidateFunctionArgumentsInspection : LocalInspectionTool() {
+class FunctionArgumentsInspection : LocalInspectionTool() {
   override fun getDisplayName(): String = ""
 
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
@@ -47,7 +48,7 @@ fun inspectFunctionCallArguments(element: SolFunctionCallArguments, holder: SolP
                             val parameters = ref.parameters
                             val expArgs = parameters.size
                             val actArgs = args.size
-                            if (actArgs != expArgs && parameters.none { it.name == "varargs" }) {
+                            if (actArgs != expArgs && parameters.none { it.name == SolInternalTypeFactory.varargsId }) {
                                 wrongNumberOfArgs = "Expected $expArgs argument${if (expArgs > 1) "s" else ""}, but got $actArgs"
                                 false
                             } else {

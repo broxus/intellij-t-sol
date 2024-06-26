@@ -9,7 +9,7 @@ import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
 
-class ValidateMemberAccessInspection : LocalInspectionTool() {
+class MemberAccessInspection : LocalInspectionTool() {
 
   override fun getDisplayName(): String = ""
 

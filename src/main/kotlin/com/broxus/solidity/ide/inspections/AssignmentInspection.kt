@@ -15,7 +15,7 @@ import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
 
-class ValidateAssignmentInspection : LocalInspectionTool() {
+class AssignmentInspection : LocalInspectionTool() {
 
   override fun getDisplayName(): String = ""
 

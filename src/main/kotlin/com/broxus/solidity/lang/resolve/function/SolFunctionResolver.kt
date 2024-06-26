@@ -1,5 +1,6 @@
 package com.broxus.solidity.lang.resolve.function
 
+import com.broxus.solidity.ide.navigation.findAllImplementations
 import com.broxus.solidity.lang.psi.FunctionInheritance
 import com.broxus.solidity.lang.psi.SolContractDefinition
 import com.broxus.solidity.lang.psi.SolFunctionDefinition
@@ -34,10 +35,9 @@ object SolFunctionResolver {
 
   fun collectOverrides(func: SolFunctionDefinition): Collection<SolFunctionDefinition> {
     val contract = func.parentOfType<SolContractDefinition>() ?: return emptyList()
-    return emptyList()
-//    contract.findAllImplementations()
-//      .flatMap { it.functionDefinitionList }
-//      .filter { signatureEquals(func, it) }
+    return contract.findAllImplementations()
+      .flatMap { it.functionDefinitionList }
+      .filter { signatureEquals(func, it) }
   }
 
   fun signatureEquals(f1: SolFunctionDefinition, f2: SolFunctionDefinition): Boolean {

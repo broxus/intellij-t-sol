@@ -18,9 +18,11 @@ import org.intellij.lang.annotations.Language
 import kotlin.reflect.KProperty1
 
 class SolInternalTypeFactory(project: Project) {
+
   private val psiFactory: SolPsiFactory = SolPsiFactory(project)
 
   companion object {
+    const val varargsId = "varargs"
     fun of(project: Project): SolInternalTypeFactory {
       return ServiceManager.getService(project, SolInternalTypeFactory::class.java)
     }
@@ -703,11 +705,17 @@ Returns public key that is used to check the message signature. If the message i
           address public origin;
           
           /**
-          @custom:version min=0.70.0
+          @custom:version min=0.67.0
           */
           uint64 public logicaltime;
            
           uint120 public storageFee; 
+          
+         /**
+            @custom:version max=0.69.0
+          */
+          uint64 public timestamp;
+          
       }
     """, "storageFee", "tx.")
   }
@@ -2213,12 +2221,12 @@ See example of how to use this function:
           uint gasLimit;
           uint number;
           /**
-            @custom:version min=0.68.0
+            @custom:version min=0.67.0
           */
           uint32 public timestamp;
           
           /**
-            @custom:version max=0.67.0
+            @custom:version max=0.66.0
           */
           uint64 public timestamp;
           

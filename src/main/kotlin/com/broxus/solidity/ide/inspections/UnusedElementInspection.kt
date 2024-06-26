@@ -66,7 +66,7 @@ fun inspectStructDefinition(o: SolStructDefinition, holder: SolProblemsHolder) {
 }
 
 fun inspectFunctionDefinition(o: SolFunctionDefinition, holder: SolProblemsHolder) {
-  o.identifier?.takeIf { o.visibility != Visibility.EXTERNAL }?.checkForUsage(o, holder, "Function '${o.name}' is never used")
+  o.identifier?.takeIf { o.visibility != Visibility.EXTERNAL && o.inheritance != FunctionInheritance.OVERRIDE }?.checkForUsage(o, holder, "Function '${o.name}' is never used")
 }
 
 fun inspectEnumDefinition(o: SolEnumDefinition, holder: SolProblemsHolder) {

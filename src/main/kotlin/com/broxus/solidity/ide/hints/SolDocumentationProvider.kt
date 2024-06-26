@@ -10,6 +10,7 @@ import com.intellij.lang.documentation.AbstractDocumentationProvider
 import com.intellij.lang.documentation.DocumentationMarkup.*
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.ModificationTracker
+import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -30,7 +31,7 @@ fun PsiElement.comments(): List<PsiElement> {
   return CachedValuesManager.getCachedValue(this) {
     val nonSolElements = siblings(false, false)
       .takeWhile { it !is SolElement }.toList()
-    val res = if (!isBuiltin()) PsiDocumentManager.getInstance(project).getDocument(this.containingFile)?.let { document ->
+    val res = (if (!isBuiltin()) PsiDocumentManager.getInstance(project).getDocument(this.containingFile)?.let { document ->
       val tripleLines = nonSolElements.filter { it.text.startsWith("///") }.map { document.getLineNumber(it.textOffset) }.toSet()
       val tripleLineComments = nonSolElements.filter { tripleLines.contains(document.getLineNumber(it.startOffset)) }
       val blockComments = collectBlockComments(nonSolElements)
@@ -38,7 +39,7 @@ fun PsiElement.comments(): List<PsiElement> {
     } ?: emptyList()
     else {
       collectBlockComments(nonSolElements)
-    }
+    }).filterIsInstance<PsiComment>()
     CachedValueProvider.Result.create(res, if (isBuiltin()) ModificationTracker.NEVER_CHANGED else this.parent)
   }
 }

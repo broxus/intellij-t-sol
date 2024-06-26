@@ -125,6 +125,9 @@ private ClosedBracketRecover ::= !('}')
 ImportAlias ::= Identifier {
     implements = "com.broxus.solidity.lang.psi.SolNamedElement"
     mixin = "com.broxus.solidity.lang.psi.impl.SolImportAliasMixin"
+        stubClass = "com.broxus.solidity.lang.stubs.SolImportAliasDefStub"
+       elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
+
 }
 ImportAliasedPair ::= UserDefinedTypeName (as ImportAlias)?
 private ImportRuleSet ::= ImportAliasedPair ( ',' ImportAliasedPair )* {

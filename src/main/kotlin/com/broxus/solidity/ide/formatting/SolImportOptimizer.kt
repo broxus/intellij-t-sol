@@ -41,7 +41,7 @@ class SolImportOptimizer : ImportOptimizer {
 }
 
 private fun processFull(file: PsiFile, list: List<SolImportDirective>): Runnable {
-    val allTypes = SolResolver.collectImportedNames(file).map { it.target }
+    val allTypes = SolResolver.collectImportedNames(file).mapNotNull { it.target.let { if (it is SolUserDefinedTypeName) SolResolver.resolveTypeNameUsingImports(it).firstOrNull() else it } }
     val solFactory = SolPsiFactory(file.project)
     val imports = allTypes
             .mapNotNull {

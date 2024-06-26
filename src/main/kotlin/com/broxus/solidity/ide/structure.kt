@@ -9,6 +9,7 @@ import com.intellij.ide.util.treeView.smartTree.Sorter
 import com.intellij.lang.PsiStructureViewFactory
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiFile
+import javax.swing.Icon
 
 class SolPsiStructureViewFactory : PsiStructureViewFactory {
   override fun getStructureViewBuilder(psiFile: PsiFile): StructureViewBuilder {
@@ -66,12 +67,12 @@ class SolContractTreeElement(item: SolContractDefinition) : SolNamedPsiTreeEleme
 
 class SolStructTreeElement(item: SolStructDefinition) : SolNamedPsiTreeElementBase<SolStructDefinition>(item) {
   override fun getChildrenBase(): Collection<StructureViewTreeElement> {
-    return element?.variableDeclarationList?.map(::SolLeafTreeElement) ?: emptyList()
+    return element?.variableDeclarationList?.map { SolLeafTreeElement(it, SolidityIcons.STATE_VAR) } ?: emptyList()
   }
 
 }
 
-class SolLeafTreeElement(item: SolNamedElement) : PsiTreeElementBase<SolNamedElement>(item) {
+class SolLeafTreeElement(item: SolNamedElement, private val icon: Icon? = null) : PsiTreeElementBase<SolNamedElement>(item) {
   override fun getPresentableText() = element?.let {
     when (it) {
       is SolConstructorDefinition -> "constructor${params(it.parameterList)}"
@@ -85,6 +86,10 @@ class SolLeafTreeElement(item: SolNamedElement) : PsiTreeElementBase<SolNamedEle
   private fun params(it: SolParameterList?): String {
     if (it == null) return "()"
     return "(" + it.parameterDefList.joinToString { it.typeName.text + " " + (it.name ?: "") } + ")"
+  }
+
+  override fun getIcon(open: Boolean): Icon? {
+    return icon ?: super.getIcon(open)
   }
 
   override fun getChildrenBase(): Collection<StructureViewTreeElement> = emptyList()

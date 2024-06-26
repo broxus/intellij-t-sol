@@ -13,13 +13,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 
-class ImportFileFix(element: SolReferenceElement) : LocalQuickFixOnPsiElement(element), HintAction, LocalQuickFix {
+class ImportFileFix(element: SolUserDefinedTypeName) : LocalQuickFixOnPsiElement(element), HintAction, LocalQuickFix {
   override fun startInWriteAction(): Boolean = false
 
   override fun getFamilyName(): String = "Import file"
 
   override fun showHint(editor: Editor): Boolean {
-    val element = startElement as SolReferenceElement?
+    val element = startElement as SolUserDefinedTypeName?
     if (element != null) {
       val suggestions = SolResolver.resolveTypeName(element).toSet()
       val fixText: String? = when {

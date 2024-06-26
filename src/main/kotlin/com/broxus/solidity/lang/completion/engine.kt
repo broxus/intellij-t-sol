@@ -66,7 +66,7 @@ object SolCompleter {
 
     return (allTypeNames
       .flatMap {
-        StubIndex.getElements(SolGotoClassIndex.KEY, it, project, GlobalSearchScope.projectScope(project), SolNamedElement::class.java)
+        StubIndex.getElements(SolGotoClassIndex.KEY, it, project, GlobalSearchScope.allScope(project), SolNamedElement::class.java)
       }
       .filterIsInstance<SolUserDefinedType>()
       .map { UserDefinedTypeLookupElement(it) }

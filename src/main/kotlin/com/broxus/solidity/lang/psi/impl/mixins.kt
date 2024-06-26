@@ -34,7 +34,9 @@ open class SolImportPathElement : SolStubbedNamedElementImpl<SolImportPathDefStu
   override fun getReference() = SolImportPathReference(this)
 }
 
-open class SolImportAliasMixin(node: ASTNode) : SolNamedElementImpl(node), SolReferenceElement {
+open class SolImportAliasMixin : SolStubbedNamedElementImpl<SolImportAliasDefStub>, SolNamedElement, SolReferenceElement {
+  constructor(node: ASTNode) : super(node)
+  constructor(stub: SolImportAliasDefStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
   override fun getIcon(flags: Int): Icon? {
     return SolidityIcons.LIBRARY
   }

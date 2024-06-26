@@ -16,7 +16,9 @@ interface SolElement : PsiElement {
 }
 
 // Unable to move this inside the interface due to the `$DefaultImpls not found` error in runtime
-fun SolNamedElement.outerContract() = parent?.findContract()
+fun SolNamedElement.outerContract() = parent?.takeIf { it is SolUserDefinedType }?.findContract()
+
+
 
 interface SolNamedElement : SolElement, PsiNamedElement, NavigatablePsiElement {
   val isTopLevel : Boolean

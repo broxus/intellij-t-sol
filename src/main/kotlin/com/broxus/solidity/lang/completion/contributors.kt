@@ -12,11 +12,14 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.codeInspection.SuppressionUtil.SUPPRESS_IN_LINE_COMMENT_PATTERN
 import com.intellij.openapi.editor.EditorModificationUtil
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.patterns.*
 import com.intellij.patterns.PlatformPatterns.psiElement
+import com.intellij.patterns.PlatformPatterns.string
+import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.search.GlobalSearchScope
@@ -207,6 +210,14 @@ fun insideContract(): PsiElementPattern.Capture<PsiElement> = psiElement<PsiElem
 fun inMemberAccess(): PsiElementPattern.Capture<PsiElement> = psiElement<PsiElement>()
   .withParent(SolMemberAccessExpression::class.java)
 
+fun noNameInspection(): PsiElementPattern.Capture<PsiComment> = psiElement<PsiComment>()
+  .withText(string().with(object : PatternCondition<String>("") {
+    override fun accepts(p0: String, p1: ProcessingContext?): Boolean {
+      return SUPPRESS_IN_LINE_COMMENT_PATTERN.matcher(p0).matches()
+    }
+
+  }))
+
 private inline fun <reified I : PsiElement> psiElement(): PsiElementPattern.Capture<I> {
   return psiElement(I::class.java)
 }
@@ -216,4 +227,22 @@ fun LookupElementBuilder.keywordPrioritised(): LookupElement = PrioritizedLookup
 fun LookupElementBuilder.insertParenthesis(finish: Boolean): LookupElementBuilder = this.withInsertHandler { ctx, _ ->
   ctx.document.insertString(ctx.selectionEndOffset, if (finish) "();" else "()")
   EditorModificationUtil.moveCaretRelatively(ctx.editor, 1)
+}
+
+fun inspections() = hashSetOf("Assigment", "FunctionArguments", "LinearizationImpossible", "MemberAccess", "NoReturn", "ResolveName", "SelfdestructRename", "UnimplementedMember", "UnprotectedFunction", "UnusedElement")
+
+class SolNoInspectionNameCompletionContributor : CompletionContributor(), DumbAware {
+  init {
+    extend(CompletionType.BASIC, noNameInspection(),
+      object : CompletionProvider<CompletionParameters>() {
+        override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+          inspections()
+            .asSequence()
+            .map { "$it " }
+            .map(LookupElementBuilder::create)
+            .map(result::addElement)
+            .toList()
+        }
+      })
+  }
 }

@@ -196,6 +196,8 @@
                                 implementationClass="com.broxus.solidity.lang.completion.SolContextCompletionContributor"/>
         <completion.contributor language="T-Sol"
                                 implementationClass="com.broxus.solidity.lang.completion.SolNatSpecCompletionContributor"/>
+        <completion.contributor language="T-Sol"
+                                implementationClass="com.broxus.solidity.lang.completion.SolNoInspectionNameCompletionContributor"/>
 
         <lang.formatter language="T-Sol"
                         implementationClass="com.broxus.solidity.ide.formatting.SolidityFormattingModelBuilder"/>

@@ -1,11 +1,11 @@
 package com.broxus.solidity.ide.inspections
 
-import com.intellij.codeInspection.LocalInspectionTool
-import com.intellij.codeInspection.ProblemsHolder
-import com.intellij.psi.PsiElementVisitor
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.types.SolInternalTypeFactory
 import com.broxus.solidity.lang.types.findContract
+import com.intellij.codeInspection.LocalInspectionTool
+import com.intellij.codeInspection.ProblemsHolder
+import com.intellij.psi.PsiElementVisitor
 
 class NoReturnInspection : LocalInspectionTool() {
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
@@ -168,9 +168,12 @@ private val SolYulBlock.returns: Boolean
   }
 
 private val SolBlock.returns: Boolean
-  get() = this.statementList.any { it.returns }
+  get() = (this.statementList + this.uncheckedBlockList.flatMap { it.statementList }).any { it.returns }
 
 private fun SolBlock.hasAssignment(el: SolNamedElement): Boolean =
+  this.statementList.any { it.hasAssignment(el) } || this.uncheckedBlockList.any { it.hasAssigment(el) }
+
+private fun SolUncheckedBlock.hasAssigment(el: SolNamedElement): Boolean =
   this.statementList.any { it.hasAssignment(el) }
 
 private val SolIfStatement.returns: Boolean

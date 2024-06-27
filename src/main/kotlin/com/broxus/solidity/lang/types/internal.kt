@@ -85,6 +85,7 @@ class SolInternalTypeFactory(project: Project) {
               Returns the number of distinct cells, data bits in the distinct cells and cell references in the distinct cells. If number of the distinct cells exceeds <code>n+1</code> then this function returns an <code>optional</code> that has no value. This function is a wrapper for the <code>CDATASIZEQ</code> opcode (<a href="https://test.ton.org/tvm.pdf">TVM</a> - A.11.7).
               */              
               function dataSizeQ(uint n) returns (optional(uint /*cells*/, uint /*bits*/, uint /*refs*/)); 
+              
               /**
               Converts a <code>TvmCell</code> to <code>TvmSlice</code>.
               */              
@@ -102,6 +103,74 @@ class SolInternalTypeFactory(project: Project) {
               Checks whether the <code>TvmSlice</code> is empty (i.e., contains no data bits and no cell references).
               */              
               function empty() returns (bool);
+              /**
+              Converts an ordinary or exotic cell into a <code>TvmSlice</code>, as if it were an ordinary cell. A flag is returned indicating whether <code>TvmCell</code> is exotic. If that be the case, its type can later be deserialized from the first eight bits of <code>TvmSlice</code>.
+              
+              Example:
+              
+              <code>TvmCell cellProof = ...;
+              TvmBuilder b;
+              b.store(
+                  uint8(3), // type of MerkleProof exotic cell
+                  tvm.hash(cellProof),
+                  cellProof.depth(),
+                  cellProof
+              );
+              
+              {
+                  // convert builder to exotic cell
+                  TvmCell merkleProof = b.toExoticCell();
+                  (TvmSlice s, bool isExotic) = merkleProof.exoticToSlice();
+                  // isExotic == true
+                  uint8 flag = s.load(uint8); // flag == 3
+              }
+              
+              {
+                  // convert builder to ordinary cell
+                  TvmCell cell = b.toCell();
+                  (TvmSlice s, bool isExotic) = cell.exoticToSlice();
+                  // isExotic == false
+                  uint8 flag = s.load(uint8); // flag == 3
+              }</code>
+              @custom:version min=0.72.0
+              */
+              function exoticToSlice() returns (TvmSlice, bool);
+              /**
+              Loads an exotic cell and returns an ordinary cell. If the cell is already ordinary, does nothing. If it cannot be loaded, throws an exception. It is wrapper for opcode XLOAD
+              Example:
+              
+              <code>TvmCell cellProof = ...;
+              TvmBuilder b;
+              b.store(
+                  uint8(3), // type of MerkleProof exotic cell
+                  tvm.hash(cellProof),
+                  cellProof.depth(),
+                  cellProof
+              );
+              
+              TvmCell cell = merkleProof.loadExoticCell(); // cell == cellProof</code>
+              @custom:version min=0.72.0
+              */  
+              function loadExoticCell() returns (TvmCell);
+              /**
+              Loads an exotic cell and returns an ordinary cell. If the cell is already ordinary, does nothing. If it cannot be loaded, does not throw exception and ok is equal to false. It is wrapper for opcode XLOADQ.
+              Example:
+              
+              <code>TvmCell cellProof = ...;
+              TvmBuilder b;
+              b.store(
+                  uint8(3), // type of MerkleProof exotic cell
+                  tvm.hash(cellProof),
+                  cellProof.depth(),
+                  cellProof
+              );
+              
+              (TvmCell cell, bool ok) = merkleProof.loadExoticCellQ();
+              // cell == cellProof
+              // ok == true</code>
+              @custom:version min=0.72.0
+              */  
+              function loadExoticCellQ() returns (TvmCell cell, bool ok);
               /**
               Returns the number of data bits and references in the <code>TvmSlice</code>.
               */  
@@ -318,11 +387,17 @@ class SolInternalTypeFactory(project: Project) {
               /**
               Skips the first <code>length</code> bits and <code>refs</code> references from the <code>TvmSlice</code>.
               */              
-              function skip(uint length);
+              function skip(uint10 length);
               /**
               Skips the first <code>length</code> bits and <code>refs</code> references from the <code>TvmSlice</code>.
+              @custom:version max=0.71.0
               */              
-              function skip(uint length, uint refs);
+              function skip(uint10 length, uint2 refs);
+              /**
+              Skips the first <code>length</code> bits and <code>refs</code> references from the <code>TvmSlice</code>.
+              @custom:version min=0.72.0              
+              */              
+              function skip(uint10 length, uint3 refs);
               
               /**
                Returns the count <code>n</code> of leading zero bits in <code>TvmSlice</code>, and removes these bits from <code>TvmSlice</code>.
@@ -481,6 +556,23 @@ class SolInternalTypeFactory(project: Project) {
   val tvmBuilder: SolContractDefinition by lazy {
     psiFactory.createContract("""
           contract TvmBuilder {
+              /**
+              Creates an exotic cell from TvmBuilder. It is wrapper for opcodes TRUE ENDXC.
+              
+              Examples:
+              
+              <code>TvmCell cellProof = getCell();
+              TvmBuilder b;
+              b.store(
+                  uint8(3), // type of MerkleProof exotic cell
+                  tvm.hash(cellProof),
+                  cellProof.depth(),
+                  cellProof
+              );
+              TvmCell merkleProof = b.toExoticCell();</code>
+              @custom:version min=0.72.0
+              */  
+              function toExoticCell() returns (TvmCell);
 							/**
 Converts a <code>TvmBuilder</code> into <code>TvmSlice</code>.
 							*/
@@ -631,7 +723,7 @@ See example of how to work with TVM specific types:
 							*/
 							function storeUintLE8(uint64 value); 
 
-                            // storeUintLE8 is the final function here!
+              // storeUintLE8 is the final function here!
  
             }
           """)
@@ -639,6 +731,9 @@ See example of how to work with TVM specific types:
 
   val extraCurrencyCollection: SolContractDefinition by lazy {
       psiFactory.createContract("""
+            /**
+               @custom:version max=0.71.0
+            */
             contract ExtraCurrencyCollection {
             }
           """)
@@ -1405,8 +1500,45 @@ See example of how to use this function:
 							5. if <code>flag</code> has bit +1 then <code>value = remaining_balance - value</code>.
 							6. <code>reserve = value</code>.
 							7. Check <code>0 <= reserve <= remaining_balance</code>.</pre>
+              @custom:version max=0.71.0
 							*/
 							function rawReserve(uint value, ExtraCurrencyCollection currency, uint8 flag);
+
+							/**
+							Creates an output action that reserves reserve nanotons. It is roughly equivalent to create an outbound message carrying reserve nanotons to oneself, so that the subsequent output actions would not be able to spend more money than the remainder. It's a wrapper for opcodes "RAWRESERVE" and "RAWRESERVEX". See <a href="https://test.ton.org/tvm.pdf">TVM</a>.
+
+							Let's denote:
+							<li><code>original_balance</code>is balance of the contract before the computing phase that is equal to balance of the contract before the transaction minus storage fee. Note: <code>original_balance</code> doesn't include <code>msg.value</code> and <code>original_balance</code> is not equal to <code>address(this).balance</code>.</li>
+							<li><code>remaining_balance</code>is contract's current remaining balance at the action phase after some handled actions and before handing the "rawReserve" action.</li>
+							
+							Let's consider how much nanotons (reserve) are reserved in all cases of flag:
+							<li>0 -> <code>reserve = value</code> nanotons.</li>
+							<li>1 -> <code>reserve = remaining_balance - value</code> nanotons.</li>
+							<li>2 -> <code>reserve = min(value, remaining_balance)</code> nanotons.</li>
+							<li>3 = 2 + 1 -> <code>reserve = remaining_balance - min(value, remaining_balance)</code> nanotons.</li>
+							<li>4 -> <code>reserve = original_balance + value</code> nanotons.</li>
+							<li>5 = 4 + 1 -> <code>reserve = remaining_balance - (original_balance + value)</code> nanotons.</li>
+							<li>6 = 4 + 2 -> <code>reserve = min(original_balance + value, remaining_balance) = remaining_balance</code> nanotons.</li>
+							<li>7 = 4 + 2 + 1 -> <code>reserve = remaining_balance - min(original_balance + value, remaining_balance)</code> nanotons.</li>
+							<li>12 = 8 + 4 -> <code>reserve = original_balance - value</code> nanotons.</li>
+							<li>13 = 8 + 4 + 1 -> <code>reserve = remaining_balance - (original_balance - value)</code> nanotons.</li>
+							<li>14 = 8 + 4 + 2 -> <code>reserve = min(original_balance - value, remaining_balance)</code> nanotons.</li>
+							<li>15 = 8 + 4 + 2 + 1 -> <code>reserve = remaining_balance - min(original_balance - value, remaining_balance)</code> nanotons.</li>
+
+							All other values of <code>flag</code> are invalid.
+							
+							To make it clear, let's consider the order of <code>reserve</code> calculation:
+
+							<pre>1. if <code>flag</code> has bit <code>+8</code> then <code>value = -value</code>.
+							2. if <code>flag</code> has bit <code>+4</code> then <code>value += original_balance</code>.
+							3. Check <code>value >= 0</code>.
+							4. if <code>flag</code> has bit <code>+2</code> then <code>value = min(value, remaining_balance)</code>.
+							5. if <code>flag</code> has bit +1 then <code>value = remaining_balance - value</code>.
+							6. <code>reserve = value</code>.
+							7. Check <code>0 <= reserve <= remaining_balance</code>.</pre>
+              @custom:version min=0.72.0
+							*/
+							function rawReserve(uint value, mapping(uint32 => varUint32) currency, uint8 flag);
 							/**
 							Returns the initial code hash that contract had when it was deployed.
 							*/
@@ -1519,6 +1651,7 @@ See example of how to use this function:
 							function checkSign(TvmSlice data, TvmSlice signature, uint256 pubkey) returns (bool); 
 							/**
 							Inserts a public key into the <code>stateInit</code> data field. If the <code>stateInit</code> has wrong format then throws an exception.
+              @custom:version max=0.72.0
 							*/
 							function insertPubkey(TvmCell stateInit, uint256 pubkey) returns (TvmCell); 
 							/**
@@ -2011,6 +2144,7 @@ See example of how to use this function:
 							See also:
 							<li>sample <a href="https://github.com/tonlabs/samples/blob/master/solidity/22_sender.sol">22_sender.sol</a></li>
 							<li><a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmencodebody">tvm.encodeBody()</a></li>
+              @custom:version max=0.71.0
 							*/
 							function buildIntMsg(
                address dest,
@@ -2023,6 +2157,28 @@ See example of how to use this function:
                TvmCell stateInit 
            )
            returns (TvmCell);
+           
+           /**
+           							Generates an internal outbound message that contains a function call. The result <code>TvmCell</code> can be used to send a message using <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmsendrawmsg">tvm.sendrawmsg()</a> If the <code>function</code> is <code>responsible</code> then <code>callbackFunction</code> parameter must be set.
+           
+           							<code>dest</code>, <code>value</code> and <code>call</code> parameters are mandatory. Another parameters can be omitted. See <a href=https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#addresstransfer"><address>.transfer()</a> where these options and their default values are described.
+           
+           							See also:
+           							<li>sample <a href="https://github.com/tonlabs/samples/blob/master/solidity/22_sender.sol">22_sender.sol</a></li>
+           							<li><a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmencodebody">tvm.encodeBody()</a></li>
+           @custom:version min=0.72.0
+           							*/
+           							function buildIntMsg(
+                          address dest,
+                          uint128 value,
+           							/**
+           							*/
+           							functionName/*, [callbackFunction,] arg0, arg1, arg2, ...}*/ call,
+                          bool bounce,
+                          mapping(uint32 => varUint32) currencies, 
+                          TvmCell stateInit 
+                      )
+                      returns (TvmCell);
             /**
             Send the internal/external message <code>msg</code> with <code>flag</code>. It's a wrapper for opcode <code>SENDRAWMSG</code> (<a href="https://test.ton.org/tvm.pdf">TVM</a> - A.11.10). Internal message <code>msg</code> can be generated by <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmbuildintmsg">tvm.buildIntMsg()</a> Possible values of <code>flag</code> are described here: <a href=""><address>.transfer()</a>
             
@@ -2310,6 +2466,7 @@ causes a Panic error and thus state change reversion if the condition is not met
 							require(a == 6, 101); // throws an exception with code 101
 							require(a == 6, 101, "a is not equal to six"); // throws an exception with code 101 and string
 							require(a == 6, 101, a); // throws an exception with code 101 and number a</pre></code>
+              @custom:version min=0.72.0  
 							*/
 							function require(bool condition, string message);
 

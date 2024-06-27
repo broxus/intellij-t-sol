@@ -389,7 +389,7 @@ private UnfinishedUncheckedBlock ::= unchecked '{' Statement* {
     recoverWhile = UntilBraceRecover
 }
 
-private UncheckedBlock ::= UnfinishedUncheckedBlock '}'
+UncheckedBlock ::= UnfinishedUncheckedBlock '}'
 
 private UnfinishedBlock ::= '{' (UncheckedBlock | Statement)* {
     pin = 1

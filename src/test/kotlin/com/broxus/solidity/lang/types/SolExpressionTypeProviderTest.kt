@@ -329,6 +329,18 @@ class SolExpressionTypeProviderTest : SolTestBase() {
     """)
   }
 
+  fun testCoins() {
+    checkExpr("""
+        contract A {
+            function f() {
+                coins a;
+                a;
+              //^ varUint16
+            }
+        }
+    """)
+  }
+
   fun testIndexAccessType() {
     checkExpr(    """
       contract A {

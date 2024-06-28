@@ -38,6 +38,7 @@ fun getSolType(type: SolTypeName?): SolType {
         "bool" -> SolBoolean
         "string" -> SolString
         "address" -> SolAddress
+        "coins" -> SolInteger.COINS
         else -> {
           if (text.matches(SolFixedByte.regex)) {
             SolFixedByte.parse(text)

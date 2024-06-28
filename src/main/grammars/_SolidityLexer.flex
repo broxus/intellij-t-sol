@@ -212,6 +212,8 @@ PRAGMAALL=[^;]*
   "functionID"            { return FUNCTIONID; }
   "emptyMap"              { return EMPTYMAP; }
   "null"                  { return NULL; }
+  "nostorage"             { return NOSTORAGE; }
+  "coins"                 { return COINS; }
 
 
   {HEXLITERAL}            { return HEXLITERAL; }

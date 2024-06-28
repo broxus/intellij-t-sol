@@ -178,8 +178,9 @@ InheritanceSpecifier ::= UserDefinedTypeName ( '(' Expression ( ',' Expression )
 VisibilityModifier ::= ( public | internal | private )
 MutationModifier ::= (constant | immutable)
 StaticModifier ::= static
+NoStorageModifier ::= nostorage
 
-StateVariableDeclaration ::= TypeName (VisibilityModifier | MutationModifier | StaticModifier | OverrideSpecifier)* Identifier ('=' Expression)? ';'  {
+StateVariableDeclaration ::= TypeName (VisibilityModifier | MutationModifier | StaticModifier | OverrideSpecifier | NoStorageModifier)* Identifier ('=' Expression)? ';'  {
     implements = "com.broxus.solidity.lang.psi.SolStateVarElement"
     mixin = "com.broxus.solidity.lang.psi.impl.SolStateVarDeclMixin"
     stubClass = "com.broxus.solidity.lang.stubs.SolStateVarDeclStub"
@@ -558,7 +559,7 @@ private ScientificNumber ::= scientificNumber
 
 private ElementaryTypeNameExpression ::= ElementaryTypeName
 
-ElementaryTypeName ::= ( address 'payable' ) | address | bool | string | var | emptyMap
+ElementaryTypeName ::= ( address 'payable' ) | address | bool | string | var | emptyMap | coins
                      | 'TvmCell' | 'TvmSlice' | 'TvmBuilder' | 'ExtraCurrencyCollection'
 | mapping '(' (BytesArrayTypeName | ElementaryTypeName | UserDefinedTypeName) '=>' TypeName ')'
 | optional '(' TypeName (',' TypeName)* ')'

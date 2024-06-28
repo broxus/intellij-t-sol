@@ -184,6 +184,7 @@ data class SolInteger(val unsigned: Boolean, val size: Int, val isVarType : Bool
     val UINT_160 = SolInteger(true, 160)
     val INT_256 = SolInteger(false, 256)
     val MAX_INT_TYPE = SolInteger(false, 258)
+    val COINS = SolInteger(true, 16, true)
 
     fun parse(name: String): SolInteger {
       var unsigned = false
@@ -287,6 +288,8 @@ data class SolInteger(val unsigned: Boolean, val size: Int, val isVarType : Bool
       }
       else -> false
     }
+
+  override fun getMembers(project: Project): List<SolMember> = getSdkMembers(SolInternalTypeFactory.of(project).integerType)
 
   override fun toString() = "${if (isVarType) "var" else ""}${if (unsigned) "u" else ""}int$size".let {
     if (isVarType) it.substring(0, 3) + it.substring(3).capitalize() else it

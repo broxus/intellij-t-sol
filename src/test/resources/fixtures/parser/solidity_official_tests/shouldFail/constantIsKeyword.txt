@@ -15,7 +15,7 @@ T-Sol File
   PsiWhiteSpace(' ')
   PsiElement(constant)('constant')
   PsiWhiteSpace(' ')
-  PsiErrorElement:<mutation modifier>, <visibility modifier>, Identifier, override or static expected, got '='
+  PsiErrorElement:<mutation modifier>, <visibility modifier>, Identifier, nostorage, override or static expected, got '='
     PsiElement(=)('=')
   PsiWhiteSpace(' ')
   PsiElement(decimalNumber)('4')

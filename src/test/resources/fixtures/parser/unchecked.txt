@@ -29,7 +29,7 @@ T-Sol File
         PsiElement())(')')
       PsiWhiteSpace(' ')
       SolFunctionVisibilitySpecifierImpl(FUNCTION_VISIBILITY_SPECIFIER)
-          PsiElement(internal)('internal')
+        PsiElement(internal)('internal')
       PsiWhiteSpace(' ')
       SolStateMutabilityImpl(STATE_MUTABILITY)
         PsiElement(pure)('pure')

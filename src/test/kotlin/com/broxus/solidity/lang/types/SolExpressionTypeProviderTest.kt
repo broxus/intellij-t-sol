@@ -335,7 +335,7 @@ class SolExpressionTypeProviderTest : SolTestBase() {
             function f() {
                 coins a;
                 a;
-              //^ varUint16
+              //^ varuint16
             }
         }
     """)

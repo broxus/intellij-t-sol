@@ -475,10 +475,8 @@ abstract class SolMemberAccessElement(node: ASTNode) : SolNamedElementImpl(node)
         val usingType = it.type
         usingType == null || usingType == type
       }
-      .mapNotNull { it.library }
-      .distinct()
-      .flatMap { it.functionDefinitionList }
-    return libraries
+      .partition { it.library != null }
+    return libraries.first.distinct().flatMap { it.library!!.functionDefinitionList } + libraries.second.mapNotNull { it.freeFunc }
   }
 }
 
@@ -555,6 +553,9 @@ abstract class SolUsingForMixin(node: ASTNode) : SolElementImpl(node), SolUsingF
     get() = SolResolver.resolveTypeNameUsingImports(getTypeNameList()[0] as SolUserDefinedTypeName)
       .filterIsInstance<SolContractDefinition>()
       .firstOrNull()
+
+  override val freeFunc: SolFunctionDefinition?
+    get() = SolResolver.resolveVarLiteral(getTypeNameList()[0] as SolUserDefinedTypeName).filterIsInstance<SolFunctionDefinition>().firstOrNull()
 }
 
 fun PsiElement.getAliases() = containingFile.children.asSequence()

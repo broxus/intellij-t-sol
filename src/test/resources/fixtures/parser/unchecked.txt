@@ -40,7 +40,7 @@ T-Sol File
         PsiElement(()('(')
         SolParameterDefImpl(PARAMETER_DEF)
           SolElementaryTypeNameImpl(ELEMENTARY_TYPE_NAME)
-            PsiElement(bool)('bool')
+            PsiElement(boolType)('bool')
         PsiElement(,)(',')
         PsiWhiteSpace(' ')
         SolParameterDefImpl(PARAMETER_DEF)

@@ -128,5 +128,10 @@ interface SolHasModifiersElement : SolReferenceElement
 interface SolUsingForElement : PsiElement {
   val type: SolType?
   val library: SolContractDefinition?
+  val freeFunc: SolFunctionDefinition?
   fun getTypeNameList(): List<SolTypeName>
+}
+
+interface SolExpressionListElement {
+  val expressionList: List<SolExpression>
 }

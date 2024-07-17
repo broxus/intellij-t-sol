@@ -36,6 +36,7 @@ fun getSolType(type: SolTypeName?): SolType {
     is SolElementaryTypeName -> {
       when (val text = type.firstChild.text) {
         "bool" -> SolBoolean
+        "qbool" -> SolQBoolean
         "string" -> SolString
         "address" -> SolAddress
         "coins" -> SolInteger.COINS
@@ -44,7 +45,7 @@ fun getSolType(type: SolTypeName?): SolType {
             SolFixedByte.parse(text)
           } else {
             try {
-              SolInteger.parse(text)
+              SolInteger.parse(text, findPragmaVersion(type))
             } catch (e: IllegalArgumentException) {
               SolUnknown
             }
@@ -72,7 +73,7 @@ fun getSolType(type: SolTypeName?): SolType {
       }
     }
     is SolOptionalTypeName -> SolOptional(type.typeNameList.foldTypes())
-    is SolVectorTypeName -> SolVector(type.typeNameList.foldTypes())
+    is SolStackOrVectorTypeName -> type.typeNameList.foldTypes().let { t -> if (type.firstChild.text == "stack") SolStack(t) else SolVector(t) }
     else -> SolUnknown
   }
 }
@@ -266,7 +267,7 @@ fun inferExprType(expr: SolExpression?): SolType {
     is SolAndExpression,
     is SolOrExpression,
     is SolEqExpression,
-    is SolCompExpression -> SolBoolean
+    is SolCompExpression -> (expr as? SolExpressionListElement)?.expressionList?.let { if (it.any { it.type.let { it is SolInteger && it.isQuiet } }) SolQBoolean else SolBoolean } ?: SolBoolean
     is SolTernaryExpression -> inferExprType(expr.expressionList.secondOrNull())
     is SolIndexAccessExpression -> {
       when (val arrType = inferExprType(expr.expressionList.firstOrNull())) {
@@ -296,6 +297,8 @@ fun inferExprType(expr: SolExpression?): SolType {
         } else it
       }
     is SolMetaTypeExpression -> SolMetaType(getSolType(expr.typeName))
+    is SolNullExpression -> SolNull
+    is SolNaNExpression -> SolNaN
     else -> SolUnknown
   }
 }

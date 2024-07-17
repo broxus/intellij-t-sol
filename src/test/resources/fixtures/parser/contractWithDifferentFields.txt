@@ -64,7 +64,7 @@ T-Sol File
     PsiWhiteSpace('\n    ')
     SolStateVariableDeclarationImpl(STATE_VARIABLE_DECLARATION)
       SolElementaryTypeNameImpl(ELEMENTARY_TYPE_NAME)
-        PsiElement(bool)('bool')
+        PsiElement(boolType)('bool')
       PsiWhiteSpace(' ')
       PsiElement(Identifier)('voted')
       PsiElement(;)(';')

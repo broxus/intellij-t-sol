@@ -5,6 +5,9 @@ import com.broxus.solidity.lang.psi.impl.Linearizable
 import com.broxus.solidity.lang.psi.parentOfType
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.types.SolInteger.Companion.UINT_160
+import com.github.yuchi.semver.Range
+import com.github.yuchi.semver.SemVer
+import com.github.yuchi.semver.Version
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.openapi.util.UserDataHolder
@@ -104,12 +107,33 @@ object SolUnknown : SolPrimitiveType {
   override fun toString() = "<unknown>"
 }
 
+object SolNull : SolPrimitiveType {
+  override fun isAssignableFrom(other: SolType): Boolean = false
+
+  override fun toString() = "null"
+}
+
+object SolNaN : SolPrimitiveType {
+  override fun isAssignableFrom(other: SolType): Boolean = false
+
+  override fun toString() = "NaN"
+}
+
+
 object SolBoolean : SolPrimitiveType {
   override fun isAssignableFrom(other: SolType): Boolean =
     other == SolBoolean
 
   override fun toString() = "bool"
 }
+
+object SolQBoolean : SolPrimitiveType {
+  override fun isAssignableFrom(other: SolType): Boolean =
+    other == SolQBoolean || other == SolBoolean || other == SolNaN
+
+  override fun toString() = "qbool"
+}
+
 
 object SolString : SolPrimitiveType {
   override fun isAssignableFrom(other: SolType): Boolean =
@@ -148,6 +172,19 @@ data class SolVector(val type: SolType) : SolType {
 
 }
 
+data class SolStack(val type: SolType) : SolType {
+  override fun isAssignableFrom(other: SolType): Boolean {
+    return (other as? SolStack)?.type == type
+  }
+
+  override fun getRefs(): List<TypeRef> = listOf(TypeRef("T0", type))
+
+  override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).stackType)
+
+  override fun toString() = "SolStack($type)"
+
+}
+
 object SolAddress : SolPrimitiveType {
   override fun isAssignableFrom(other: SolType): Boolean =
     when (other) {
@@ -179,21 +216,27 @@ data class SolFixedNumber(val unsigned: Boolean, val size: Int, val decimaSize :
 
 }
 
-data class SolInteger(val unsigned: Boolean, val size: Int, val isVarType : Boolean = false) : SolNumeric {
+data class SolInteger(val unsigned: Boolean, val size: Int, val isVarType : Boolean = false, val isQuiet: Boolean = false) : SolNumeric {
   companion object {
     val UINT_160 = SolInteger(true, 160)
     val INT_256 = SolInteger(false, 256)
     val MAX_INT_TYPE = SolInteger(false, 258)
     val COINS = SolInteger(true, 16, true)
+    private val int257Version = Version("0.74.0")
 
-    fun parse(name: String): SolInteger {
+    fun parse(name: String, pragmaRange: Range? = null): SolInteger {
       var unsigned = false
       var varType = false
-      var size = 256
+      var qType = false
+      val size : Int
       var typeName = name
       if (typeName.startsWith("var")) {
         typeName = typeName.substring(3).replaceFirstChar { it.lowercase() }
         varType = true
+      }
+      if (typeName.startsWith("q")) {
+        qType = true
+        typeName = typeName.substring(1)
       }
       if (typeName.startsWith("u")) {
         unsigned = true
@@ -209,8 +252,10 @@ data class SolInteger(val unsigned: Boolean, val size: Int, val isVarType : Bool
         } catch (e: NumberFormatException) {
           throw IllegalArgumentException("Incorrect int typename: $name")
         }
+      } else {
+        size = if (unsigned || pragmaRange == null || SemVer.isGreaterThenRange(int257Version, pragmaRange)) 256 else 257
       }
-      return SolInteger(unsigned, size, varType)
+      return SolInteger(unsigned, size, varType, qType)
     }
 
     fun inferType(numberLiteral: SolNumberLiteral): SolInteger {
@@ -286,14 +331,15 @@ data class SolInteger(val unsigned: Boolean, val size: Int, val isVarType : Bool
           this.size >= other.size
         }
       }
+      is SolNaN -> this.isQuiet
       else -> false
     }
 
-  override fun getMembers(project: Project): List<SolMember> = getSdkMembers(SolInternalTypeFactory.of(project).integerType)
+  override fun getRefs(): List<TypeRef> = if (isQuiet) listOf(TypeRef("T0", SolInteger(unsigned, size, isVarType, false))) else emptyList()
 
-  override fun toString() = "${if (isVarType) "var" else ""}${if (unsigned) "u" else ""}int$size".let {
-    if (isVarType) it.substring(0, 3) + it.substring(3).capitalize() else it
-  }
+  override fun getMembers(project: Project): List<SolMember> = getSdkMembers(SolInternalTypeFactory.of(project).integerType).let { if (isQuiet) it + getSdkMembers(SolInternalTypeFactory.of(project).quietType) else it }
+
+  override fun toString() = "${if (isQuiet) "q" else ""}${if (isVarType) "var" else ""}${if (unsigned) "u" else ""}int$size"
 }
 
 data class SolContract(val ref: SolContractDefinition, val builtin: Boolean = false) : SolUserType, Linearizable<SolContract> {

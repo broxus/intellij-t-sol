@@ -167,7 +167,6 @@ class SolFunctionResolveTest : SolResolveTestBase() {
         }
 
         contract B is Super {
-            using Library for bytes;
 
             function doit(bytes value) {
                 value.something(60);

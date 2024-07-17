@@ -31,7 +31,7 @@ T-Sol File
         PsiWhiteSpace(' ')
         SolIndexedParamDefImpl(INDEXED_PARAM_DEF)
           SolElementaryTypeNameImpl(ELEMENTARY_TYPE_NAME)
-            PsiElement(bool)('bool')
+            PsiElement(boolType)('bool')
           PsiWhiteSpace(' ')
           PsiElement(indexed)('indexed')
           PsiWhiteSpace(' ')

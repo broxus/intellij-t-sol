@@ -53,9 +53,10 @@ class SolInternalTypeFactory(project: Project) {
 
   private val everBuiltinTypes: Map<String, SolNamedElement> by lazy {
     listOf(
-      tvmCell,
-      tvmSlice,
-      tvmBuilder,
+      tvmCell.ref,
+      tvmSlice.ref,
+      tvmBuilder.ref,
+      stringBuilderType.ref,
       extraCurrencyCollection,
     ).associateBy { it.name!! }
   }
@@ -70,8 +71,8 @@ class SolInternalTypeFactory(project: Project) {
     else -> null
   }
 
-  val tvmCell: SolContractDefinition by lazy {
-    psiFactory.createContract("""
+  val tvmCell: SolContract by lazy {
+    contract("""
           contract TvmCell {
               /**
               Returns the depth of <code>TvmSlice</code>. If the <code>TvmSlice</code> has no references, then 0 is returned, otherwise function result is one plus the maximum of depths of the cells referred to from the slice.
@@ -93,11 +94,11 @@ class SolInternalTypeFactory(project: Project) {
               
                // toSlice is the final function here!
           }
-        """)
+        """, "toSlice", "TvmCell c; c.")
   }
 
-  val tvmSlice: SolContractDefinition by lazy {
-    psiFactory.createContract("""
+  val tvmSlice: SolContract by lazy {
+    contract("""
           contract TvmSlice {
               /**
               Checks whether the <code>TvmSlice</code> is empty (i.e., contains no data bits and no cell references).
@@ -108,7 +109,7 @@ class SolInternalTypeFactory(project: Project) {
               
               Example:
               
-              <code>TvmCell cellProof = ...;
+              <pre><code>TvmCell cellProof = ...;
               TvmBuilder b;
               b.store(
                   uint8(3), // type of MerkleProof exotic cell
@@ -131,7 +132,7 @@ class SolInternalTypeFactory(project: Project) {
                   (TvmSlice s, bool isExotic) = cell.exoticToSlice();
                   // isExotic == false
                   uint8 flag = s.load(uint8); // flag == 3
-              }</code>
+              }</code></pre>
               @custom:version min=0.72.0
               */
               function exoticToSlice() returns (TvmSlice, bool);
@@ -139,7 +140,7 @@ class SolInternalTypeFactory(project: Project) {
               Loads an exotic cell and returns an ordinary cell. If the cell is already ordinary, does nothing. If it cannot be loaded, throws an exception. It is wrapper for opcode XLOAD
               Example:
               
-              <code>TvmCell cellProof = ...;
+              <pre><code>TvmCell cellProof = ...;
               TvmBuilder b;
               b.store(
                   uint8(3), // type of MerkleProof exotic cell
@@ -148,7 +149,7 @@ class SolInternalTypeFactory(project: Project) {
                   cellProof
               );
               
-              TvmCell cell = merkleProof.loadExoticCell(); // cell == cellProof</code>
+              TvmCell cell = merkleProof.loadExoticCell(); // cell == cellProof</code></pre>
               @custom:version min=0.72.0
               */  
               function loadExoticCell() returns (TvmCell);
@@ -156,7 +157,7 @@ class SolInternalTypeFactory(project: Project) {
               Loads an exotic cell and returns an ordinary cell. If the cell is already ordinary, does nothing. If it cannot be loaded, does not throw exception and ok is equal to false. It is wrapper for opcode XLOADQ.
               Example:
               
-              <code>TvmCell cellProof = ...;
+              <pre><code>TvmCell cellProof = ...;
               TvmBuilder b;
               b.store(
                   uint8(3), // type of MerkleProof exotic cell
@@ -167,7 +168,7 @@ class SolInternalTypeFactory(project: Project) {
               
               (TvmCell cell, bool ok) = merkleProof.loadExoticCellQ();
               // cell == cellProof
-              // ok == true</code>
+              // ok == true</code></pre>
               @custom:version min=0.72.0
               */  
               function loadExoticCellQ() returns (TvmCell cell, bool ok);
@@ -217,9 +218,9 @@ class SolInternalTypeFactory(project: Project) {
               /**
               Sequentially decodes values of the specified types from the <code>TvmSlice</code>. Supported types: <code>uintN</code>, <code>intN</code>, <code>bytesN</code>, <code>bool</code>, <code>ufixedMxN</code>, <code>fixedMxN</code>, <code>address</code>, <code>contract</code>, <code>TvmCell</code>, <code>bytes</code>, <code>string</code>, <code>mapping</code>, <code>ExtraCurrencyCollection</code>, <code>array</code>, <code>optional</code> and <code>struct</code>. Example:
               
-              <code><pre>TvmSlice slice = ...;
+              <pre><code><pre>TvmSlice slice = ...;
               (uint8 a, uint16 b) = slice.decode(uint8, uint16);
-              (uint16 num0, uint32 num1, address addr) = slice.decode(uint16, uint32, address);</pre></code>
+              (uint16 num0, uint32 num1, address addr) = slice.decode(uint16, uint32, address);</code></pre>
                @custom:no_validation
                @custom:deprecated
               */              
@@ -227,9 +228,9 @@ class SolInternalTypeFactory(project: Project) {
               /**
               Sequentially decodes values of the specified types from the <code>TvmSlice</code>. Supported types: <code>uintN</code>, <code>intN</code>, <code>bytesN</code>, <code>bool</code>, <code>ufixedMxN</code>, <code>fixedMxN</code>, <code>address</code>, <code>contract</code>, <code>TvmCell</code>, <code>bytes</code>, <code>string</code>, <code>mapping</code>, <code>ExtraCurrencyCollection</code>, <code>array</code>, <code>optional</code> and <code>struct</code>. Example:
               
-              <code><pre>TvmSlice slice = ...;
+              <pre><code><pre>TvmSlice slice = ...;
               (uint8 a, uint16 b) = slice.decode(uint8, uint16);
-              (uint16 num0, uint32 num1, address addr) = slice.decode(uint16, uint32, address);</pre></code>
+              (uint16 num0, uint32 num1, address addr) = slice.decode(uint16, uint32, address);</code></pre>
                @custom:no_validation
                @custom:version min=0.70.0
               */              
@@ -239,9 +240,9 @@ class SolInternalTypeFactory(project: Project) {
               
               Supported types: <code>uintN</code>, <code>intN</code>, <code>bytesN</code>, <code>bool</code>, <code>ufixedMxN</code>, <code>fixedMxN</code>, <code>address</code>, <code>contract</code>, <code>TvmCell</code>, <code>bytes</code>, <code>string</code>, <code>mapping</code>, <code>ExtraCurrencyCollection</code>, and <code>array</code>.
               
-              <code><pre>TvmSlice slice = ...;
+              <pre><code>TvmSlice slice = ...;
               optional(uint) a = slice.decodeQ(uint);
-              optional(uint8, uint16) b = slice.decodeQ(uint8, uint16);</pre></code>
+              optional(uint8, uint16) b = slice.decodeQ(uint8, uint16);</code></pre>
               @custom:no_validation
               @custom:deprecated
               */              
@@ -469,7 +470,7 @@ class SolInternalTypeFactory(project: Project) {
               /**
               @custom:version min=0.70.0              
               */              
-              function loadUintLE8Q() returns (optional(uint64));;
+              function loadUintLE8Q() returns (optional(uint64));
               
               /**
               @custom:version min=0.70.0              
@@ -550,18 +551,18 @@ class SolInternalTypeFactory(project: Project) {
               function preloadUintLE8Q() returns (optional(uint64));
                // preloadUintLE8Q is the final function here!
           }
-        """)
+        """, "preloadUintLE8Q", "TvmSlice s; s.")
   }
 
-  val tvmBuilder: SolContractDefinition by lazy {
-    psiFactory.createContract("""
+  val tvmBuilder: SolContract by lazy {
+    contract("""
           contract TvmBuilder {
               /**
               Creates an exotic cell from TvmBuilder. It is wrapper for opcodes TRUE ENDXC.
               
               Examples:
               
-              <code>TvmCell cellProof = getCell();
+              <pre><code>TvmCell cellProof = getCell();
               TvmBuilder b;
               b.store(
                   uint8(3), // type of MerkleProof exotic cell
@@ -569,7 +570,7 @@ class SolInternalTypeFactory(project: Project) {
                   cellProof.depth(),
                   cellProof
               );
-              TvmCell merkleProof = b.toExoticCell();</code>
+              TvmCell merkleProof = b.toExoticCell();</code></pre>
               @custom:version min=0.72.0
               */  
               function toExoticCell() returns (TvmCell);
@@ -726,7 +727,7 @@ See example of how to work with TVM specific types:
               // storeUintLE8 is the final function here!
  
             }
-          """)
+          """, "storeUintLE8", "TvmBuilder b; b.")
   }
 
   val extraCurrencyCollection: SolContractDefinition by lazy {
@@ -842,13 +843,83 @@ Returns public key that is used to check the message signature. If the message i
     """, "storageFee", "tx.")
   }
 
+  val quietType: SolContract by lazy {
+    contract(
+      """
+        /**
+          @custom:typeArgument T2=T0
+          */
+          contract ${internalise("Quiet")} {
+          
+           /**
+          Checks whether <code><T></code> is <code>NaN</code>. <code>T</code> is <code>qintN</code>, <code>quintN</code> or <code>qbool</code>. Example:
+          
+<pre><code>          function checkOverflow(quint32 a, quint32 b) private pure returns(bool) {
+              quint32 s = a + b;
+              return s.isNaN();</code></pre>
+          }
+          @custom:version min=0.74.0
+*/
+          function isNaN() returns (bool);
+
+           /**
+          Returns "non-quiet" integer. If <code><T></code> is <code>NaN</code>, then throws an exception. <code>T</code> is <code>qintN</code>, <code>quintN</code> or <code>qbool</code>. Example:
+          
+<pre><code>          function f(quint32 a, quint32 b) private pure {
+              quint32 s = a + b;
+              if (!s.isNaN()) {
+                  uint32 ss = s.get(); 
+                  // ...
+              }
+          }</code></pre>
+          @custom:version min=0.74.0
+          */
+          function get() returns (T2)
+           /**
+          Returns "non-quiet" integer. If <code><T></code> is <code>NaN</code>, then returns default. <code>T</code> is <code>qintN</code>, <code>quintN</code> or <code>qbool</code>. Example:
+<pre><code>          function f(quint32 a, quint32 b) private pure {
+              quint32 s = a + b;
+              uint32 ss = s.getOr(42); // ss is equal to `a + b` or 42
+              // ... 
+          }</code></pre>
+          @custom:version min=0.74.0
+          */
+          function getOr(T2 default) returns (T2)
+          
+           /**
+          Returns "non-quiet" integer. If <code><T></code> is <code>NaN</code>, then returns default value. <code>T</code> is <code>qintN</code>, <code>quintN</code> or <code>qbool</code>. Example:
+          
+<pre><code>          function f(quint32 a, quint32 b) private pure {
+              quint32 s = a + b;
+              uint32 ss = s.getOrDefault(); // ss is equal to `a + b` or 0
+              // ... 
+          }</code></pre>
+          @custom:version min=0.74.0
+          */
+          function getOrDefault() returns (T2)
+           /**
+          Returns optional integer. If <code><T></code> is <code>NaN</code>, then returns <code>null</code>. <code>T</code> is <code>qintN</code>, <code>quintN</code> or <code>qbool</code>. Example:
+          
+          <pre><code>function f(quint32 a, quint32 b) private pure {
+              quint32 s = a + b;
+              optional(uint32) ss = s.toOptional(); // ss is equal to `a + b` or null
+              // ... 
+          }</code></pre>
+          @custom:version min=0.74.0
+          */
+          function toOptional() returns (optional(T2))
+          }
+        """, "", ""
+    )
+  }
+
   val integerType: SolContract by lazy {
       contract("""
         contract ${internalise("Integer")} {
                   /**
           Convert <code><Integer></code> to <code>T</code> type. <code>T</code> is integer type. Type of <code><Integer></code> and <code>T</code> must have same sign or bit-size. Never throws an exception. For example:
           
-          <code>uint8 a = 255;
+          <pre><code>uint8 a = 255;
           uint4 b = a.cast(uint4); // b == 15
           
           uint8 a = 255;
@@ -858,18 +929,18 @@ Returns public key that is used to check the message signature. If the message i
           int4 b = a.cast(uint4).cast(int4); // b == -1
           
           uint8 a = 255;
-          // int4 b = a.cast(int4); // compilation fail</code>
+          // int4 b = a.cast(int4); // compilation fail</code></pre>
           Note: conversion via <code>T(x)</code> throws an exception if <code>x</code> does not fit into <code>T</code> type. For example:
           
-          <code>uint8 a = 10;
+          <pre><code>uint8 a = 10;
           uint4 b = uint4(a); // OK, a == 10
           
           uint8 a = 100;
           uint4 b = uint4(a); // throws an exception because type(uint4).max == 15
           
           int8 a = -1;
-          uint8 b = uint8(a); // throws an exception because type(uint8).min == 0</code>
-          @custom:typeArgument T
+          uint8 b = uint8(a); // throws an exception because type(uint8).min == 0</code></pre>
+          @custom:typeArgument T:Int
           @custom:version min=0.73.0
           */
           function cast(T) returns (T);
@@ -1288,9 +1359,14 @@ Pops the last value from the <code>vector</code> and returns it.
 							*/
 							function pop() returns (Type);
 							/**
-Returns length of the <code>vector</code>.
+Returns the last value from the <code>vector</code>.
 							*/
 							function length() returns (uint8);
+							/**
+Returns length of the <code>vector</code>.
+@custom:version min=0.74.0
+							*/
+							function last() returns (Type);
 							/**
 Checks whether the <code>vector</code> is empty.
 							*/
@@ -1300,13 +1376,95 @@ Checks whether the <code>vector</code> is empty.
     """, "empty", "vector(string) ff; ff.")
   }
 
+  val stackType: SolContract by lazy {
+    contract("""
+      /**
+       @custom:typeArgument Type=T0
+       @custom:version min=0.74.0
+      */
+      contract ${internalise("Stack")} {
+							/**
+      Pushes an item onto the top of this stack.
+      @custom:version min=0.74.0
+      */
+      function push(Type item);
+							/**
+      Removes the item at the top of this stack and returns that item as the value of this function.
+      @custom:version min=0.74.0
+							*/
+      function pop() returns (Type);
+      
+							/**
+      Returns reference at the item at the top of this stack without removing it from the stack. Example:
+      
+      <pre><code>stack(int) st;
+      st.push(200);
+      st.top() += 25; // st == [225]
+      int item = st.top(); // item = 225, st == [225]</code></pre>
+        @custom:version min=0.74.0
+							*/
+      function top() returns (Type ref);
+							/**
+      Checks whether the stack is empty.
+      @custom:version min=0.74.0
+							*/
+      function empty() returns (bool);
+      							/**
+      
+      Sorts the specified stack into ascending order. Example:
+      
+      <pre><code>struct Point {
+          int x;
+          int y;
+      }
+      
+      function less(Point a, Point b) private pure returns(bool) {
+          return a.x < b.x || a.x == b.x && a.y < b.y;
+      }
+      
+      function testPoints() public pure {
+          stack(Point) st;
+          st.push(Point(20, 40));
+          st.push(Point(10, 10));
+          st.push(Point(20, 30));
+          st.sort(less);
+          Point p;
+          p = st.pop(); // p == Point(10, 10)
+          p = st.pop(); // p == Point(20, 30)
+          p = st.pop(); // p == Point(20, 40)
+      }</code></pre>
+      @custom:version min=0.74.0
+      */
+      function sort(compareCallback) internal pure returns(bool);
+      
+      /**
+      Reverses the order of the elements in the specified stack. Example:
+      <pre><code>
+      stack(int) st;
+      st.push(100);
+      st.push(200);
+      st.push(300);
+      int value = st.top(); // value == 300 
+      st.reverse();
+      value = st.pop(); // value == 100
+      value = st.pop(); // value == 200
+      value = st.pop(); // value == 300</code></pre>
+      @custom:version min=0.74.0
+							*/
+      function reverse();
+      // reverse is the final function here!
+      }
+    """, "reverse", "stack(string) ff; ff.")
+  }
+
+
 
   val abiType: SolContract by lazy {
     contract("""
       contract ${internalise("Abi")} {
       							/**
                 Generates data field of the <code>StateInit</code> (<a href="https://test.ton.org/tblkch.pdf">TBLKCH</a> - 3.1.7.). Parameters are the same as in <a href="https://github.com/everx-labs/TVM-Solidity-Compiler/blob/master/API.md#abiencodestateinit">abi.encodeStateInit()</a>.
-                <code>// SimpleWallet.sol
+                <pre><code>// SimpleWallet.sol
                 contract SimpleWallet {
                     uint static m_id;
                     address static m_creator;
@@ -1328,7 +1486,7 @@ Checks whether the <code>vector</code> is empty.
                     contr: SimpleWallet,
                     varInit: {m_id: 1, m_creator: address(this)},
                     pubkey: 0x3f82435f2bd40915c28f56d3c2f07af4108931ae8bf1ca9403dcf77d96250827
-                });</code>
+                });</code></pre>
                 @custom:version min=0.73.0
                 @custom:no_validation
 							*/
@@ -1494,6 +1652,34 @@ Checks whether the <code>vector</code> is empty.
                             // toLowerCase is the final function here!
         }
     """, "toLowerCase", "\"aa\".")
+  }
+
+  val stringBuilderType: SolContract by lazy {
+    contract("""
+      contract StringBuilder {
+							/**
+                Appends <code>bytes1</code> to the sequence.
+                @custom:version min=0.74.0
+							*/
+							function append(bytes1);
+							/**
+                Appends <code>bytes1</code> <code>n</code> times to the sequence.
+                @custom:version min=0.74.0
+							*/
+							function append(bytes1, uint31 n);
+							/**
+                Appends <code>string</code> to the sequence.
+                @custom:version min=0.74.0
+							*/
+							function append(string);
+							/**
+                Returns a string representing the data in this sequence.
+                @custom:version min=0.74.0
+							*/
+							function toString();
+                            // toString is the final function here!
+        }
+    """, "toString", "StringBuilder aa; aa.")
   }
 
   val rndType: SolContract by lazy {
@@ -2450,8 +2636,8 @@ See example of how to use this function:
             Send the internal/external message <code>msg</code> with <code>flag</code>. It's a wrapper for opcode <code>SENDRAWMSG</code> (<a href="https://test.ton.org/tvm.pdf">TVM</a> - A.11.10). Internal message <code>msg</code> can be generated by <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmbuildintmsg">tvm.buildIntMsg()</a> Possible values of <code>flag</code> are described here: <a href=""><address>.transfer()</a>
             
             <strong>Note</strong>: make sure that <code>msg</code> has a correct format and follows the <a href="https://github.com/ton-blockchain/ton/blob/master/crypto/block/block.tlb">TL-B scheme</a> of <code>Message X</code>. For example:\
-            <code><pre>TvmCell msg = ...
-            tvm.sendrawmsg(msg, 2);</pre></code>
+            <pre><code><pre>TvmCell msg = ...
+            tvm.sendrawmsg(msg, 2);</code></pre>
 
             If the function is called by external message and <code>msg</code> has a wrong format (for example, the field <code>init</code> of <code>Message X</code> is not valid) then the transaction will be replayed despite the usage of flag 2. It will happen because the transaction will fail at the action phase.
             */
@@ -2866,13 +3052,13 @@ causes a Panic error and thus state change reversion if the condition is not met
               /**
               Dumps <code>log</code> string. This function is a wrapper for TVM instructions <code>PRINTSTR</code> (for constant literal strings shorter than 16 symbols) and <code>STRDUMP</code> (for other strings). 
               <code>logtvm</code> is an alias for <code>tvm.log(string)</code>. Example:
-              <code>
+              <pre><code>
               tvm.log("Hello, world!");
               logtvm("99_Bottles");
               
               string s = "Some_text";
               tvm.log(s);
-              </code>
+              </code></pre>
               <b>Note:</b> For long strings dumps only the first 127 symbols.
               */
               function logtvm(string log);
@@ -2913,12 +3099,18 @@ causes a Panic error and thus state change reversion if the condition is not met
   }
 
   fun <T: SolNamedElement> getDeclarations(place: PsiElement, solNamedElements: List<T>): Sequence<T> {
-    return (place.containingFile.childrenOfType<SolPragmaDirective>().find { it.identifier.text == "ever" }?.let{ it.pragmaAll?.text?.takeIf { it.startsWith("-solidity ") }?.removePrefix("-solidity ") }?.let{runCatching { Range(it.trim()) }.getOrNull()}?.let { pragma ->
+    return (findPragmaVersion(place)?.let { pragma ->
       solNamedElements.filter { it.tagComments(VERSION_TAG)?.let { ApiVersion.parse(it).compatible(pragma) } ?: true }
     } ?: solNamedElements).asSequence()
   }
 
+
   private fun contract(@Language("T-Sol") contractBody: String, elementName: String, code: String) =
     SolContract(psiFactory.createContract(contractBody), true).also { if (elementName.isNotBlank()) finalElements[code] = elementName }
 
+}
+fun findPragmaVersion(place: PsiElement): Range? {
+  return place.containingFile.childrenOfType<SolPragmaDirective>().find { it.identifier.text == "ever" }
+    ?.let { it.pragmaAll?.text?.takeIf { it.startsWith("-solidity ") }?.removePrefix("-solidity ") }
+    ?.let { runCatching { Range(it.trim()) }.getOrNull() }
 }

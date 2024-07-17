@@ -1,13 +1,16 @@
 package com.broxus.solidity.lang.types
 
+import com.github.yuchi.semver.Range
+import org.junit.Assert.assertEquals
 import org.junit.Test
-
-import org.junit.Assert.*
 
 class SolIntegerParsingTest {
   @Test
   fun parseInt() {
     assertEquals(SolInteger(false, 256), SolInteger.parse("int"))
+    assertEquals(SolInteger(false, 256), SolInteger.parse("int", Range("0.73.0")))
+    assertEquals(SolInteger(false, 257), SolInteger.parse("int", Range("0.74.0")))
+    assertEquals(SolInteger(false, 257), SolInteger.parse("int", Range("0.75.0")))
   }
 
   @Test

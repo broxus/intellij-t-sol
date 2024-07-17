@@ -18,7 +18,10 @@ class SolUserDefinedTypeNameReference(element: SolUserDefinedTypeName) : SolRefe
     if (parent is SolNewExpressionElement) {
       return SolResolver.resolveNewExpression(parent)
     }
-    return SolResolver.resolveTypeNameUsingImports(element)
+    return SolResolver.resolveTypeNameUsingImports(element).takeIf { it.isNotEmpty()} ?: run {
+      val free = (parent as? SolUsingForDeclaration)?.freeFunc ?: return emptyList()
+      return listOf(free)
+    }
   }
 
   override fun getVariants() = SolCompleter.completeTypeName(element)

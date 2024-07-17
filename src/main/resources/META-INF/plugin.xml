@@ -13,6 +13,21 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <b>v1.6</b>
+        Features:
+        <ul>
+          <li>Built-in elements have been updated up to the <b>0.74.0</b> compiler version</li>
+          <li>Inspection for an element can be turned off by adding <code>'// noinspection &lt;name&gt;'</code> line before the element</li>
+          <li>Autocomplete for the <code>'name'</code> in <code>'// noinspection &lt;name&gt;'</code> expression</li>
+        </ul>
+        Bugfixes:
+        <ul>
+            <li>Lexer do not crashes on a file containing a comment only</li>
+            <li>References to the parent constructor are resolved correctly</li>
+            <li>Nested names are resolved correctly by the outer name part</li>
+            <li>Overloaded functions are not checked by 'Unused element inspection'</li>
+            <li>Fixed performance problem in searching override functions. Functionality depending on this feature is turned back on</li>
+        </ul>
         <b>v1.5</b>
         Features:
         <ul>

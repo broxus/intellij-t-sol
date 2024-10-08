@@ -128,6 +128,10 @@ class InferenceTest : SolResolveTestBase() {
 
   }
 
+  fun testTvmSliceFromString() {
+    TestCase.assertTrue(SolInternalTypeFactory.of(project).tvmSlice.isAssignableFrom(SolString))
+  }
+
   private fun checkType(type: SolType, @Language("T-Sol") code: String) {
     val (refElement, _) = resolveInCode<SolExpression>(code)
     TestCase.assertEquals(type, refElement.type)

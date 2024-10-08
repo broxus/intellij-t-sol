@@ -37,6 +37,7 @@ class SolInternalTypeFactory(project: Project) {
             msgType,
             txType,
             blockType,
+      blsType,
       mathType,
       tvmType,
       mappingType,
@@ -104,6 +105,28 @@ class SolInternalTypeFactory(project: Project) {
               Checks whether the <code>TvmSlice</code> is empty (i.e., contains no data bits and no cell references).
               */              
               function empty() returns (bool);
+              /**
+              Checks whether the <code>TvmSlice</code> contains no data bits.
+              @custom:version min=0.75.0
+              */              
+              function bitEmpty() returns (bool);
+              /**
+              Checks whether the <code>TvmSlice</code> contains no cell references.
+              @custom:version min=0.75.0
+              */              
+              function refEmpty() returns (bool);
+              
+              /**
+              Checks whether <code>prefix</code> is a prefix of <code>TvmSlice</code>
+              @custom:version min=0.75.0
+              */              
+              function startsWith(TvmSlice prefix) returns (bool);
+              
+              /**
+              Checks whether the first bit of <code>TvmSlice</code> is a one.
+              @custom:version min=0.75.0
+              */              
+              function startsWithOne() returns (bool);              
               /**
               Converts an ordinary or exotic cell into a <code>TvmSlice</code>, as if it were an ordinary cell. A flag is returned indicating whether <code>TvmCell</code> is exotic. If that be the case, its type can later be deserialized from the first eight bits of <code>TvmSlice</code>.
               
@@ -2730,6 +2753,22 @@ See example of how to use this function:
               @custom:typeArgument T:Int
 							*/
 							function muldivmod(T a, T b, T c) returns (T /*result*/, T /*remainder*/);
+
+              /**
+              Same as <code>math.muldivmod()</code> but returns only remainder. Example:
+              
+              <code>uint constant P = 2**255 - 19;
+              
+              function f() public pure {
+                  uint a = rnd.next(P);
+                  uint b = rnd.next(P);
+                  uint c = math.mulmod(a, b, P);
+                  //...</code>
+              }
+              @custom:typeArgument T:Int
+              @custom:version min=0.75.0
+              */
+              function mulmod(T a, T b, T c) returns (T /*remainder*/);
 							/**
 							Multiplies two values and then divides the result by a third value. <code>T</code> is integer type. The return value is rounded. <strong>floor</strong>, <strong>ceiling</strong> and <strong>nearest</strong> modes are used for <code>muldiv</code>, <code>muldivc</code> and <code>muldivr</code> respectively. See also: <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#division-and-rounding">Division and rounding</a>
 
@@ -2822,6 +2861,258 @@ See example of how to use this function:
     """, "sign", "math.")
   }
 
+  val blsType: SolType by lazy {
+    contract("""
+      contract ${internalise("Bls")}{
+          /** 
+          Checks BLS signature. Returns <code>true</code> on success, <code>false</code> otherwise.
+          @custom:version min=0.75.0
+          */
+          function verify(TvmSlice pubkey, TvmSlice message, TvmSlice sign) returns (bool);
+
+          /** 
+          Aggregates signatures if <code>signs.length() > 0</code>. Throws an exception if <code>signs.empty()</code> or if some <code>signs[i]</code> is not a valid signature.
+
+          <pre><code>
+          vector(TvmSlice) signs;
+          signs.push("8b1eac18b6e7a38f2b2763c9a03c3b6cff4110f18c4d363eec455463bd5c8671fb81204c4732406d72468a1474df6133147a2240f4073a472ef419f23011ee4d6cf02fceb844398e33e2e331635dace3b26464a6851e10f6895923c568582fbd");
+          signs.push("94ec60eb8d2b657dead5e1232b8f9cc0162467b08f02e252e97622297787a74b6496607036089837fe5b52244bbbb6d00d3d7cc43812688451229d9e96f704401db053956c588203ba7638e8882746c16e701557f34b0c08bbe097483aec161e");
+          signs.push("8cdbeadb3ee574a4f796f10d656885f143f454cc6a2d42cf8cabcd592d577c5108e4258a7b14f0aafe6c86927b3e70030432a2e5aafa97ee1587bbdd8b69af044734defcf3c391515ab26616e15f5825b4b022a7df7b44f65a8792c54762e579");
+          TvmSlice sign = bls.aggregate(signs);</code></pre>
+          @custom:version min=0.75.0
+          */
+          function aggregate(vector(TvmSlice) signs) returns (TvmSlice);
+
+          /** 
+          Aggregates signatures if <code>signs.length() > 0</code>. Throws an exception if <code>signs.empty()</code> or if some <code>signs[i]</code> is not a valid signature.
+          <pre><code>
+          TvmSlice sign0 = "8b1eac18b6e7a38f2b2763c9a03c3b6cff4110f18c4d363eec455463bd5c8671fb81204c4732406d72468a1474df6133147a2240f4073a472ef419f23011ee4d6cf02fceb844398e33e2e331635dace3b26464a6851e10f6895923c568582fbd";
+          TvmSlice sign1 = "94ec60eb8d2b657dead5e1232b8f9cc0162467b08f02e252e97622297787a74b6496607036089837fe5b52244bbbb6d00d3d7cc43812688451229d9e96f704401db053956c588203ba7638e8882746c16e701557f34b0c08bbe097483aec161e";
+          TvmSlice sign2 = "8cdbeadb3ee574a4f796f10d656885f143f454cc6a2d42cf8cabcd592d577c5108e4258a7b14f0aafe6c86927b3e70030432a2e5aafa97ee1587bbdd8b69af044734defcf3c391515ab26616e15f5825b4b022a7df7b44f65a8792c54762e579";
+          TvmSlice sign = bls.aggregate(sign0, sign1, sign2);</code></pre>
+          @custom:version min=0.75.0
+          */
+          function aggregate(TvmSlice vararg) returns (TvmSlice);
+
+          /** 
+          Checks aggregated BLS signature for <code>pubkeys</code> and <code>message</code>. Returns <code>true</code> on success, <code>false</code> otherwise. Return false if <code>pubkeys.empty()</code>.
+          <pre><code>
+          vector(TvmSlice) pubkeys;
+          pubkeys.push("a44184a47ad3fc0069cf7a95650a28af2ed715beab28651a7ff433e26c0fff714d21cc5657367bc563c6df28fb446d8f");
+          pubkeys.push("832c0eca9f8cae87a1c6362838b34723cf63a1f69e366d64f3c61fc237217c4bea601cfbf4d6c18849ed4f9487b4a20c");
+          pubkeys.push("9595aa3c5cb3d7c763fa6b52294ebde264bdf49748efbbe7737c35532db8fabc666bb0d186f329c8bdafddfbdcbc3ca6");
+          TvmSlice message = TvmSlice(bytes("Hello, BLS fast aggregate and verify!"));
+          TvmSlice singature = "8420b1944c64f74dd67dc9f5ab210bab928e2edd4ce7e40c6ec3f5422c99322a5a8f3a8527eb31366c9a74752d1dce340d5a98fbc7a04738c956e74e7ba77b278cbc52afc63460c127998aae5aa1c3c49e8c48c30cc92451a0a275a47f219602";
+          bool ok = bls.fastAggregateVerify(pubkeys, message, singature);</code></pre>
+          @custom:version min=0.75.0
+          */
+          function fastAggregateVerify(vector(TvmSlice) pubkeys, TvmSlice message, TvmSlice signature) returns (bool);
+
+          /** 
+          Checks aggregated BLS signature for <code>pubkeys</code> and <code>message</code>. Returns <code>true</code> on success, <code>false</code> otherwise. Return false if <code>pubkeys.empty()</code>.
+          <pre><code>
+          TvmSlice pk0 = "a44184a47ad3fc0069cf7a95650a28af2ed715beab28651a7ff433e26c0fff714d21cc5657367bc563c6df28fb446d8f";
+          TvmSlice pk1 = "832c0eca9f8cae87a1c6362838b34723cf63a1f69e366d64f3c61fc237217c4bea601cfbf4d6c18849ed4f9487b4a20c";
+          TvmSlice pk2 = "9595aa3c5cb3d7c763fa6b52294ebde264bdf49748efbbe7737c35532db8fabc666bb0d186f329c8bdafddfbdcbc3ca6";
+          TvmSlice message = TvmSlice(bytes("Hello, BLS fast aggregate and verify!"));
+          TvmSlice singature = "8420b1944c64f74dd67dc9f5ab210bab928e2edd4ce7e40c6ec3f5422c99322a5a8f3a8527eb31366c9a74752d1dce340d5a98fbc7a04738c956e74e7ba77b278cbc52afc63460c127998aae5aa1c3c49e8c48c30cc92451a0a275a47f219602";
+          bool ok = bls.fastAggregateVerify(pk0, pk1, pk2, message, singature);</code></pre>
+          @custom:version min=0.75.0
+          @custom:no_validation
+          */
+          function fastAggregateVerify(TvmSlice pubKeysVararg, TvmSlice message, TvmSlice signature) returns (bool);
+
+          /** 
+          Checks aggregated BLS signature for key-message pairs <code>pubkeysMessages</code>. Returns <code>true</code> on success, <code>false</code> otherwise. Returns <code>false</code> if <code>pubkeysMessages.empty()</code>.
+          <pre><code>
+          vector(TvmSlice, TvmSlice) pubkeysMessages;
+          TvmSlice pubkey0 = "b75f0360095de73c4790f803153ded0f3e6aefa6f0aac8bfd344a44a3de361e3f6f111c0cf0ad0c4a0861492f9f1aeb1";
+          TvmSlice message0 = TvmSlice(bytes("Hello, BLS fast aggregate and verify 0!"));
+          pubkeysMessages.push(pubkey0, message0);
+          TvmSlice pubkey1 = "a31e12bb4ffa75aabbae8ec2367015ba3fc749ac3826539e7d0665c285397d02b48414a23f8b33ecccc750b3afffacf6";
+          TvmSlice message1 = TvmSlice(bytes("Hello, BLS fast aggregate and verify 1!"));
+          pubkeysMessages.push(pubkey1, message1);
+          TvmSlice pubkey2 = "8de5f18ca5938efa896fbc4894c6044cdf89e778bf88584be48d6a6235c504cd45a44a68620f763aea043b6381add1f7";
+          TvmSlice message2 = TvmSlice(bytes("Hello, BLS fast aggregate and verify 2!"));
+          pubkeysMessages.push(pubkey2, message2);
+          TvmSlice singature = "8b8238896dfe3b02dc463c6e645e36fb78add51dc8ce32f40ecf60a418e92762856c3427b672be67278b5c4946b8c5a30fee60e5c38fdb644036a4f29ac9a039ed4e3b64cb7fef303052f33ac4391f95d482a27c8341246516a13cb72e58097b";
+          bool ok = bls.aggregateVerify(pubkeysMessages, singature);</code></pre>
+
+          @custom:version min=0.75.0
+          */
+          function aggregateVerify(vector(TvmSlice, TvmSlice) pubkeysMessages, TvmSlice signature) returns (bool);
+
+          /** 
+          Checks aggregated BLS signature for key-message pairs <code>pubkeysMessages</code>. Returns <code>true</code> on success, <code>false</code> otherwise. Returns <code>false</code> if <code>pubkeysMessages.empty()</code>.
+          <pre><code>
+          TvmSlice pubkey0 = "b75f0360095de73c4790f803153ded0f3e6aefa6f0aac8bfd344a44a3de361e3f6f111c0cf0ad0c4a0861492f9f1aeb1";
+          TvmSlice message0 = TvmSlice(bytes("Hello, BLS fast aggregate and verify 0!"));
+          TvmSlice pubkey1 = "a31e12bb4ffa75aabbae8ec2367015ba3fc749ac3826539e7d0665c285397d02b48414a23f8b33ecccc750b3afffacf6";
+          TvmSlice message1 = TvmSlice(bytes("Hello, BLS fast aggregate and verify 1!"));
+          TvmSlice pubkey2 = "8de5f18ca5938efa896fbc4894c6044cdf89e778bf88584be48d6a6235c504cd45a44a68620f763aea043b6381add1f7";
+          TvmSlice message2 = TvmSlice(bytes("Hello, BLS fast aggregate and verify 2!"));
+          TvmSlice singature = "8b8238896dfe3b02dc463c6e645e36fb78add51dc8ce32f40ecf60a418e92762856c3427b672be67278b5c4946b8c5a30fee60e5c38fdb644036a4f29ac9a039ed4e3b64cb7fef303052f33ac4391f95d482a27c8341246516a13cb72e58097b";
+          bool ok = bls.aggregateVerify(pubkey0, message0, pubkey1, message1,  pubkey2, message2, singature);</code></pre>
+
+          @custom:version min=0.75.0
+          @custom:no_validation
+          */
+          function aggregateVerify(TvmSlice pubKeysVararg, TvmSlice messageVararg,  TvmSlice signature) returns (bool);
+
+          /** 
+          Returns zero point in G1.
+          @custom:version min=0.75.0
+          */
+          function g1Zero() returns (TvmSlice);
+
+          /** 
+          Returns zero point in G2.
+          @custom:version min=0.75.0
+          */
+          function g2Zero() returns (TvmSlice);
+
+          /** 
+          Checks that G1 point <code>x</code> is equal to zero.
+          @custom:version min=0.75.0
+          */
+          function g1IsZero(TvmSlice x) returns (bool);
+
+          /** 
+          Checks that G2 point <code>x</code> is equal to zero.
+          @custom:version min=0.75.0
+          */
+          function g2IsZero(TvmSlice x) returns (bool);
+
+          /** 
+          Adds two G1 points.
+          @custom:version min=0.75.0
+          */
+          function g1Add(TvmSlice a, TvmSlice b) returns (TvmSlice);
+
+          /** 
+          Adds two G2 points.
+          @custom:version min=0.75.0
+          */
+          function g2Add(TvmSlice a, TvmSlice b) returns (TvmSlice);
+
+          /** 
+          Subtracts two G1 points.
+          @custom:version min=0.75.0
+          */
+          function g1Sub(TvmSlice a, TvmSlice b) returns (TvmSlice);
+
+          /** 
+          Subtracts two G2 points.
+          @custom:version min=0.75.0
+          */
+          function g2Sub(TvmSlice a, TvmSlice b) returns (TvmSlice);
+
+          /** 
+          Negates a G1 point.
+          @custom:version min=0.75.0
+          */
+          function g1Neg(TvmSlice x) returns (TvmSlice);
+
+          /** 
+          Negates a G2 point.
+          @custom:version min=0.75.0
+          */
+          function g2Neg(TvmSlice x) returns (TvmSlice);
+
+          /** 
+          Multiplies G1 point <code>x</code> by scalar <code>s</code>.
+          @custom:version min=0.75.0
+          */
+          function g1Mul(TvmSlice x, int s) returns (TvmSlice);
+
+          /** 
+          Multiplies G2 point <code>x</code> by scalar <code>s</code>.
+          @custom:version min=0.75.0
+          */
+          function g2Mul(TvmSlice x, int s) returns (TvmSlice);
+
+          /** 
+          Checks that slice <code>x</code> represents a valid element of G1.
+          @custom:version min=0.75.0
+          */
+          function g1InGroup(TvmSlice x) returns (bool);
+
+          /** 
+          Checks that slice x represents a valid element of G2.
+          @custom:version min=0.75.0
+          */
+          function g2InGroup(TvmSlice x) returns (bool);
+
+          /** 
+          Returns the order of G1 and G2 (approx. 2^255).
+          @custom:version min=0.75.0
+          */
+          function r() returns (uint255);
+
+          /** 
+          Calculates <code>x_1*s_1+...+x_n*s_n</code> for G1 points <code>x_i</code> and scalars <code>s_i</code>.
+          <pre><code>
+          TvmSlice a = bls.mapToG1("7abd13983c76661a98659da83066c71bd6581baf20c82c825b007bf8057a258dc53f7a6d44fb6fdecb63d9586e845d92");
+          TvmSlice b = bls.mapToG1("7abd13983c76661118659da83066c71bd6581baf20c82c825b007bf8057a258dc53f7a6d44fb6fdecb63d9586e845d92");
+          TvmSlice c = bls.mapToG1("7abd13983c76661118659da83066c71bd658100020c82c825b007bf8057a258dc53f7a6d44fb6fdecb63d9586e845d92");
+          vector(TvmSlice, int) values;
+          values.push(a, 2);
+          values.push(b, 5);
+          values.push(c, 13537812947843);
+
+          TvmSlice res = bls.g1MultiExp(values);
+
+          TvmSlice aa = bls.g1Mul(a, 2);
+          TvmSlice bb = bls.g1Mul(b, 5);
+          TvmSlice cc = bls.g1Mul(c, 13537812947843);
+          TvmSlice res2 = bls.g1Add(bls.g1Add(aa, bb), cc);
+
+          require(res == res2);</code></pre>
+
+          @custom:version min=0.75.0
+          */
+          function g1MultiExp(vector(TvmSlice, int) x_s) returns (TvmSlice);
+
+          /** 
+          Calculates <code>x_1*s_1+...+x_n*s_n</code> for G2 points <code>x_i</code> and scalars <code>s_i</code>.
+          @custom:version min=0.75.0
+          */
+          function g2MultiExp(vector(TvmSlice, int) x_s) returns (TvmSlice);
+
+          /** 
+          Calculates <code>x_1*s_1+...+x_n*s_n</code> for G1 points <code>x_i</code> and scalars <code>s_i</code>.
+          <pre><code>
+          TvmSlice a = bls.mapToG1("7abd13983c76661a98659da83066c71bd6581baf20c82c825b007bf8057a258dc53f7a6d44fb6fdecb63d9586e845d92");
+          TvmSlice b = bls.mapToG1("7abd13983c76661118659da83066c71bd6581baf20c82c825b007bf8057a258dc53f7a6d44fb6fdecb63d9586e845d92");
+          TvmSlice c = bls.mapToG1("7abd13983c76661118659da83066c71bd658100020c82c825b007bf8057a258dc53f7a6d44fb6fdecb63d9586e845d92");
+
+          TvmSlice res = bls.g1MultiExp(a, 2, b, 5, c, 13537812947843);
+
+          TvmSlice aa = bls.g1Mul(a, 2);
+          TvmSlice bb = bls.g1Mul(b, 5);
+          TvmSlice cc = bls.g1Mul(c, 13537812947843);
+          TvmSlice res2 = bls.g1Add(bls.g1Add(aa, bb), cc);
+
+          require(res == res2); </code></pre>
+
+          @custom:version min=0.75.0
+          @custom:no_validation
+          */
+          function g1MultiExp(TvmSlice xVararg, int sVararg) returns (TvmSlice);
+
+          /**
+          Calculates <code>x_1*s_1+...+x_n*s_n</code> for G2 points <code>x_i</code> and scalars <code>s_i</code>.
+          @custom:version min=0.75.0
+          @custom:no_validation
+          */
+          function g2MultiExp(TvmSlice xVararg, int sVararg) returns (TvmSlice);
+          
+                 
+           // g2MultiExp is the final function here!
+            }      
+        """, "g2MultiExp", "bls.")
+  }
+
   val blockType: SolType by lazy {
     contract("""
       contract ${internalise("Block")}{
@@ -2875,6 +3166,7 @@ See example of how to use this function:
           $txType tx;
           $abiType abi;
           $mathType math;
+          $blsType bls;
           $tvmType tvm;
           $rndType rnd;
           

@@ -373,7 +373,7 @@ data class SolContract(val ref: SolContractDefinition, val builtin: Boolean = fa
         other.ref == ref
           || other.ref.collectSupers.flatMap { SolResolver.resolveTypeNameUsingImports(it) }.contains(ref)
       }
-      is SolString, is SolBytes -> this.ref.name == SolInternalTypeFactory::tvmSlice.name
+      is SolString, is SolBytes -> this.ref.name.equals(SolInternalTypeFactory::tvmSlice.name, ignoreCase = true)
       else -> false
     }
 

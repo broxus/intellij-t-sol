@@ -148,6 +148,7 @@ data class SolOptional(val type: SolType) : SolType {
   override fun isAssignableFrom(other: SolType): Boolean =
     when (other) {
       is SolOptional -> other.type == type
+      is SolNull -> true
       else -> other == type
     }
 

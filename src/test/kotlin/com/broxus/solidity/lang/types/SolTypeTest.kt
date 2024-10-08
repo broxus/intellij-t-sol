@@ -15,4 +15,10 @@ class SolTypeTest {
     assertFalse(int256.isAssignableFrom(uint256))
     assertTrue(int256.isAssignableFrom(uint248))
   }
+
+  @Test
+  fun testNullToOptional() {
+    assertTrue(SolOptional(SolInteger(true, 256)).isAssignableFrom(SolNull))
+  }
+
 }

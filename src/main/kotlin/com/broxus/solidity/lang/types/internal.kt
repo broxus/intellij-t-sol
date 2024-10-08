@@ -635,34 +635,51 @@ Returns the depth of <code>TvmBuilder</code>. If no cell references are stored i
 							function depth() returns (uint16); 
 							/**
 
-
-Stores the list of values into the <code>TvmBuilder</code>.
-
-Internal representation of the stored data:
-
-<code>uintN</code>/<code>intN</code>/<code>bytesN</code> - stored as an N-bit string. For example, uint8(100), int16(-3), bytes2(0xaabb) stored as 0x64fffdaabb.
-<code>bool</code> - stored as a binary zero for false or a binary one for true. For example, true, false, true stored as 0xb_.
-<code>ufixedMxN</code>/<code>fixedMxN</code> - stored as an M-bit string.
-<code>address</code>/<code>contract</code> - stored according to the TL-B scheme of MsgAddress.
-<code>TvmCell</code>/<code>bytes</code>/<code>string</code> - stored as a cell in reference.
-<code>TvmSlice</code>/<code>TvmBuilder</code> - all data bits and references of the <code>TvmSlice</code> or the TvmBuilder are appended to the TvmBuilder, not in a reference as <code>TvmCell</code>. To store <code>TvmSlice</code>/<code>TvmBuilder</code> in the references use <TvmBuilder>.storeRef().
-<code>mapping</code>/<code>ExtraCurrencyCollection</code> - stored according to the TL-B scheme of HashmapE: if map is empty then stored as a binary zero, otherwise as a binary one and the dictionary Hashmap in a reference.
-<code>array</code> - stored as a 32 bit value - size of the array and a HashmapE that contains all values of the array.
-<code>optional</code> - stored as a binary zero if the optional doesn't contain value. Otherwise, stored as a binary one and the cell with serialized value in a reference.
-<code>struct</code> - stored in the order of its members in the builder. Make sure the entire struct fits into the builder.
-Note: there is no gap or offset between two consecutive data assets stored in the TvmBuilder.
-
-See <a href="https://test.ton.org/tvm.pdf">TVM</a> to read about notation for bit strings.
-
-Example:
-
-<code><pre>uint8 a = 11;
-int16 b = 22;
-TvmBuilder builder;
-builder.store(a, b, uint(33));</pre></code> @custom:no_validation
+              Stores the list of values into the <code>TvmBuilder</code>.
+              
+              Internal representation of the stored data:
+              
+              <code>uintN</code>/<code>intN</code>/<code>bytesN</code> - stored as an N-bit string. For example, uint8(100), int16(-3), bytes2(0xaabb) stored as 0x64fffdaabb.
+              <code>bool</code> - stored as a binary zero for false or a binary one for true. For example, true, false, true stored as 0xb_.
+              <code>ufixedMxN</code>/<code>fixedMxN</code> - stored as an M-bit string.
+              <code>address</code>/<code>contract</code> - stored according to the TL-B scheme of MsgAddress.
+              <code>TvmCell</code>/<code>bytes</code>/<code>string</code> - stored as a cell in reference.
+              <code>TvmSlice</code>/<code>TvmBuilder</code> - all data bits and references of the <code>TvmSlice</code> or the TvmBuilder are appended to the TvmBuilder, not in a reference as <code>TvmCell</code>. To store <code>TvmSlice</code>/<code>TvmBuilder</code> in the references use <TvmBuilder>.storeRef().
+              <code>mapping</code>/<code>ExtraCurrencyCollection</code> - stored according to the TL-B scheme of HashmapE: if map is empty then stored as a binary zero, otherwise as a binary one and the dictionary Hashmap in a reference.
+              <code>array</code> - stored as a 32 bit value - size of the array and a HashmapE that contains all values of the array.
+              <code>optional</code> - stored as a binary zero if the optional doesn't contain value. Otherwise, stored as a binary one and the cell with serialized value in a reference.
+              <code>struct</code> - stored in the order of its members in the builder. Make sure the entire struct fits into the builder.
+              Note: there is no gap or offset between two consecutive data assets stored in the TvmBuilder.
+              
+              See <a href="https://test.ton.org/tvm.pdf">TVM</a> to read about notation for bit strings.
+              
+              Example:
+              
+              <code><pre>uint8 a = 11;
+              int16 b = 22;
+              TvmBuilder builder;
+              builder.store(a, b, uint(33));</pre></code> 
+              @custom:no_validation
                @custom:typeArgument Type
 							*/
 							function store(Type varargs); 
+              /**
+              Same as <TvmBuilder>.store() but returns the success flag. It does not throw exceptions.
+              
+              Supported types:
+              <ul>
+              <li>uintN/intN/bytesN</li>
+              <li>bool</li>
+              <li>ufixedMxN/fixedMxN</li>
+              <li>address/contract</li>
+              <li>TvmCell/bytes/string</li>
+              <li>TvmSlice/TvmBuilder</li>
+              </ul>
+              @custom:version min=0.76.0             
+              @custom:no_validation
+               @custom:typeArgument Type
+              */
+              function storeQ(Type value) returns (bool /*ok*/);
 							/**
 Stores <code>n</code> binary ones into the <code>TvmBuilder</code>.
 							*/
@@ -2659,7 +2676,7 @@ See example of how to use this function:
             Send the internal/external message <code>msg</code> with <code>flag</code>. It's a wrapper for opcode <code>SENDRAWMSG</code> (<a href="https://test.ton.org/tvm.pdf">TVM</a> - A.11.10). Internal message <code>msg</code> can be generated by <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmbuildintmsg">tvm.buildIntMsg()</a> Possible values of <code>flag</code> are described here: <a href=""><address>.transfer()</a>
             
             <strong>Note</strong>: make sure that <code>msg</code> has a correct format and follows the <a href="https://github.com/ton-blockchain/ton/blob/master/crypto/block/block.tlb">TL-B scheme</a> of <code>Message X</code>. For example:\
-            <pre><code><pre>TvmCell msg = ...
+            <pre><code>TvmCell msg = ...
             tvm.sendrawmsg(msg, 2);</code></pre>
 
             If the function is called by external message and <code>msg</code> has a wrong format (for example, the field <code>init</code> of <code>Message X</code> is not valid) then the transaction will be replayed despite the usage of flag 2. It will happen because the transaction will fail at the action phase.

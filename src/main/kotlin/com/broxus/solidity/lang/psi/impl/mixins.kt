@@ -255,20 +255,13 @@ abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefSt
   }
 }
 
-fun <T: UserDataHolder> T.copyContext(parent: PsiElement): T {
-  parent.getUserData(resolveContextKey)?.let {
-    this.putUserData(resolveContextKey, it)
-  }
-  return this
-}
-
 fun <T: UserDataHolder> T.addContext(expr: SolExpression?): T {
-  expr?.let { this.putUserData(resolveContextKey, ResolveContext(it)) }
+  expr?.let { ex -> this.putUserData(resolveContextKey, ResolveContext(this.getUserData(resolveContextKey)?.expr ?: ThreadLocal<SolExpression>()).apply { this.expr.set(ex) }) }
   return this
 }
 
 
-data class ResolveContext(val expr: SolExpression)
+data class ResolveContext(val expr: ThreadLocal<SolExpression>)
 
 abstract class SolModifierDefMixin : SolStubbedNamedElementImpl<SolModifierDefStub>, SolModifierDefinition {
   override val contract: SolContractDefinition

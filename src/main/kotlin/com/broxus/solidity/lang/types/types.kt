@@ -1,8 +1,9 @@
 package com.broxus.solidity.lang.types
 
+import com.broxus.solidity.ide.hints.TYPE_ARGUMENT_TAG
+import com.broxus.solidity.ide.hints.tagComments
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.psi.impl.Linearizable
-import com.broxus.solidity.lang.psi.parentOfType
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.types.SolInteger.Companion.UINT_160
 import com.github.yuchi.semver.Range
@@ -12,7 +13,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.util.UserDataHolderBase
-import com.intellij.psi.util.*
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiModificationTracker
+import com.intellij.psi.util.descendants
 import java.math.BigInteger
 import java.util.*
 
@@ -264,12 +268,12 @@ data class SolInteger(val unsigned: Boolean, val size: Int, val isVarType : Bool
     }
 
     private fun inferIntegerType(value: BigInteger, context: SolElement): SolInteger {
-      val expType : SolInteger? = if (context.parents(true).take(2).all { it.getUserData(inferExpIntTypesKey) != false }) {
+      val expType : SolInteger? = run {
         val parent = context.parent?.parent
         when (parent) {
           is SolFunctionCallArguments -> {
             parent.expressionList.indexOfFirst { it.descendants().any { it == context } }.takeIf { it >= 0 }?.let { index ->
-              context.parentOfType<SolFunctionCallElement>()?.resolveDefinitions()?.takeIf { it.map { it.parseParameters().getOrNull(index)?.second }.toSet().size == 1 }?.let {
+              context.parentOfType<SolFunctionCallElement>()?.resolveDefinitions()?.takeIf { it.filter {it.resolveElement()?.tagComments(TYPE_ARGUMENT_TAG) == null }.map { it.parseParameters().getOrNull(index)?.second }.toSet().size == 1 }?.let {
                 it.first().parseParameters().getOrNull(index)?.second as? SolInteger
               }
             }
@@ -280,7 +284,7 @@ data class SolInteger(val unsigned: Boolean, val size: Int, val isVarType : Bool
           }
           else -> null
         }
-      } else null
+      }
       return run {if (value == BigInteger.ZERO) return@run SolInteger(true, 8)
       val positive = value >= BigInteger.ZERO
       if (positive) {

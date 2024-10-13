@@ -9,7 +9,6 @@ import com.broxus.solidity.lang.psi.impl.ResolveContext
 import com.broxus.solidity.lang.psi.impl.SolFunctionDefMixin
 import com.broxus.solidity.lang.psi.impl.SolMemberAccessElement
 import com.broxus.solidity.lang.psi.impl.addContext
-import com.broxus.solidity.lang.psi.parentOfType
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.resolve.canBeApplied
 import com.broxus.solidity.lang.resolve.ref.SolFunctionCallReference
@@ -21,7 +20,6 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.*
-import com.intellij.psi.util.elementType
 import kotlin.math.max
 
 fun getSolType(type: SolTypeName?): SolType {
@@ -127,17 +125,17 @@ fun resolveTypeArgument(name: String, typeText: String, type: SolUserDefinedType
     return@map if (it.contains("=")) it.split("=").let { TypeArg(it[0].trim(), ref = it.getOrNull(1)?.trim()) }
     else it.split(":").let { TypeArg(it[0].trim(), bound = it.getOrNull(1)?.trim()) }
   }
-  val expr = type.findResolveContext()?.expr
+  val expr = type.findResolveContext()?.expr?.get()
   return types.find { it.name == name }?.let { typeArg->
     return typeArg.ref?.let { ref ->
        expr?.type?.getRefs()?.find { it.name == ref }?.type
     } ?: baseElement?.let { baseElement ->
       val typeText2 = type.text
-      type.findResolveContext()?.expr?.parent?.parent?.childOfType<SolFunctionCallArguments>()?.expressionList?.let { actArgs ->
+      type.findResolveContext()?.expr?.get()?.parent?.parent?.childOfType<SolFunctionCallArguments>()?.expressionList?.let { actArgs ->
         val parameters = baseElement.parameters
         parameters.mapIndexedNotNull { i, p -> i.takeIf { p.typeName.text == typeText2 } }.let { typedIndexes ->
           val varArgInd = parameters.indexOfFirst { it.identifier?.text == "varargs" }.takeIf { it >= 0 } ?: Int.MAX_VALUE
-          val typedTypes = actArgs.mapIndexedNotNull { i, a -> a.takeIf { i in typedIndexes || varArgInd < i }?.let { it.skipInferExpInt { inferExprType(it) } } }
+          val typedTypes = actArgs.mapIndexedNotNull { i, a -> a.takeIf { i in typedIndexes || varArgInd < i }?.let { RecursionManager.doPreventingRecursion(it, true) { inferExprType(it) } } }
           val resolved = resolveCommonType(typedTypes)
           val bound = typeArg.bound
           if (bound != null && resolved !is SolTypeError) {
@@ -317,11 +315,6 @@ private fun getNumericExpressionType(firstType: SolType, secondType: SolType): S
 
 
 val resolveContextKey = Key<ResolveContext>("broxus.ResolveContext")
-val inferExpIntTypesKey = Key<Boolean>("broxus.inferExpIntTypes")
-fun <T: PsiElement, R> T.skipInferExpInt(code: T.() -> R): R {
-  putUserData(inferExpIntTypesKey, false)
-  return code().also { putUserData(inferExpIntTypesKey, true) }
-}
 
 fun SolMemberAccessExpression.getMembers(): List<SolMember> {
   val expr = expression

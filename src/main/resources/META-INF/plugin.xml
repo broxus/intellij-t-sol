@@ -158,8 +158,6 @@
     <depends optional="true" config-file="javascriptPlugin.xml">JavaScript</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <registryKey key="broxus.t-sol.assignment.validation.strict" defaultValue="false" restartRequired="false" description="Palliative: enable assignment type validation for math.* functions"/>
-
         <fileType name="T-Sol File"
                   language="T-Sol"
                   implementationClass="com.broxus.solidity.lang.TSolidityFileType"

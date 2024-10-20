@@ -245,7 +245,7 @@ ConstructorDefinition ::= constructor ParameterList
 
 FunctionDefinition ::= (function Identifier? | fallback | receive | onbounce | onticktock)
                         ParameterList
-                        ( FunctionVisibilitySpecifier | StateMutability | externalMsg | internalMsg | inline | ModifierInvocation | FunctionID )*
+                        ( FunctionVisibilitySpecifier | StateMutability | externalMsg | internalMsg | inline | assembly | ModifierInvocation | FunctionID )*
                         ( returns ParameterList )? ( ';' | Block ) {
     pin = 1
     implements = "com.broxus.solidity.lang.psi.SolFunctionDefElement"
@@ -394,7 +394,7 @@ private UnfinishedUncheckedBlock ::= unchecked '{' Statement* {
 
 UncheckedBlock ::= UnfinishedUncheckedBlock '}'
 
-private UnfinishedBlock ::= '{' (UncheckedBlock | Statement)* {
+private UnfinishedBlock ::= '{' (UncheckedBlock | StringLiteral ',' | Statement )* {
     pin = 1
     recoverWhile = UntilBraceRecover
 }

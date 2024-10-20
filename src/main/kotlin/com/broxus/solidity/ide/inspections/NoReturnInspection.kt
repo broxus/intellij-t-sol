@@ -1,11 +1,13 @@
 package com.broxus.solidity.ide.inspections
 
+import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.types.SolInternalTypeFactory
 import com.broxus.solidity.lang.types.findContract
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.util.PsiTreeUtil
 
 class NoReturnInspection : LocalInspectionTool() {
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
@@ -18,6 +20,7 @@ class NoReturnInspection : LocalInspectionTool() {
 }
 
 private fun SolFunctionDefinition.inspectReturns(holder: ProblemsHolder) {
+  if (PsiTreeUtil.findSiblingForward(this.firstChild, SolidityTokenTypes.ASSEMBLY, null) != null) return
   val block = this.block
   if (block != null) {
     val returns = this.returns

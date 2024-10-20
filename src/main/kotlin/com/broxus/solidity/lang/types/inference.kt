@@ -256,7 +256,8 @@ fun inferExprType(expr: SolExpression?): SolType {
       inferExprType(expr.expressionList.secondOrNull())
     )
     is SolFunctionCallExpression -> {
-      (expr.reference as SolFunctionCallReference)
+      (expr.firstChild as? SolNewExpression)?.let { getSolType(it.typeName)}
+        ?: (expr.reference as SolFunctionCallReference)
         .resolveFunctionCall()
         .firstOrNull { it.canBeApplied(expr.functionCallArguments) }
         ?.let { (it as? SolFunctionDefMixin)?.parseType() ?: it.parseType() }
@@ -297,6 +298,7 @@ fun inferExprType(expr: SolExpression?): SolType {
     is SolMetaTypeExpression -> SolMetaType(getSolType(expr.typeName))
     is SolNullExpression -> SolNull
     is SolNaNExpression -> SolNaN
+    is SolInlineArrayExpression -> expr.childOfType<SolExpression>()?.type?.let { SolDynamicArray(it)} ?: SolUnknown
     else -> SolUnknown
   }
 }

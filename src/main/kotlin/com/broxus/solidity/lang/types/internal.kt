@@ -1245,6 +1245,27 @@ Example:
         optional(uint8, uint) = m.prev(65537); // ok, param for next/prev can not possibly fit to KeyType (uint8 in this case)</pre></code>
                                 */
                                 function next(KeyType key) returns (optional(KeyType, ValueType));
+                                
+                                /**
+                                Computes the minimal (maximal) key in the <code>mapping</code> that is lexicographically greater (less) than key and returns an <code>optional</code> value containing that key and the associated value. Returns an empty <code>optional</code> if there is no such key. If KeyType is an integer type, argument for this functions can not possibly fit <code>KeyType</code>.
+                                
+                                Example:
+                                
+                                <code><pre>KeyType key;
+                                // init key
+                                optional(KeyType, ValueType) nextPair = map.next(key);
+                                optional(KeyType, ValueType) prevPair = map.prev(key);
+                                
+                                if (nextPair.hasValue()) {
+                                    (KeyType nextKey, ValueType nextValue) = nextPair.get(); // unpack optional value
+                                    // using nextKey and nextValue
+                                }
+                                
+                                mapping(uint8 => uint) m;
+                                optional(uint8, uint) = m.next(-1); // ok, param for next/prev can be negative 
+                                optional(uint8, uint) = m.prev(65537); // ok, param for next/prev can not possibly fit to KeyType (uint8 in this case)</pre></code>
+                                */
+                                function prev(KeyType key) returns (optional(KeyType, ValueType));
                                 /**
     Computes the minimal (maximal) key in the <code>mapping</code> that is lexicographically greater than or equal to (less than or equal to) <strong>key</strong> and returns an <code>optional</code> value containing that key and the associated value. Returns an empty <code>optional</code> if there is no such key. If KeyType is an integer type, argument for this functions can not possibly fit <code>KeyType</code>.
                                 */

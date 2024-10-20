@@ -141,7 +141,7 @@ object SolQBoolean : SolPrimitiveType {
 
 object SolString : SolPrimitiveType {
   override fun isAssignableFrom(other: SolType): Boolean =
-    other == SolString || (other as? SolContract)?.ref?.name == SolInternalTypeFactory::tvmSlice.name
+    other == SolString || (other as? SolContract)?.ref?.name == SolInternalTypeFactory::tvmSlice.name || other is SolBytes
 
   override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).stringType)
 
@@ -151,7 +151,7 @@ object SolString : SolPrimitiveType {
 data class SolOptional(val type: SolType) : SolType {
   override fun isAssignableFrom(other: SolType): Boolean =
     when (other) {
-      is SolOptional -> other.type == type
+      is SolOptional -> type.isAssignableFrom(other.type) // todo ensure covariance is accepted
       is SolNull -> true
       else -> other == type
     }

@@ -6,7 +6,6 @@ import com.broxus.solidity.lang.core.SolidityFile
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.psi.impl.SolNewExpressionElement
 import com.broxus.solidity.lang.psi.impl.getAliases
-import com.broxus.solidity.lang.psi.parentOfType
 import com.broxus.solidity.lang.resolve.ref.SolFunctionCallReference
 import com.broxus.solidity.lang.resolve.ref.SolReference
 import com.broxus.solidity.lang.stubs.SolGotoClassIndex
@@ -31,7 +30,8 @@ import kotlin.reflect.full.isSuperclassOf
 object SolResolver {
   fun resolveTypeNameUsingImports(element: PsiElement): Set<SolNamedElement> =
     CachedValuesManager.getCachedValue(element) {
-      val commonTargets = setOf(SolContractDefinition::class, SolEnumDefinition::class, SolUserDefinedValueTypeDefinition::class)
+      val commonTargets = setOf(SolContractDefinition::class, SolEnumDefinition::class, SolUserDefinedValueTypeDefinition::class,
+        SolImportAlias::class)
       val result = if (element is SolFunctionCallElement) {
         resolveUsingImports(
           commonTargets + setOf(SolErrorDefinition::class, SolEventDefinition::class),
@@ -66,7 +66,12 @@ object SolResolver {
       SolNamedElement::class.java //
     )
 
-    val resolvedImportedFiles = collectImports(file)
+    val isAlias = element.parent is SolImportAliasedPair
+    val resolvedImportedFiles = collectImports(file).map {
+      if (it.names.none { it.containingFile == element.containingFile  }) return@map it
+      val hasAlias = isAlias || it.names.none { it is SolImportAlias }
+      if (hasAlias) it else ImportRecord(it.file, it.names.filter { it is SolImportAlias  }
+      )}
     val sameNameReferences = elements.filter { e -> target.any { it.isSuperclassOf(e::class) } }.filter {
       val containingFile = it.containingFile
       // During completion, IntelliJ copies PSI files, and therefore we need to ensure that we compare
@@ -151,14 +156,14 @@ object SolResolver {
 
   data class ImportRecord(val file: PsiFile, val names: List<SolNamedElement>)
 
-  fun collectImports(file: PsiFile): Collection<ImportRecord> {
+  fun collectImports(file: PsiFile): List<ImportRecord> {
     return CachedValuesManager.getCachedValue(file) {
       val result = collectImports(file.childrenOfType<SolImportDirective>()).filter { it.file !== file }
       CachedValueProvider.Result.create(result, result.map { it.file } + file)
     }
   }
 
-  fun collectImports(import: SolImportDirective): Collection<ImportRecord> {
+  fun collectImports(import: SolImportDirective): List<ImportRecord> {
     return CachedValuesManager.getCachedValue(import) {
       val result = collectImports(listOf(import))
       CachedValueProvider.Result.create(result, result.map { it.file } + import)
@@ -168,9 +173,9 @@ object SolResolver {
   /**
    * Collects imports of all declarations for a given file recursively (except for named imports)
    */
-  private fun collectImports(imports: Collection<SolImportDirective>, visited: MutableSet<PsiFile> = hashSetOf()): Collection<ImportRecord> {
+  private fun collectImports(imports: Collection<SolImportDirective>, visited: MutableSet<PsiFile> = hashSetOf()): List<ImportRecord> {
     if (!visited.add((imports.firstOrNull() ?: return emptyList()).containingFile)) {
-      return emptySet()
+      return emptyList()
     }
 
     val (resolvedImportedFiles, concreteResolvedImportedFiles) = imports.partition { it.importAliasedPairList.isEmpty() }.toList()

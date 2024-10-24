@@ -138,6 +138,24 @@ fun SolCallableElement.toFunctionLookup(): LookupElementBuilder? {
   }
 }
 
+fun SolStructDefinition.toStructLookup(): LookupElementBuilder? {
+  return name?.let {  LookupElementBuilder
+      .create(this)
+      .withBoldness(true)
+      .withIcon(SolidityIcons.STRUCT)
+      .withTypeText(funcOutType(this))
+      .withTailText(funcInType(this))
+      .insertParenthesis(false)
+  }
+}
+
+fun SolNamedElement.toVarLookup(): LookupElementBuilder? {
+  return name?.let {
+    LookupElementBuilder.create(this).withIcon(SolidityIcons.STATE_VAR)
+  }
+}
+
+
 private fun funcOutType(elem: SolCallableElement): String {
   val type = elem.parseType()
   return type?.toString() ?: ""

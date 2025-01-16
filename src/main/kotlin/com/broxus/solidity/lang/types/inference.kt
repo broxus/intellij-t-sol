@@ -112,6 +112,7 @@ private fun getSolTypeFromUserDefinedTypeName(type: SolUserDefinedTypeName): Sol
         is SolStructDefinition -> SolStruct(it)
         is SolEnumDefinition -> SolEnum(it)
         is SolUserDefinedValueTypeDefinition -> getSolType(it.elementaryTypeName)
+        is SolImportAlias -> getSolType(it.parentOfType<SolImportAliasedPair>()?.userDefinedTypeName)
         else -> null
       }
     }

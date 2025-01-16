@@ -52,7 +52,7 @@ class SolInternalTypeFactory(project: Project) {
 
   fun byName(name: String): SolType? = registry[name]
 
-  private val everBuiltinTypes: Map<String, SolNamedElement> by lazy {
+  val everBuiltinTypes: Map<String, SolNamedElement> by lazy {
     listOf(
       tvmCell.ref,
       tvmSlice.ref,

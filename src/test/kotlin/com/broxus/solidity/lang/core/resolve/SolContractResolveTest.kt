@@ -91,10 +91,19 @@ class SolContractResolveTest : SolResolveTestBase() {
     ),
     InlineFile("""
           import {a as A} from "./a.tsol";
+                //^
+          contract b is A {}
+                      
+    """)
+  )
 
+  fun testResolveSymbolAliases2() = checkByCode(
+    """
+          import {a as A} from "./a.tsol";
+                     //x
           contract b is A {}
                       //^
-    """)
+    """
   )
 
   fun testResolveSymbolAliasesChain() {
@@ -159,4 +168,27 @@ class SolContractResolveTest : SolResolveTestBase() {
     val (refElement, _) = findElementAndDataInEditor<SolNamedElement>("^")
     assertNull(refElement.reference?.resolve())
   }
+
+  fun testResolveWithCast() = testResolveBetweenFiles(
+      InlineFile(
+          code = """
+          contract A {
+                 //x
+              function doit2() {
+              }
+          }
+    """,
+          name = "a.tsol"
+      ),
+      InlineFile("""
+        import "./a.tsol";
+
+        contract B {
+          function doit(address some) {
+              A(some).doit2();
+            //^
+          }
+       }
+  """)
+  )
 }

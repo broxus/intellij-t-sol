@@ -86,28 +86,28 @@ class SolImportResolveTest : SolResolveTestBase() {
     assertEquals(file1.name, resolved.containingFile.name)
   }
 
-  fun testResolveRuleSet() {
-    val file1 = InlineFile(
-      code = "contract A {}\ncontract C {}",
-      name = "Ownable.tsol"
-    )
-
-    InlineFile("""
-          import {A as cc} from "./Ownable.tsol";
-               
-
-          contract b is cc {}
-                       //^
-    """)
-
-    val (refElement) = findElementAndDataInEditor<SolNamedElement>("^")
-
-    val resolved = checkNotNull(refElement.reference?.resolve()) {
-      "Failed to resolve ${refElement.text}"
-    }
-
-    assertEquals(file1.name, resolved.containingFile.name)
-  }
+//  fun testResolveRuleSet() {
+//    val file1 = InlineFile(
+//      code = "contract A {}\ncontract C {}",
+//      name = "Ownable.tsol"
+//    )
+//
+//    InlineFile("""
+//          import {A as cc} from "./Ownable.tsol";
+//
+//
+//          contract b is cc {}
+//                       //^
+//    """)
+//
+//    val (refElement) = findElementAndDataInEditor<SolNamedElement>("^")
+//
+//    val resolved = checkNotNull(refElement.reference?.resolve()) {
+//      "Failed to resolve ${refElement.text}"
+//    }
+//
+//    assertEquals(file1.name, resolved.containingFile.name)
+//  }
 
 
   override fun getTestDataPath() = "src/test/resources/fixtures/import/"

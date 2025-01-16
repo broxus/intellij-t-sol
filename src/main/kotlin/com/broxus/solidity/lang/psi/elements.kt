@@ -1,6 +1,5 @@
 package com.broxus.solidity.lang.psi
 
-import com.broxus.solidity.lang.core.SolidityFile
 import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.resolve.ref.SolReference
 import com.broxus.solidity.lang.types.SolMember
@@ -10,6 +9,7 @@ import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiReference
+import com.intellij.psi.util.findParentOfType
 
 interface SolElement : PsiElement {
   override fun getReference(): PsiReference?
@@ -18,11 +18,10 @@ interface SolElement : PsiElement {
 // Unable to move this inside the interface due to the `$DefaultImpls not found` error in runtime
 fun SolNamedElement.outerContract() = parent?.takeIf { it is SolUserDefinedType }?.findContract()
 
+fun SolNamedElement.outerContractOrSelf() = findParentOfType<SolContractDefinition>(false)
 
 
 interface SolNamedElement : SolElement, PsiNamedElement, NavigatablePsiElement {
-  val isTopLevel : Boolean
-    get() = parent is SolidityFile
 }
 
 enum class Visibility {

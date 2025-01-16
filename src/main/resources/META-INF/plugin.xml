@@ -13,6 +13,23 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <b>v1.7</b>
+        Features:
+        <ul>
+          <li>Built-in elements have been updated up to the <b>0.76.0</b> compiler version</li>
+          <li>Added Hierarchy view provider</li>
+          <li>Autocomplete now suggests all available user defined types (e.g. contracts etc.)</li>
+          <li>Import alias of all forms are now supported</li>
+          <li>Assembly functions are now supported</li>
+        </ul>
+        Bugfixes:
+        <ul>
+            <li>Fixed flaky false positive errors in assigment type validation</li>
+            <li>null to optional cast</li>
+            <li>bytes to string cast</li>
+            <li>type inference for 'new' and array inline expressions</li>
+            <li>Fixed performance problem in searching override functions. Functionality depending on this feature is turned back on</li>
+        </ul>
         <b>v1.6</b>
         Features:
         <ul>

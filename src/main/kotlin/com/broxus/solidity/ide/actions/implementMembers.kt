@@ -5,7 +5,6 @@ import com.broxus.solidity.lang.resolve.function.SolFunctionResolver
 import com.broxus.solidity.lang.types.getSolType
 import com.intellij.codeInsight.CodeInsightActionHandler
 import com.intellij.codeInsight.generation.ClassMemberWithElement
-import com.intellij.codeInsight.generation.ImplementMethodsHandler
 import com.intellij.codeInsight.generation.MemberChooserObject
 import com.intellij.codeInsight.generation.MemberChooserObjectBase
 import com.intellij.codeInsight.generation.actions.PresentableActionHandlerBasedAction
@@ -21,7 +20,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleManager
-import com.intellij.refactoring.suggested.endOffset
 import javax.swing.Icon
 
 
@@ -77,7 +75,11 @@ class ImplementMethodsHandler : ContextAwareActionHandler, LanguageCodeInsightAc
       val func = context.addBefore(factory.createFunction("${it.el.text.replace(";", "")} {\n}"), context.lastChild)
       context.addAfter(factory.createNewLine(), func)
     }
-    CodeStyleManager.getInstance(context.project).reformatText(context.containingFile, start, context.lastChild.endOffset)
+    CodeStyleManager.getInstance(context.project).reformatText(
+        context.containingFile,
+        start,
+        context.lastChild.endOffset()
+    )
   }
 
   private fun collectCandidates(context: SolContractDefinition): List<CandidateInfo> {
@@ -122,3 +124,4 @@ private class SolMemberElement<T : PsiElement>(val el: T, val parent: SolMemberE
   }
 
 }
+

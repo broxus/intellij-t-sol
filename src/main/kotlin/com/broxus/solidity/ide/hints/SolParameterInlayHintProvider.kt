@@ -1,10 +1,7 @@
 package com.broxus.solidity.ide.hints
 
 
-import com.broxus.solidity.lang.psi.SolDeclarationItem
-import com.broxus.solidity.lang.psi.SolFunctionCallArguments
-import com.broxus.solidity.lang.psi.SolFunctionCallElement
-import com.broxus.solidity.lang.psi.SolImportDirective
+import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.types.inferDeclType
 import com.intellij.codeInsight.hints.InlayInfo
@@ -12,7 +9,6 @@ import com.intellij.codeInsight.hints.InlayParameterHintsProvider
 import com.intellij.codeInsight.hints.Option
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
-import com.intellij.refactoring.suggested.endOffset
 
 class SolParameterInlayHintProvider : InlayParameterHintsProvider {
 
@@ -40,7 +36,7 @@ enum class HintType(
             if (item.importAliasedPairList.isNotEmpty()) return emptyList()
             val used = SolResolver.collectUsedElements(item)
 
-            return if (used.isNotEmpty()) listOf(InlayInfo(used.joinToString(), e.endOffset, false, false, true)) else emptyList()
+            return if (used.isNotEmpty()) listOf(InlayInfo(used.joinToString(), e.endOffset(), false, false, true)) else emptyList()
         }
 
         override fun isApplicable(e: PsiElement): Boolean = e is SolImportDirective

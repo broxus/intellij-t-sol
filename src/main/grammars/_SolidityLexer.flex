@@ -147,6 +147,7 @@ PRAGMAALL=[^;]*
   "receive"               { return RECEIVE; }
   "onBounce"              { return ONBOUNCE; }
   "onTickTock"            { return ONTICKTOCK; }
+  "getter"                { return GETTER; }
   "event"                 { return EVENT; }
   "anonymous"             { return ANONYMOUS; }
   "enum"                  { return ENUM; }
@@ -202,6 +203,7 @@ PRAGMAALL=[^;]*
   "gigaever"               { return GIGAEVER; }
   "GEver"                  { return GEVER; }
   "address"               { return ADDRESS; }
+  "address_std"           { return ADDRESS_STD; }
   "string"                { return STRING; }
   "optional"              { return OPTIONAL; }
   "vector"                { return VECTOR; }

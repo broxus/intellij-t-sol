@@ -243,9 +243,9 @@ ConstructorDefinition ::= constructor ParameterList
     mixin = "com.broxus.solidity.lang.psi.impl.SolConstructorDefMixin"
 }
 
-FunctionDefinition ::= (function Identifier? | fallback | receive | onbounce | onticktock)
+FunctionDefinition ::= (function Identifier? | fallback | receive | onbounce | onticktock )
                         ParameterList
-                        ( FunctionVisibilitySpecifier | StateMutability | externalMsg | internalMsg | inline | assembly | ModifierInvocation | FunctionID )*
+                        ( FunctionVisibilitySpecifier | StateMutability | externalMsg | internalMsg | inline | assembly | ModifierInvocation | FunctionID | getter )*
                         ( returns ParameterList )? ( ';' | Block ) {
     pin = 1
     implements = "com.broxus.solidity.lang.psi.SolFunctionDefElement"
@@ -571,7 +571,7 @@ private ScientificNumber ::= scientificNumber
 
 private ElementaryTypeNameExpression ::= ElementaryTypeName
 
-ElementaryTypeName ::= ( address 'payable' ) | address | boolType | string | var | emptyMap | coins
+ElementaryTypeName ::= ( address 'payable' ) | address | address_std | boolType | string | var | emptyMap | coins
                      | 'TvmCell' | 'TvmSlice' | 'TvmBuilder' | 'ExtraCurrencyCollection'
 | mapping '(' (BytesArrayTypeName | ElementaryTypeName | UserDefinedTypeName) '=>' TypeName ')'
 | optional '(' TypeName (',' TypeName)* ')'
@@ -609,7 +609,7 @@ private YulEVMBuiltin ::=
         	| 'lt' | 'gt' | 'slt' | 'sgt' | 'eq' | 'iszero' | 'and' | 'or' | 'xor' | 'byte'
         	| 'shl' | 'shr' | 'sar' | 'addmod' | 'mulmod' | 'signextend' | 'keccak256'
         	| 'pop' | 'mload' | 'mstore' | 'mstore8' | 'sload' | 'sstore' | 'msize' | 'gas'
-        	| 'address' | 'balance' | 'selfbalance' | 'caller' | 'callvalue' | 'calldataload'
+        	| 'address' | 'address_std' | 'balance' | 'selfbalance' | 'caller' | 'callvalue' | 'calldataload'
         	| 'calldatasize' | 'calldatacopy' | 'extcodesize' | 'extcodecopy' | 'returndatasize'
         	| 'returndatacopy' | 'extcodehash' | 'create' | 'create2' | 'call' | 'callcode'
         	| 'delegatecall' | 'staticcall' | 'return' | 'revert' | 'selfdestruct' | 'invalid'

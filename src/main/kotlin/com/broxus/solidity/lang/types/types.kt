@@ -93,7 +93,6 @@ data class SolTypeSequence(val types: List<SolType>) : SolType {
 }
 
 object SolTypeType/*(val value: SolType)*/ : SolInternalType {
-  val supportedTypes = setOf(SolInteger::class, SolFixedBytes::class, SolBoolean::class, SolFixedNumber::class, SolAddress::class, SolContract::class, SolFixedBytes::class, SolString::class, SolMapping::class, SolArray::class, SolOptional::class, SolStruct::class)
   override fun isAssignableFrom(other: SolType): Boolean {
     return other is SolTypeType /*(other as? SolTypeType)?.value == value*/
   }
@@ -203,6 +202,38 @@ object SolAddress : SolPrimitiveType {
   override fun toString() = "address"
 
 }
+
+object SolAddressStd : SolPrimitiveType {
+  private val stdNames = setOf("addr_none", "makeAddrStd")
+  override fun isAssignableFrom(other: SolType): Boolean =
+    when (other) {
+      is SolAddressStd -> true
+      is SolContract -> true
+      else -> UINT_160.isAssignableFrom(other)
+    }
+
+  override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).addressType).map { if (it.getName() in stdNames && it is SolFunctionDefinition) fixReturnType(it) else it }
+
+  private fun fixReturnType(it: SolFunctionDefinition): SolMember {
+    return object : SolCallable by it, SolMember by it {
+      override fun parseType(): SolType {
+        return SolAddressStd
+      }
+
+      override fun getName(): String? {
+        return it.name
+      }
+
+      override fun resolveElement(): SolNamedElement? {
+        return it.resolveElement()
+      }
+    }
+  }
+
+  override fun toString() = "address_std"
+
+}
+
 
 data class SolFixedNumber(val unsigned: Boolean, val size: Int, val decimaSize : Int) : SolNumeric {
   override fun isAssignableFrom(other: SolType): Boolean =

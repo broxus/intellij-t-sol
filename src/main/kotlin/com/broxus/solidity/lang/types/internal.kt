@@ -1158,8 +1158,14 @@ Constructs an <code>address</code> of type <strong>addr_extern</strong> with giv
 							function makeAddrExtern() returns (address);
 							/**
 Returns type of the <code>addr_none</code>: 0 - <strong>addr_none</strong> 1 - <strong>addr_extern</strong> 2 - <strong>addr_std</strong>
+@custom:version max=0.76.0       
 							*/
 							function getType() returns (uint8);
+							/**
+Returns type of the <code>addr_none</code>: 0 - <strong>addr_none</strong> 1 - <strong>addr_extern</strong> 2 - <strong>addr_std</strong>
+@custom:version min=0.77.0
+							*/
+							function getType() returns (uint4);
 							/**
 Returns the result of comparison between this <code>address</code> with zero <code>address</code> of type <strong>addr_std</strong>.
 							*/
@@ -1205,6 +1211,7 @@ Example:
     """, "unpack", "address abc; abc.")
 
   }
+
 
   val mappingType: SolContract by lazy {
     contract(

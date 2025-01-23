@@ -229,7 +229,7 @@ fun LookupElementBuilder.insertParenthesis(finish: Boolean): LookupElementBuilde
   EditorModificationUtil.moveCaretRelatively(ctx.editor, 1)
 }
 
-fun inspections() = hashSetOf("Assigment", "FunctionArguments", "LinearizationImpossible", "MemberAccess", "NoReturn", "ResolveName", "SelfdestructRename", "UnimplementedMember", "UnprotectedFunction", "UnusedElement")
+fun inspections() = hashSetOf("TSolAssigment", "TSolFunctionArguments", "TSolLinearizationImpossible", "TSolMemberAccess", "TSolNoReturn", "TSolResolveName", "TSolSelfdestructRename", "TSolUnimplementedMember", "TSolUnprotectedFunction", "TSolUnusedElement")
 
 class SolNoInspectionNameCompletionContributor : CompletionContributor(), DumbAware {
   init {

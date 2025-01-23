@@ -281,6 +281,7 @@
         <localInspection language="T-Sol" groupName="T-Sol"
                          displayName="Suicide is deprecated. Use selfdestruct instead EIP 6"
                          enabledByDefault="true"
+                         shortName="TSolSelfdestructRename"
                          level="WARNING"
                          implementationClass="com.broxus.solidity.ide.inspections.SelfdestructRenameInspection"/>
 
@@ -288,54 +289,63 @@
                          displayName="Function has no modifiers and might modify owners of the contract"
                          enabledByDefault="true"
                          level="WARNING"
+                         shortName="TSolUnprotectedFunction"
                          implementationClass="com.broxus.solidity.ide.inspections.UnprotectedFunctionInspection"/>
 
         <localInspection language="T-Sol" groupName="T-Sol"
                          displayName="Name can not be resolved"
                          enabledByDefault="true"
                          level="WARNING"
+                         shortName="TSolResolveName"
                          implementationClass="com.broxus.solidity.ide.inspections.ResolveNameInspection"/>
 
         <localInspection language="T-Sol" groupName="T-Sol"
                          displayName="No return statement"
                          enabledByDefault="true"
                          level="WARNING"
+                         shortName="TSolNoReturn"
                          implementationClass="com.broxus.solidity.ide.inspections.NoReturnInspection"/>
 
         <localInspection language="T-Sol" groupName="T-Sol"
                          displayName="Linearization impossible"
                          enabledByDefault="true"
                          level="WARNING"
+                         shortName="TSolLinearizationImpossible"
                          implementationClass="com.broxus.solidity.ide.inspections.LinearizationImpossibleInspection"/>
 
         <localInspection language="T-Sol" groupName="T-Sol"
                          displayName="Function call arguments are not matched with the parameters of function definition"
                          enabledByDefault="true"
                          level="ERROR"
+                         shortName="TSolValidateFunctionArguments"
                          implementationClass="com.broxus.solidity.ide.inspections.FunctionArgumentsInspection"/>
 
         <localInspection language="T-Sol" groupName="T-Sol"
                                  displayName="Element is never used"
                                  enabledByDefault="true"
                                  level="WEAK WARNING"
+                                 shortName="TSolUnusedElement"
                                  implementationClass="com.broxus.solidity.ide.inspections.UnusedElementInspection"/>
 
         <localInspection language="T-Sol" groupName="T-Sol"
                                  displayName="Member is not defined"
                                  enabledByDefault="true"
                                  level="ERROR"
+                                 shortName="TSolMemberAccess"
                                  implementationClass="com.broxus.solidity.ide.inspections.MemberAccessInspection"/>
         <localInspection language="T-Sol" groupName="T-Sol"
                          displayName="Members are not implemented"
                          enabledByDefault="true"
                          level="ERROR"
+                         shortName="TSolUnimplementedMember"
                          implementationClass="com.broxus.solidity.ide.inspections.UnimplementedMemberInspection"/>
 
         <localInspection language="T-Sol" groupName="T-Sol"
-                                 displayName="Assigment types validation"
-                                 enabledByDefault="true"
-                                 level="ERROR"
-                                 implementationClass="com.broxus.solidity.ide.inspections.AssignmentInspection"/>
+                         displayName="Assigment types validation"
+                         enabledByDefault="true"
+                         level="ERROR"
+                         shortName="TSolAssignment"
+                         implementationClass="com.broxus.solidity.ide.inspections.AssignmentInspection"/>
 
         <errorHandler implementation="com.broxus.solidity.ide.SentryReportSubmitter"/>
 

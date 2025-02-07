@@ -194,6 +194,7 @@ object SolAddress : SolPrimitiveType {
     when (other) {
       is SolAddress -> true
       is SolContract -> true
+      is SolAddressStd -> true
       else -> UINT_160.isAssignableFrom(other)
     }
 
@@ -206,11 +207,7 @@ object SolAddress : SolPrimitiveType {
 object SolAddressStd : SolPrimitiveType {
   private val stdNames = setOf("addr_none", "makeAddrStd")
   override fun isAssignableFrom(other: SolType): Boolean =
-    when (other) {
-      is SolAddressStd -> true
-      is SolContract -> true
-      else -> UINT_160.isAssignableFrom(other)
-    }
+    SolAddress.isAssignableFrom(other)
 
   override fun getMembers(project: Project) = getSdkMembers(SolInternalTypeFactory.of(project).addressType).map { if (it.getName() in stdNames && it is SolFunctionDefinition) fixReturnType(it) else it }
 

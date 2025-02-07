@@ -713,7 +713,7 @@ Stores an unsigned integer value with given bitSize in the <code>TvmBuilder</cod
 Stores an unsigned integer value with given bitSize in the <code>TvmBuilder</code>.
               @custom:version min=0.70.0              
 							*/
-							function storeUInt(uint256 value, uint16 bitSize); 
+							function storeUint(uint256 value, uint16 bitSize); 
 							/**
 Stores <code>TvmBuilder b</code>/<code>TvmCell c</code>/<code>TvmSlice s</code> in the reference of the <code>TvmBuilder</code>.
 							*/

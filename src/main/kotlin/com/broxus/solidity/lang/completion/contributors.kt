@@ -10,6 +10,7 @@ import com.broxus.solidity.lang.resolve.ref.SolImportPathReference
 import com.broxus.solidity.lang.stubs.SolGotoClassIndex
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.codeInspection.SuppressionUtil.SUPPRESS_IN_LINE_COMMENT_PATTERN
@@ -240,8 +241,12 @@ class SolNoInspectionNameCompletionContributor : CompletionContributor(), DumbAw
             .asSequence()
             .map { "$it " }
             .map(LookupElementBuilder::create)
+            .map { b -> b.withInsertHandler { insertionContext, lookupElement ->
+              DaemonCodeAnalyzer.getInstance(insertionContext.project).restart()
+            } }
             .map(result::addElement)
             .toList()
+
         }
       })
   }

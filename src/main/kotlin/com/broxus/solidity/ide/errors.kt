@@ -1,6 +1,5 @@
 package com.broxus.solidity.ide
 
-import com.intellij.diagnostic.IdeaReportingEvent
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter
@@ -59,10 +58,7 @@ class SentryReportSubmitter : ErrorReportSubmitter() {
       .withTag("os_arch", SystemInfo.OS_ARCH)
       .withTag("java_version", SystemInfo.JAVA_VERSION)
       .withTag("java_runtime_version", SystemInfo.JAVA_RUNTIME_VERSION)
-    val error = when (ijEvent) {
-      is IdeaReportingEvent -> ijEvent.data.throwable
-      else -> ijEvent.throwable
-    }
+    val error = ijEvent.throwable
     if (error != null) {
       eventBuilder.withSentryInterface(ExceptionInterface(error))
     }

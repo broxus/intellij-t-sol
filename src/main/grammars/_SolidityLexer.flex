@@ -41,7 +41,7 @@ FIXEDNUMBER=(([0-9][_0-9]*)+\.[_0-9]*|([0-9][_0-9]*)*\.([0-9][_0-9]*))
 SCIENTIFICNUMBER=((([0-9][_0-9]*)+|([0-9][_0-9]*)+\.[_0-9]*|([0-9][_0-9]*|[0-9])*\.([0-9][_0-9]*))[Ee][+-]?[_0-9]+)
 BOOL=q?bool
 HEXNUMBER=(0[xX][_0-9a-fA-F]+)
-NUMBERUNIT=(wei|gwei|szabo|finney|ether|seconds|minutes|hours|days|weeks|years|nano|nanoever|nEver|ever|Ever|micro|microever|milli|milliever|kiloever|kEver|megaever|MEver|gigaever|GEver|ever)
+NUMBERUNIT=(wei|gwei|szabo|finney|ether|seconds|minutes|hours|days|weeks|years|nano|nanoever|nEver|ever|Ever|micro|microever|milli|milliever|kiloever|kEver|megaever|MEver|gigaever|GEver|ever|nanoton|nTon|ton|Ton|microton|milliton|kiloton|kTon|megaton|MTon|gigaton|GTon)
 INTNUMTYPE=q?int([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-7])?
 VARINTNUMTYPE=var[Ii]nt(16|32)?
 UINTNUMTYPE=q?uint([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-6])?
@@ -190,6 +190,17 @@ PRAGMAALL=[^;]*
   "nano"                  { return NANO; }
   "nanoever"               { return NANOEVER; }
   "never"                  { return NEVER; }
+  "nanoton"               { return NANOTON; }
+  "nton"                  { return NTON; }
+  "ton"                   { return TON; }
+  "Ton"                   { return TON; }
+  "milliton"              { return MILLITON; }
+  "kiloton"               { return KILOTON; }
+  "kTon"                  { return KTON; }
+  "megaton"               { return MEGATON; }
+  "MTon"                  { return MTON; }
+  "gigaton"               { return GIGATON; }
+  "GTon"                  { return GTON; }
   "ever"                   { return EVER; }
   "Ever"                   { return EVER; }
   "micro"                 { return MICRO; }

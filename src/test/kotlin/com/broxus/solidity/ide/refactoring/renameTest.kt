@@ -105,5 +105,84 @@ class RenameTest : SolTestBase() {
     myFixture.checkResult(after)
   }
 
+  fun testLibraryRename() = doTest("lib2", """
+        library /*caret*/lib {
+            struct dog {
+                uint256 a;
+                uint256 b;
+            }
+
+            function f() internal returns (dog memory) {
+                dog memory r;
+                return r;
+            }
+        }
+
+        contract c {
+            function f() internal returns (lib.dog memory) {
+                return lib.f();
+            }
+        }
+    """, """
+        library lib2 {
+            struct dog {
+                uint256 a;
+                uint256 b;
+            }
+
+            function f() internal returns (dog memory) {
+                dog memory r;
+                return r;
+            }
+        }
+
+        contract c {
+            function f() internal returns (lib2.dog memory) {
+                return lib2.f();
+            }
+        }
+    """)
+
+  fun testStructInALibraryScopeRename() = doTest(
+    "cat", """
+        library lib {
+            struct dog/*caret*/ {
+                uint256 a;
+                uint256 b;
+            }
+
+            function f() internal returns (dog memory) {
+                dog memory r;
+                return r;
+            }
+        }
+
+        contract c {
+            function f() internal returns (lib.dog memory) {
+                return lib.f();
+            }
+        }
+    """, """
+        library lib {
+            struct cat {
+                uint256 a;
+                uint256 b;
+            }
+
+            function f() internal returns (cat memory) {
+                cat memory r;
+                return r;
+            }
+        }
+
+        contract c {
+            function f() internal returns (lib.cat memory) {
+                return lib.f();
+            }
+        }
+    """
+  )
+
+
   override fun getTestDataPath() = "src/test/resources/fixtures/refactoring/rename/"
 }

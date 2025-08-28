@@ -165,9 +165,13 @@ class SolDocumentationProvider : AbstractDocumentationProvider() {
       inheritanceSpecifierList.doc(prefix = " is ")
   }
 
+  private fun SolFunctionAttribute.doc() : String {
+    return "$functionVisibilitySpecifier $stateMutability $modifierInvocation"
+  }
+
+
   private fun SolFunctionDefinition.doc() : String {
-    return "${if (isConstructor) "constructor" else "function"} ${identifier.idName()}(${parameters.doc()}) ${functionVisibilitySpecifierList.doc(" ")} " +
-      "${stateMutabilityList.doc(" ")} ${modifierInvocationList.doc(" ")} ${returns?.parameterDefList?.doc(", ", "returns (", ")") ?: ""}"
+    return "${if (isConstructor) "constructor" else "function"} ${identifier.idName()}(${parameters.doc()}) ${functionAttributeList.doc(" ")} ${returns?.parameterDefList?.doc(", ", "returns (", ")") ?: ""}"
   }
 
   private fun SolEnumDefinition.doc() : String {

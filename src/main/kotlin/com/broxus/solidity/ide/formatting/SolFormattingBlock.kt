@@ -3,24 +3,30 @@ package com.broxus.solidity.ide.formatting
 import com.broxus.solidity.lang.core.SolidityTokenTypes.*
 import com.intellij.formatting.*
 import com.intellij.lang.ASTNode
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiComment
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.TokenType
 import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.psi.formatter.FormatterUtil
+import com.intellij.psi.impl.source.tree.CompositeElement
 import com.intellij.psi.tree.IElementType
 import java.util.*
 
-class SolFormattingBlock(
+open class SolFormattingBlock(
   private val astNode: ASTNode,
   private val alignment: Alignment?,
   private val indent: Indent,
   private val wrap: Wrap?,
   private val codeStyleSettings: CodeStyleSettings,
-  private val spacingBuilder: SpacingBuilder
+  private val spacingBuilder: SpacingBuilder,
+  private val isEnforceChildIndent: Boolean,
+  private val extra: Boolean
 ) : ASTBlock {
-  private val nodeSubBlocks: List<Block> by lazy { buildSubBlocks() }
+  private val nodeSubBlocks: List<Block> by lazy { buildSubBlocks().let { if (extra) it + SyntheticSolFormattingBlock(this) else it } }
   private val isNodeIncomplete: Boolean by lazy { FormatterUtil.isIncomplete(node) }
+  private val doc: Document? by lazy { (astNode.psi)?.let { PsiDocumentManager.getInstance(it.project).getDocument(it.containingFile) } }
 
   override fun getSubBlocks(): List<Block> = nodeSubBlocks
 
@@ -44,45 +50,85 @@ class SolFormattingBlock(
     return Collections.unmodifiableList(blocks)
   }
 
-  private fun buildSubBlock(child: ASTNode): Block {
-    val indent = calcIndent(child)
-    return SolFormattingBlock(child, alignment, indent, null, codeStyleSettings, spacingBuilder)
-  }
+  private val binaryExpressionTypes = setOf(OR_EXPRESSION, AND_EXPRESSION, EQ_EXPRESSION, COMP_EXPRESSION, OR_OP_EXPRESSION,
+    XOR_OP_EXPRESSION, AND_OP_EXPRESSION, SHIFT_EXPRESSION, PLUS_MIN_EXPRESSION, MULT_DIV_EXPRESSION, EXPONENT_EXPRESSION)
 
-  private fun calcIndent(child: ASTNode): Indent {
+  private fun buildSubBlock(child: ASTNode): Block {
+    var enforceChildIndent = isEnforceChildIndent
     val childType = child.elementType
     val type = astNode.elementType
     val parent = astNode.treeParent
     val parentType = parent?.elementType
+    val firstChild = astNode.firstChildNode
+    val firstChildType = firstChild?.elementType
+    val lastChild = astNode.lastChildNode // the expression on the right-hand side
+    val lastChildIsComposite = lastChild is CompositeElement && lastChild != firstChild
+    if (type == FUNCTION_INVOCATION || type == SEQ_EXPRESSION ||
+      parent != null && type in binaryExpressionTypes &&
+      doc?.let { it.getLineNumber(parent.startOffset) != it.getLineNumber(astNode.startOffset) } == true) {
+      enforceChildIndent = false
+    }
     val result = when {
-      child is PsiComment && type in listOf(
+      child is PsiComment && type in setOf(
         CONTRACT_DEFINITION,
         BLOCK,
         ENUM_DEFINITION,
         FUNCTION_DEFINITION,
         CONSTRUCTOR_DEFINITION,
-        STRUCT_DEFINITION
+        IF_STATEMENT,
+        STRUCT_DEFINITION,
+        YUL_BLOCK
       ) -> Indent.getNormalIndent()
-      childType.isContractPart() -> Indent.getNormalIndent()
 
-    // fields inside structs
+      type == CONTRACT_DEFINITION && childType.isContractPart() -> Indent.getNormalIndent()
+
+      type == FUNCTION_ATTRIBUTE -> Indent.getNormalIndent()
+
+      // inheritance specifiers
+      type == CONTRACT_DEFINITION && childType == INHERITANCE_SPECIFIER -> Indent.getNormalIndent()
+
+      // fields inside structs
       type == STRUCT_DEFINITION && childType == VARIABLE_DECLARATION -> Indent.getNormalIndent()
 
-    // inside a block, list of parameters, etc..
-      parentType in listOf(BLOCK, UNCHECKED_BLOCK, ENUM_DEFINITION, YUL_BLOCK, PARAMETER_LIST, INDEXED_PARAMETER_LIST, MAP_EXPRESSION) -> Indent.getNormalIndent()
+      // ternary expression
+      childType == TERNARY_EXPRESSION -> Indent.getNormalIndent()
+      type == TERNARY_EXPRESSION -> if (firstChild == child) Indent.getNoneIndent() else Indent.getNormalIndent()
 
-    // all expressions inside parens should have indentation when lines are split
-      parentType in listOf(IF_STATEMENT, WHILE_STATEMENT, DO_WHILE_STATEMENT, FOR_STATEMENT) && childType != BLOCK -> {
+
+      // inside a block, list of parameters, etc..
+      parentType in setOf(BLOCK, UNCHECKED_BLOCK, ENUM_DEFINITION, YUL_BLOCK, PARAMETER_LIST, INDEXED_PARAMETER_LIST,
+        MAP_EXPRESSION, SEQ_EXPRESSION, INLINE_ARRAY_EXPRESSION, TYPED_DECLARATION_LIST, DECLARATION_LIST, RETURN_ST/*, FUNCTION_ATTRIBUTE*/) -> Indent.getNormalIndent()
+
+      // all expressions inside parens should have indentation when lines are split
+      parentType in setOf(IF_STATEMENT, WHILE_STATEMENT, DO_WHILE_STATEMENT, FOR_STATEMENT) && childType != BLOCK -> {
         Indent.getNormalIndent()
       }
 
+      // pasted code inside a block
+      type == BLOCK && childType == IDENTIFIER -> Indent.getNormalIndent()
+
+      // chained function calls: if the callee is another call, indent subsequent parts
+      type == FUNCTION_CALL_EXPRESSION && firstChildType == FUNCTION_CALL_EXPRESSION && child != firstChild -> {
+        Indent.getContinuationIndent()
+      }
+
       // all function calls
-      parentType in listOf(FUNCTION_INVOCATION) -> Indent.getNormalIndent()
+      parentType in setOf(FUNCTION_INVOCATION, YUL_FUNCTION_CALL) -> Indent.getNormalIndent()
 
+      // multi-line assign expression & return expressions
+      type in setOf(
+        VARIABLE_DEFINITION, ASSIGNMENT_EXPRESSION, RETURN_ST
+      ) && lastChildIsComposite && lastChild == child -> {
+        enforceChildIndent = true
+        Indent.getNormalIndent()
+      }
 
-      else -> Indent.getNoneIndent()
+      type == FUNCTION_INVOCATION && parent?.treeParent?.elementType == MAP_EXPRESSION_CLAUSE && childType in setOf(FUNCTION_CALL_ARGUMENTS, LPAREN, RPAREN) -> Indent.getNormalIndent()
+
+      else -> if (enforceChildIndent) Indent.getNormalIndent() else Indent.getNoneIndent()
     }
-    return result
+    val extra = parentType == TERNARY_EXPRESSION && (childType == QUESTION || childType == COLON) && parent?.treeParent?.elementType != VARIABLE_DEFINITION
+    return SolFormattingBlock(child, alignment, result, null, codeStyleSettings, spacingBuilder, enforceChildIndent, extra)
   }
 
   private fun newChildIndent(childIndex: Int): Indent? = when {
@@ -94,7 +140,15 @@ class SolFormattingBlock(
         Indent.getNoneIndent()
       }
     }
+
+    // inside a function call
+    node.elementType == STATEMENT -> Indent.getContinuationIndent()
+    node.elementType in listOf(FUNCTION_CALL_ARGUMENTS, FUNCTION_INVOCATION) -> Indent.getNormalIndent()
+
+    node.elementType == MAP_EXPRESSION -> Indent.getNormalIndent()
+    node.elementType == PARAMETER_LIST -> Indent.getNormalIndent()
     node.elementType == UNCHECKED_BLOCK -> Indent.getNormalIndent()
+    node.elementType == TERNARY_EXPRESSION -> Indent.getNormalIndent()
     else -> Indent.getNoneIndent()
   }
 
@@ -105,6 +159,11 @@ class SolFormattingBlock(
   override fun getAlignment(): Alignment? = alignment
 
   override fun getSpacing(child1: Block?, child2: Block): Spacing? {
+    val node2 = (child2 as? SolFormattingBlock)?.astNode
+    if (node2 != null && node2.elementType == COMMENT && node2.treeParent?.elementType != YUL_BLOCK) {
+      // SpacingBuilder does not allow to use the KeepingFirstColumnSpacing option, so calling it directly
+      return Spacing.createKeepingFirstColumnSpacing(0, Int.MAX_VALUE, true, 1)
+    }
     return spacingBuilder.getSpacing(this, child1, child2)
   }
 
@@ -116,7 +175,7 @@ class SolFormattingBlock(
   override fun isLeaf(): Boolean = astNode.firstChildNode == null
 
   // TODO nicer way to do the same
-  private fun IElementType.isContractPart() = this in listOf(
+  private fun IElementType.isContractPart() = this in setOf(
     STATE_VARIABLE_DECLARATION,
     USING_FOR_DECLARATION,
     STRUCT_DEFINITION,
@@ -125,6 +184,11 @@ class SolFormattingBlock(
     CONSTRUCTOR_DEFINITION,
     EVENT_DEFINITION,
     ERROR_DEFINITION,
-    ENUM_DEFINITION
+    ENUM_DEFINITION,
+    USER_DEFINED_VALUE_TYPE_DEFINITION
   )
+}
+
+class SyntheticSolFormattingBlock(real: SolFormattingBlock) : Block by real {
+  override fun getSubBlocks(): List<Block> = emptyList()
 }

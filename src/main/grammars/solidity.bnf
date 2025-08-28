@@ -117,7 +117,7 @@ private UntilBraceRecover ::= !('}')
 private UntilBraceOrSemicolonRecover ::= !('}' | ';')
 
 // Pragma actually parses anything up to the trailing ';' to be fully forward-compatible.
-private PragmaPart ::= pragma Identifier pragmaAll? {
+private PragmaPart ::= pragma Identifier pragmaAll {
     pin = 2
     recoverWhile = UntilSemicolonRecover
 }
@@ -245,7 +245,7 @@ ConstructorDefinition ::= constructor ParameterList
 
 FunctionDefinition ::= (function Identifier? | fallback | receive | onbounce | onticktock )
                         ParameterList
-                        ( FunctionVisibilitySpecifier | StateMutability | externalMsg | internalMsg | inline | assembly | ModifierInvocation | FunctionID | getter )*
+                        FunctionAttribute*
                         ( returns ParameterList )? ( ';' | Block ) {
     pin = 1
     implements = "com.broxus.solidity.lang.psi.SolFunctionDefElement"
@@ -253,6 +253,7 @@ FunctionDefinition ::= (function Identifier? | fallback | receive | onbounce | o
     stubClass = "com.broxus.solidity.lang.stubs.SolFunctionDefStub"
     elementTypeFactory = "com.broxus.solidity.lang.stubs.ImplKt.factory"
 }
+FunctionAttribute ::= FunctionVisibilitySpecifier | StateMutability | externalMsg | internalMsg | inline | assembly | ModifierInvocation | FunctionID | getter
 
 EventDefinition ::= event Identifier IndexedParameterList anonymous? ';' {
     pin = 1

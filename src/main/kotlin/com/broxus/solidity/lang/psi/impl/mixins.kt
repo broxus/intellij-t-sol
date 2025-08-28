@@ -195,15 +195,19 @@ abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefSt
     }
   }
 
+  override val visibilitySpecifiers: List<SolFunctionVisibilitySpecifier>
+    get() = functionAttributeList.mapNotNull { it.functionVisibilitySpecifier }
+
+
   override val visibility
-    get() = functionVisibilitySpecifierList
+    get() = visibilitySpecifiers
       .map { it.text.uppercase() }
       .mapNotNull { safeValueOf<Visibility>(it) }
       .firstOrNull()
       ?: Visibility.PUBLIC
 
   override val inheritance: FunctionInheritance?
-    get() = functionVisibilitySpecifierList.find { it.overrideSpecifier != null  || it.virtualSpecifier != null }?.let {
+    get() = visibilitySpecifiers.find { it.overrideSpecifier != null  || it.virtualSpecifier != null }?.let {
       if (it.overrideSpecifier != null) FunctionInheritance.OVERRIDE else FunctionInheritance.VIRTUAL
     }
 

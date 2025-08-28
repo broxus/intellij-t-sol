@@ -1,9 +1,9 @@
 package com.broxus.solidity.ide.inspections
 
+import com.broxus.solidity.lang.psi.*
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
-import com.broxus.solidity.lang.psi.*
 
 /**
  * https://twitter.com/flyosity/status/887866459896123392
@@ -24,7 +24,7 @@ class UnprotectedFunctionInspection : LocalInspectionTool() {
   }
 
   private fun inspectFunctionDefinition(funDef: SolFunctionDefinition, holder: ProblemsHolder) {
-    if (funDef.modifiers.isEmpty() && funDef.functionVisibilitySpecifierList.isEmpty() && !funDef.isConstructor) {
+    if (funDef.modifiers.isEmpty() && funDef.visibilitySpecifiers.isEmpty() && !funDef.isConstructor) {
       for (statement in funDef.block?.statementList ?: emptyList()) {
         val expression = statement.expression
         if (expression is SolAssignmentExpression) {

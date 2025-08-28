@@ -74,6 +74,7 @@ interface SolFunctionDefElement : SolHasModifiersElement, SolMember, SolCallable
   val returns: SolParameterList?
   val isConstructor: Boolean
   val visibility: Visibility
+  val visibilitySpecifiers: List<SolFunctionVisibilitySpecifier>
   val inheritance: FunctionInheritance?
 }
 

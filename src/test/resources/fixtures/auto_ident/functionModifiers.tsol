@@ -1,0 +1,8 @@
+contract A {
+    function a()
+    external
+    internalMsg
+    override <caret> {
+
+    }
+}

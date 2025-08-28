@@ -32,7 +32,7 @@ class InferenceTest : SolResolveTestBase() {
     )
 
     checkType(SolAddress, """
-        import './base1.sol';
+        import './base1.tsol';
         contract Test  {
             function test() {
                 var test = address(this);

@@ -4,6 +4,7 @@ import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.intellij.lang.annotations.Language
 
@@ -40,16 +41,44 @@ abstract class SolTestBase : SolLightPlatformCodeInsightFixtureTestCase() {
       check(text.indexOf(caretMarker, startIndex = markerOffset + 1) == -1) {
         "More than one `$marker` marker:\n$text"
       }
-
-      val data = text.drop(markerOffset).removePrefix(caretMarker).takeWhile { it != '\n' }.trim()
-      val markerPosition = fixture.editor.offsetToLogicalPosition(markerOffset + caretMarker.length - 1)
-      val previousLine = LogicalPosition(markerPosition.line - 1, markerPosition.column)
-      val elementOffset = fixture.editor.logicalPositionToOffset(previousLine)
-      fixture.file.findElementAt(elementOffset)!! to data
+      getElementAtMarker(text,markerOffset,caretMarker)
     }
     val element = elementAtMarker.parentOfType<T>(strict = false)
       ?: error("No ${T::class.java.simpleName} at ${elementAtMarker.text}")
     return element to data
+  }
+
+  inline fun <reified T : PsiElement> findMultipleElementAndDataInEditor(marker: String = "x"): List<Pair<T, String>> {
+    val caretMarker = "//$marker"
+    val text = fixture.file.text
+
+    val indexes = getIndexesFromText(text, caretMarker)
+    check(indexes.isNotEmpty()) { "No `$marker` marker:\n$text" }
+
+    return indexes.map { index ->
+      val (elementAtMarker, data) = getElementAtMarker(text, index, caretMarker)
+      val element = elementAtMarker.parentOfType<T>(strict = false)
+        ?: error("No ${T::class.java.simpleName} at ${elementAtMarker.text}")
+      element to data
+    }
+  }
+
+  fun getElementAtMarker(text: String, markerOffset: Int, caretMarker: String): Pair<PsiElement, String> {
+    val data = text.drop(markerOffset).removePrefix(caretMarker).takeWhile { it != '\n' }.trim()
+    val markerPosition = fixture.editor.offsetToLogicalPosition(markerOffset + caretMarker.length - 1)
+    val previousLine = LogicalPosition(markerPosition.line - 1, markerPosition.column)
+    val elementOffset = fixture.editor.logicalPositionToOffset(previousLine)
+    return fixture.file.findElementAt(elementOffset)!! to data
+  }
+
+  fun getIndexesFromText(text: String, caretMarker: String): List<Int> {
+    val indexes = ArrayList<Int>()
+    var index: Int = text.indexOf(caretMarker)
+    while (index >= 0) {
+      indexes.add(index)
+      index = text.indexOf(caretMarker, index + 1)
+    }
+    return indexes
   }
 
   inline fun <reified T : PsiElement> PsiElement.parentOfType(strict: Boolean = true, minStartOffset: Int = -1): T? =
@@ -61,11 +90,34 @@ abstract class SolTestBase : SolLightPlatformCodeInsightFixtureTestCase() {
     return element
   }
 
+  protected open fun checkEditorAction(
+    @Language("T-Sol") before: String,
+    @Language("T-Sol") after: String,
+    actionId: String,
+    trimIndent: Boolean = true,
+  ) {
+    checkByText(before.trimIndent(), after.trimIndent()) {
+      myFixture.performEditorAction(actionId)
+    }
+  }
+
   protected fun checkByFile(ignoreTrailingWhitespace: Boolean = true, action: () -> Unit) {
     val (before, after) = (fileName to fileName.replace(".tsol", "After.tsol"))
     myFixture.configureByFile(before)
     action()
     myFixture.checkResultByFile(after, ignoreTrailingWhitespace)
+  }
+
+  protected fun checkByText(
+    @Language("T-Sol") before: String,
+    @Language("T-Sol") after: String,
+    fileName: String = "main.tsol",
+    action: () -> Unit
+  ) {
+    InlineFile(before, fileName)
+    action()
+    PsiTestUtil.checkPsiStructureWithCommit(myFixture.file, PsiTestUtil::checkPsiMatchesTextIgnoringNonCode)
+    myFixture.checkResult(replaceCaretMarker(after))
   }
 
   protected fun checkResult(@Language("T-Sol") text: String) {

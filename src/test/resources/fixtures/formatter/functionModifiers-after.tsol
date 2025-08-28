@@ -3,7 +3,7 @@ contract A {
         external
         internalMsg
         override
-    {<caret>
+    {
 
     }
 }

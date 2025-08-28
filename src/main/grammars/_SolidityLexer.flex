@@ -54,7 +54,7 @@ BOOLEANLITERAL=true|false
 SPACE=[ \t\n\x0B\f\r]+
 IDENTIFIER=[a-zA-Z_$][a-zA-Z_$0-9]*
 // Pragma parses anything up to the trailing ';' to be fully forward-compatible.
-PRAGMAALL=[^;]*
+PRAGMAALL=[^\s][^;]*
 
 %%
 <YYINITIAL> {

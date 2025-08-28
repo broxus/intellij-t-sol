@@ -1,5 +1,10 @@
 package com.broxus.solidity.ide.annotation
 
+import com.broxus.solidity.ide.navigation.findAllImplementations
+import com.broxus.solidity.ide.navigation.findImplementations
+import com.broxus.solidity.lang.psi.SolContractDefinition
+import com.broxus.solidity.lang.psi.SolFunctionDefinition
+import com.broxus.solidity.lang.resolve.function.SolFunctionResolver
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
@@ -8,11 +13,6 @@ import com.intellij.ide.util.PsiElementListCellRenderer
 import com.intellij.openapi.util.Iconable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.broxus.solidity.ide.navigation.findAllImplementations
-import com.broxus.solidity.ide.navigation.findImplementations
-import com.broxus.solidity.lang.psi.SolContractDefinition
-import com.broxus.solidity.lang.psi.SolFunctionDefinition
-import com.broxus.solidity.lang.resolve.function.SolFunctionResolver
 
 class SolidityLineMarkerProvider : LineMarkerProvider {
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? = null
@@ -57,8 +57,8 @@ class SolidityLineMarkerProvider : LineMarkerProvider {
               val info = NavigationGutterIconBuilder
                 .create(AllIcons.Gutter.OverridenMethod)
                 .setTargets(overrides)
-                .setPopupTitle("Is overriden")
-                .setTooltipText("Is overriden in subcontracts")
+                .setPopupTitle("Is overridden")
+                .setTooltipText("Is overridden in subcontracts")
                 .setCellRenderer(FunctionCellRenderer(el.containingFile))
                 .createLineMarkerInfo(identifier)
               result.add(info)

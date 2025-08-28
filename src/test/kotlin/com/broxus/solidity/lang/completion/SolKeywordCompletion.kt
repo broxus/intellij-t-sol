@@ -124,8 +124,9 @@ class SolKeywordCompletion : SolCompletionTestBase() {
 
     fun testKeywordOnEventCompletion() = checkCompletion(
       hashSetOf("indexed "), """
-        event /*caret*/
-
+         contract A{
+            event /*caret*/
+        }
     """
     )
 

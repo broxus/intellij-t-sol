@@ -8,7 +8,6 @@ class SolAutoIdentationTest : SolTypingTestBase() {
   fun testEnum() = doTest()
   fun testStruct() = doTest()
   fun testFunction() = doTest()
-  fun testFunctionModifiers() = doTest()
   fun testFunctionCall() = doTest()
   fun testFunctionParams() = doTest()
   fun testMapExpression() = doTest()

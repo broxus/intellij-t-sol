@@ -228,8 +228,6 @@
                                    implementationClass="com.broxus.solidity.ide.hints.SolParameterInfoHandler"/>
 
         <completion.contributor language="T-Sol"
-                                implementationClass="com.broxus.solidity.lang.completion.SolBaseTypesCompletionContributor"/>
-        <completion.contributor language="T-Sol"
                                 implementationClass="com.broxus.solidity.lang.completion.SolKeywordCompletionContributor"/>
         <completion.contributor language="T-Sol"
                                 implementationClass="com.broxus.solidity.lang.completion.SolFunctionCompletionContributor"/>

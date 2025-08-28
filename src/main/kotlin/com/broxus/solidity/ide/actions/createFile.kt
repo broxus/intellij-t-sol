@@ -12,6 +12,8 @@ import com.intellij.psi.PsiDirectory
 
 private const val CAPTION = "New T-Sol File"
 
+const val SMART_CONTRACT_TEMPLATE = "T-Sol Contract"
+
 class SolCreateFileAction : CreateFileFromTemplateAction(CAPTION, "", SolidityIcons.FILE_ICON), DumbAware {
 
   override fun getActionName(directory: PsiDirectory?, newName: String, templateName: String?) = CAPTION
@@ -22,7 +24,7 @@ class SolCreateFileAction : CreateFileFromTemplateAction(CAPTION, "", SolidityIc
     builder: CreateFileFromTemplateDialog.Builder
   ) {
     builder.setTitle(CAPTION)
-      .addKind("Smart contract", SolidityIcons.FILE_ICON, "T-Sol Contract")
+      .addKind("Smart contract", SolidityIcons.FILE_ICON, SMART_CONTRACT_TEMPLATE)
       .addKind("Abstract smart contract", SolidityIcons.FILE_ICON, "T-Sol Abstract Contract")
       .addKind("Interface", SolidityIcons.FILE_ICON, "T-Sol Interface")
       .addKind("Library", SolidityIcons.FILE_ICON, "T-Sol Library")

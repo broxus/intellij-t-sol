@@ -1,12 +1,5 @@
 package com.broxus.solidity.ide.hints
 
-import com.intellij.codeInsight.lookup.LookupElement
-import com.intellij.lang.parameterInfo.ParameterInfoContext
-import com.intellij.lang.parameterInfo.ParameterInfoUIContext
-import com.intellij.lang.parameterInfo.ParameterInfoUtils
-import com.intellij.lang.parameterInfo.UpdateParameterInfoContext
-import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiFile
 import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.psi.SolCallable
 import com.broxus.solidity.lang.psi.SolFunctionCallArguments
@@ -14,6 +7,13 @@ import com.broxus.solidity.lang.psi.SolFunctionCallExpression
 import com.broxus.solidity.lang.resolve.canBeApplied
 import com.broxus.solidity.lang.resolve.ref.SolFunctionCallReference
 import com.broxus.solidity.lang.types.findParentOrNull
+import com.intellij.codeInsight.lookup.LookupElement
+import com.intellij.lang.parameterInfo.ParameterInfoContext
+import com.intellij.lang.parameterInfo.ParameterInfoUIContext
+import com.intellij.lang.parameterInfo.ParameterInfoUtils
+import com.intellij.lang.parameterInfo.UpdateParameterInfoContext
+import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiFile
 
 class SolParameterInfoHandler : AbstractParameterInfoHandler<SolFunctionCallExpression, SolArgumentsDescription>() {
   override fun couldShowInLookup() = true
@@ -70,7 +70,7 @@ class SolArgumentsDescription(
 ) {
 
   val valid = callable.canBeApplied(callArguments)
-  val presentText = if (arguments.isEmpty()) "<no arguments>" else arguments.joinToString(", ")
+  val presentText = if (arguments.isEmpty()) "<no parameters>" else arguments.joinToString(", ")
 
   fun getArgumentRange(index: Int): TextRange {
     if (index < 0 || index >= arguments.size) {

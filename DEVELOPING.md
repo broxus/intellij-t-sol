@@ -17,7 +17,7 @@ It's important to remember that running the tests from IDE doesn't regenerate th
 
 The implementation of the formatter aims to follow the [official style guide](https://github.com/ethereum/solidity/blob/develop/docs/style-guide.rst) by default, but also to be configurable to step away from the conventions when needed.
 
-The formatting rules are defined in `src/main/kotlin/me/serce/solidity/ide/formatting`, with the corresponding tests in `src/test/kotlin/me/serce/solidity/ide/formatting`. The official [JetBrains documentation](https://www.jetbrains.org/intellij/sdk/docs/tutorials/custom_language_support/formatter.html) can be used as a reference.
+The formatting rules are defined in `src/main/kotlin/com/broxus/solidity/ide/formatting`, with the corresponding tests in `src/test/kotlin/com/broxus/solidity/ide/formatting`. The official [JetBrains documentation](https://www.jetbrains.org/intellij/sdk/docs/tutorials/custom_language_support/formatter.html) can be used as a reference.
 
 # Exceptions
 

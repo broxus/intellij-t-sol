@@ -4,6 +4,7 @@ import com.broxus.solidity.ide.SolHighlighter
 import com.broxus.solidity.ide.colors.SolColor
 import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.psi.*
+import com.broxus.solidity.lang.psi.impl.SolErrorDefMixin
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.broxus.solidity.lang.types.getSolType
 import com.intellij.lang.documentation.AbstractDocumentationProvider
@@ -79,7 +80,7 @@ class SolDocumentationProvider : AbstractDocumentationProvider() {
   }
 
   private val keywordColors = SolHighlighter.keywords().plus(SolHighlighter.types()).minus(SolidityTokenTypes.RETURN).map { it.toString() }
-    .plus(setOf("u?int(\\d+)", "u?fixed(\\d+)", "bytes?(\\d+)"))
+    .plus(setOf("u?int(\\d+)", "u?fixed(\\d+)", "bytes?(\\d+)", "error"))
     .joinToString("|", "\\b(", ")\\b").toRegex()
   private val col = SolColor.TYPE.textAttributesKey.defaultAttributes.foregroundColor
   private val typeRGB = "rgb(${col.red},${col.green},${col.blue})"
@@ -109,6 +110,7 @@ class SolDocumentationProvider : AbstractDocumentationProvider() {
         if (e.elementType == SolidityTokenTypes.NAT_SPEC_TAG) {
           text = (if (e.text == NO_VALIDATION_TAG) "" else "<br/>$GRAYED_START${text.substring(1)}:$GRAYED_END")
         }
+        text = text.replace(" ", "&nbsp;").replace("\n", "<br/>")
         builder.append(text)
       }
       builder.append(CONTENT_END)
@@ -183,7 +185,7 @@ class SolDocumentationProvider : AbstractDocumentationProvider() {
   }
 
   private fun SolErrorDefinition.doc() : String {
-    return "error ${identifier.idName()} ${children.joinToString { it.text.colorizeKeywords() }}"
+    return "error ${(this as? SolErrorDefMixin)?.nameIdentifier?.idName() ?: "N/A"} ${children.joinToString { it.text.colorizeKeywords() }}"
   }
 
   private fun SolModifierDefinition.doc() : String {

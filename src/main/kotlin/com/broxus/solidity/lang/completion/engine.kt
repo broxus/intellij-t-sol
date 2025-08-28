@@ -69,7 +69,7 @@ object SolCompleter {
         StubIndex.getElements(SolGotoClassIndex.KEY, it, project, GlobalSearchScope.allScope(project), SolNamedElement::class.java)
       }
       .filterIsInstance<SolUserDefinedType>()
-      .map { UserDefinedTypeLookupElement(it) }
+      .map { ContractLookupElement(it) }
       + aliases.mapNotNull { LookupElementBuilder.create(it.name ?: return@mapNotNull null).withIcon(it.getIcon(0)) })
       .toTypedArray()
   }
@@ -136,21 +136,22 @@ object SolCompleter {
   }
 }
 
-class UserDefinedTypeLookupElement(val type: SolUserDefinedType) : LookupElement() {
-  private val typeName = type.name.let { tn ->
-    "${type.parentOfType<SolContractDefinition>()?.name?.let { "$it." } ?: ""}$tn"
-  }
-  override fun getLookupString(): String = typeName
+class ContractLookupElement(private val contract: SolUserDefinedType) : LookupElement() {
+  // read the lookup string on the contract lookup element construction to avoid the exception
+  // when #getLookupString is called without a read action when the UI is painted.
+  private val contractName: String = contract.name ?: ""
+
+  override fun getLookupString(): String = contractName
 
   override fun renderElement(presentation: LookupElementPresentation) {
-    presentation.icon = type.getIcon(0)
-    presentation.itemText = type.name
-    presentation.typeText = "from ${type.containingFile.name}"
+    presentation.icon = contract.getIcon(0)
+    presentation.itemText = contractName
+    presentation.typeText = "from ${contract.containingFile.name}"
   }
 
   override fun handleInsert(context: InsertionContext) {
-    if (!ImportFileAction.isImportedAlready(context.file, type.containingFile, typeName = (type.outerContract() ?: type).name)) {
-      ImportFileAction.addImport(type.project, context.file, type.containingFile, type)
+    if (!ImportFileAction.isImportedAlready(context.file, contract.containingFile, typeName = (contract.outerContract() ?: contract).name)) {
+      ImportFileAction.addImport(contract.project, context.file, contract.containingFile, contract)
     }
   }
 }

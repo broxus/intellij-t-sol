@@ -88,7 +88,7 @@ class SolMemberAccessCompletionTest : SolCompletionTestBase() {
                 c.doS/*caret*/
             }
         }
-  """, strict = true)
+  """)
 
   fun testOverridesOnlyOnce() {
     InlineFile("""

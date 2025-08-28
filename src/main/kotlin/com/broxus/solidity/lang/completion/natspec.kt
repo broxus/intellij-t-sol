@@ -16,7 +16,8 @@ private val NATSPEC_TAGS = arrayListOf(
   "dev" to "Explain to a developer any extra details",
   "param" to "Documents a parameter just like in Doxygen",
   "return" to "Documents the return variables of a contract’s function",
-  "inheritdoc" to "Copies all missing tags from the base function"
+  "inheritdoc" to "Copies all missing tags from the base function",
+  "custom" to "Custom tag, semantics is application-defined"
 )
 
 class NatSpecCompletionProvider(val prefix: String) : CompletionProvider<CompletionParameters>() {

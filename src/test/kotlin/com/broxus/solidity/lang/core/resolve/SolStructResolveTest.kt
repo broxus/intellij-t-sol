@@ -25,6 +25,20 @@ class SolStructResolveTest : SolResolveTestBase() {
       }
   """)
 
+  fun testStructResolveAsVarLiteral() = checkByCode("""
+      struct Prop {
+            //x
+          uint8 prop;
+      }
+          
+      contract B {
+          function a() {
+            abi.decode(null, Prop);
+                             //^
+          }
+      }
+  """)
+
 
   fun testStructResolveFromLibrary() = checkByCode("""
       library Library {

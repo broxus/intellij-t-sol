@@ -20,7 +20,6 @@ import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StubIndex
 import com.intellij.psi.util.*
-import com.intellij.refactoring.suggested.endOffset
 import com.intellij.util.Processors
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSuperclassOf
@@ -551,11 +550,15 @@ object SolResolver {
               val enums = scopeChildren.asSequence()
                 .filterIsInstance<SolEnumDefinition>()
 
+              val structs = scopeChildren.asSequence()
+                .filterIsInstance<SolStructDefinition>()
+
               val imports = scopeChildren.asSequence().filterIsInstance<SolImportDirective>()
                 .mapNotNull {  it.importPath?.reference?.resolve()?.containingFile }
                 .map { lexicalDeclarations(visitedScopes, it, place) }
                 .flatten()
-              imports + contracts + constantVariables + freeFunctions + userDefinedTypes + enums
+
+              imports + contracts + constantVariables + freeFunctions + userDefinedTypes + enums + structs
             } ?: emptySequence()
           }
 

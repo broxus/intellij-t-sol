@@ -354,6 +354,22 @@ class SolExpressionTypeProviderTest : SolTestBase() {
     """)
   }
 
+  fun testMemberAccessType() {
+    InlineFile("""
+        contract A {
+            uint i;
+            
+            function f() {
+                var x = A.i;
+                x;
+              //^
+            }
+        }
+    """)
+    val (expr, _) = findElementAndDataInEditor<SolExpression>()
+    assertEquals("uint256", expr.type.toString())
+  }
+
   private fun checkExpr(@Language("T-Sol") code: String, msg: String = "") {
     InlineFile(code)
     val (expr, expectedType) = findElementAndDataInEditor<SolExpression>()

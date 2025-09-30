@@ -23,7 +23,8 @@ import com.intellij.psi.util.*
 import kotlin.math.max
 
 fun getSolType(type: SolTypeName?): SolType {
-  return when (type) {
+  return if (type == null) SolUnknown else
+  when (type) {
     is SolBytesArrayTypeName -> {
       if (type.bytesNumType.text == "bytes") {
         SolBytes
@@ -90,6 +91,10 @@ private fun getSolTypeFromUserDefinedTypeName(type: SolUserDefinedTypeName): Sol
       val internalType = SolInternalTypeFactory.of(type.project).byName(name)
       return internalType ?: SolUnknown
     }
+    val intTypeName= SolInternalTypeFactory.of(type.project).builtinInternalTypeByName(type)
+    if (intTypeName != null) {
+      return intTypeName
+    }
       fun resolveByComments(comments: List<PsiElement>, contextElement: SolFunctionDefinition?): SolType? =
       comments.indexOfFirst { it.text == TYPE_ARGUMENT_TAG }.takeIf { it >= 1 }
         ?.let { comments.getOrNull(it - 1)?.let { it.text.split("\n")[0] } }
@@ -136,12 +141,12 @@ fun resolveTypeArgument(name: String, typeText: String, type: SolUserDefinedType
       type.findResolveContext()?.expr?.get()?.parent?.parent?.childOfType<SolFunctionCallArguments>()?.expressionList?.let { actArgs ->
         val parameters = baseElement.parameters
         parameters.mapIndexedNotNull { i, p -> i.takeIf { p.typeName.text == typeText2 } }.let { typedIndexes ->
-          val varArgInd = parameters.indexOfFirst { it.identifier?.text == "varargs" }.takeIf { it >= 0 } ?: Int.MAX_VALUE
+          val varArgInd = parameters.indexOfFirst { it.identifier?.text == SolInternalTypeFactory.varargsId }.takeIf { it >= 0 } ?: Int.MAX_VALUE
           val typedTypes = actArgs.mapIndexedNotNull { i, a -> a.takeIf { i in typedIndexes || varArgInd < i }?.let { RecursionManager.doPreventingRecursion(it, true) { inferExprType(it) } } }
           val resolved = resolveCommonType(typedTypes)
           val bound = typeArg.bound
           if (bound != null && resolved !is SolTypeError) {
-              (SolInternalTypeFactory.of(type.project).builtinTypeByName(bound, typedTypes))?.let { b -> resolved.takeIf { b.isAssignableFrom(it) } ?: SolTypeError("Expect a sub type of $b, but $resolved found") } ?: resolved
+              (SolInternalTypeFactory.of(type.project).builtinMetaTypeByName(bound))?.let { b -> resolved.takeIf { b.isAssignableFrom(it) } ?: SolTypeError("Expect a sub type of $b, but $resolved found") } ?: resolved
           } else {
             resolved
           }
@@ -151,7 +156,7 @@ fun resolveTypeArgument(name: String, typeText: String, type: SolUserDefinedType
   }
 }
 
-fun resolveCommonType(typedTypes: List<SolType>) : SolType {
+private fun resolveCommonType(typedTypes: List<SolType>) : SolType {
   if (typedTypes.isEmpty()) {
     return SolTypeError("No types inferred")
   }
@@ -262,7 +267,7 @@ fun inferExprType(expr: SolExpression?): SolType {
         ?: (expr.reference as SolFunctionCallReference)
         .resolveFunctionCall()
         .firstOrNull { it.canBeApplied(expr.functionCallArguments) }
-        ?.let { (it as? SolFunctionDefMixin)?.parseType() ?: it.parseType() }
+        ?.let { (it as? SolFunctionDefMixin)?.parseType(expr) ?: it.parseType() }
         ?: SolUnknown
     }
     is SolAndExpression,
@@ -279,10 +284,21 @@ fun inferExprType(expr: SolExpression?): SolType {
       }
     }
     is SolMemberAccessExpression -> {
-      return SolResolver.resolveMemberAccess(expr)
+      fun memberAccess(): SolType = (SolResolver.resolveMemberAccess(expr)
         .firstOrNull()
         ?.parseType()
-        ?: SolUnknown
+        ?: SolUnknown)
+
+      if (expr.textContains('(')) {
+        return memberAccess()
+      } else {
+        val refType = when (expr.reference?.resolve()) {
+          is SolFunctionDefinition -> LiteralRefType.FUNCTION
+          is SolContractDefinition -> LiteralRefType.CONTRACT
+          else -> null
+        }
+        SolLiteralRefType(refType ?: return memberAccess())
+      }
     }
     is SolSeqExpression -> expr.expressionList.let {
       when (it.size) {

@@ -604,7 +604,7 @@ fun SolCallable.canBeApplied(arguments: SolFunctionCallArguments): Boolean {
   val parseParameters = parseParameters()
   val parameters = parseParameters
     .map { it.second }
-  if (parameters.size != callArgumentTypes.size && parseParameters.none { it.first == "varargs" })
+  if (parameters.size != callArgumentTypes.size && parseParameters.none { it.first == SolInternalTypeFactory.varargsId })
     return false
   return !parameters.zip(callArgumentTypes)
     .any { (paramType, argumentType) ->

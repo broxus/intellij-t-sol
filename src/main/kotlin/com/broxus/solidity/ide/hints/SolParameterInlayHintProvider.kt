@@ -3,6 +3,7 @@ package com.broxus.solidity.ide.hints
 
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.resolve.SolResolver
+import com.broxus.solidity.lang.types.SolInternalTypeFactory
 import com.broxus.solidity.lang.types.inferDeclType
 import com.intellij.codeInsight.hints.InlayInfo
 import com.intellij.codeInsight.hints.InlayParameterHintsProvider
@@ -94,7 +95,7 @@ class TextInlayInfoDetail(text: String, val smallText: Boolean = true): InlayInf
 
 fun provideArgumentNameHints(element: SolFunctionCallElement): List<InlayInfo> {
   val params = element.resolveDefinitions().takeIf { it?.size == 1 }?.get(0)?.parseParameters() ?: return emptyList()
-    if (params.any { it.first == "varargs" } ) return emptyList()
+    if (params.any { it.first == SolInternalTypeFactory.varargsId } ) return emptyList()
   val args = element.functionCallArguments.expressionList
 
   return params.zip(args).map { InlayInfo(it.first.let { it.first ?: it.second.toString() }, it.second.startOffset) }

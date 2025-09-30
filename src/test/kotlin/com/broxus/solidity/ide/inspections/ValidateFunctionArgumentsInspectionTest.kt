@@ -44,4 +44,12 @@ class ValidateFunctionArgumentsInspectionTest : SolInspectionsTestBase(FunctionA
         }
     """)
 
+  fun testValidationLiteralRef() = checkByText("""
+        function a(int i, string k) {
+            tvm.encodeBody(a, 1);
+          }
+    """)
+
+
+
 }

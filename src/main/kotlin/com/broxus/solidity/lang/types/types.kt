@@ -99,6 +99,26 @@ object SolTypeType/*(val value: SolType)*/ : SolInternalType {
 
 }
 
+enum class LiteralRefType {
+  ABSTRACT, CONTRACT, FUNCTION
+}
+
+class SolLiteralRefType(val refType: LiteralRefType) : SolType {
+  private val str = when (refType) {
+    LiteralRefType.ABSTRACT -> "Contract or function reference"
+    LiteralRefType.CONTRACT -> "Contract Reference"
+    LiteralRefType.FUNCTION -> "Function Reference"
+  }
+  override fun isAssignableFrom(other: SolType): Boolean {
+    return other is SolLiteralRefType && (refType == LiteralRefType.ABSTRACT || other.refType == refType) ||
+       other is SolContract && (refType == LiteralRefType.ABSTRACT || refType == LiteralRefType.CONTRACT)    ||
+              other is SolFunctionDefinition && (refType == LiteralRefType.ABSTRACT || refType == LiteralRefType.FUNCTION)
+  }
+
+  override fun toString(): String = str
+}
+
+
 data class SolTypeError(val details: String) : SolInternalType {
   override fun isAssignableFrom(other: SolType): Boolean = false
 
@@ -614,6 +634,18 @@ data class SolMetaType(val type: SolType): SolType {
   override fun getRefs(): List<TypeRef> = listOf(TypeRef(this::type.name, type))
 
   override fun toString(): String = "type($type)"
+}
+
+data class SolMemberRef(val type: SolType): SolType {
+  private val strName = when (type) {
+    is SolFunctionDefinition -> "function(${type.parseType()})"
+    is SolContractDefinition -> "contract"
+    else -> "N/A"
+  }
+  override fun isAssignableFrom(other: SolType): Boolean {
+    return other is SolMetaType && this.type == other.type
+  }
+  override fun toString(): String = strName
 }
 
 private const val INTERNAL_INDICATOR = "_sol1_s"

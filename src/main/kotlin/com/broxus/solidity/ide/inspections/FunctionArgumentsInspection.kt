@@ -7,13 +7,11 @@ import com.broxus.solidity.ide.hints.comments
 import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.resolve.SolResolver
-import com.broxus.solidity.lang.types.SolInternalTypeFactory
-import com.broxus.solidity.lang.types.SolTypeError
-import com.broxus.solidity.lang.types.getSolType
-import com.broxus.solidity.lang.types.type
+import com.broxus.solidity.lang.types.*
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.util.descendantsOfType
 
 fun SolFunctionCallArguments.getDefs(): List<SolFunctionDefElement>? {
   return ((parent.parent?.children?.firstOrNull() as? SolMemberAccessExpression)?.let {
@@ -45,17 +43,17 @@ fun inspectFunctionCallArguments(element: SolFunctionCallArguments, holder: SolP
                 var wrongTypes = ""
                 var wrongElement = element as SolElement
                 if (funDefs.none { ref ->
-                            val parameters = ref.parameters
-                            val expArgs = parameters.size
-                            val actArgs = args.size
-                            if (actArgs != expArgs && parameters.none { it.name == SolInternalTypeFactory.varargsId }) {
-                                wrongNumberOfArgs = "Expected $expArgs argument${if (expArgs > 1) "s" else ""}, but got $actArgs"
-                                false
-                            } else {
-                                args.zip(parameters).all { both ->
-                                    val expType = getSolType(both.second.typeName)
-                                    val actType = both.first.type
-                                    !expType.isResolved || !actType.isResolved || expType.isAssignableFrom(actType).also {
+                    val parameters = collectRefParams(ref.parameters, args.getOrNull(0))
+                    val expArgs = parameters.size
+                    val actArgs = args.size
+                    if (actArgs != expArgs && parameters.none { it.name == SolInternalTypeFactory.varargsId }) {
+                      wrongNumberOfArgs = "Expected $expArgs argument${if (expArgs > 1) "s" else ""}, but got $actArgs"
+                      false
+                    } else {
+                      args.zip(parameters).all { both ->
+                        val expType = getSolType(both.second.typeName)
+                        val actType = both.first.type
+                        !expType.isResolved || !actType.isResolved || expType.isAssignableFrom(actType).also {
                                         if (!it) {
                                             if (expType is SolTypeError) {
                                                 wrongTypes = expType.details
@@ -76,3 +74,16 @@ fun inspectFunctionCallArguments(element: SolFunctionCallArguments, holder: SolP
         }
     }
 }
+
+fun collectRefParams(params0: List<SolParameterDef>, ref: SolExpression?): List<SolParameterDef> {
+  if (getSolType(params0.getOrNull(0)?.typeName) !is SolLiteralRefType) {
+    return params0
+  }
+  val argInd = params0.indexOfFirst { it.typeName.firstChild?.text == SolInternalTypeFactory.argsType }.takeIf { it >= 1 } ?: return params0
+  val result = mutableListOf(*params0.subList(0, argInd).toTypedArray())
+  (ref?.descendantsOfType<SolReferenceElement>()?.mapNotNull { it.reference?.resolve() as? SolFunctionDefinition }?.firstOrNull())?.let {
+    result.addAll(it.parameters)
+  }
+  return result
+}
+

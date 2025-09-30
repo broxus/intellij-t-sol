@@ -181,17 +181,37 @@ abstract class SolFunctionDefMixin : SolStubbedNamedElementImpl<SolFunctionDefSt
       ?: emptyList()
 
   override fun parseParameters(): List<Pair<String?, SolType>> {
-    return Companion.parseParameters(parameters)
+    return CachedValuesManager.getCachedValue(this) {
+      CachedValueProvider.Result(Companion.parseParameters(parameters), this)
+    }
   }
 
   override val callablePriority = 0
 
-  override fun parseType(): SolType? {
-    return this.returns?.parameterDefList?.let {
-          when (it.size) {
-            1 -> getSolType(it[0].typeName)
-            else -> SolTypeSequence(it.map { def -> getSolType(def.typeName) })
+  override fun parseType(): SolType? = parseType(null)
+
+  fun parseType(context: SolFunctionCallExpression?): SolType? {
+    return returns?.let { returns ->
+      val retParams = returns.parameterDefList
+      fun common() = retParams?.let {
+                  when (it.size) {
+                    1 -> getSolType(it[0].typeName)
+                    else -> SolTypeSequence(it.map { def -> getSolType(def.typeName) })
+                  }
+            }
+      if (context != null) {
+        val argInd = parseParameters().indexOfFirst { it.second is SolLiteralRefType }.takeIf { it >= 0 } ?: return common()
+        val ind = retParams.indexOfFirst { it.typeName.firstChild.text == SolInternalTypeFactory.argsType }.takeIf { it >= 0 } ?: return common()
+        val refParams = when (val it = context.functionCallArguments.expressionList[argInd].let { sequenceOf(it.firstChild, it).mapNotNull {it.reference?.resolve() }.firstOrNull() }) {
+          is SolFunctionDefinition -> it.parseParameters().map { it.second }
+          is SolContractDefinition -> {
+            if (this.name?.contains(SolInternalTypeFactory.functionHandleFunction, true) == true) it.constructorDefinitionList.firstOrNull()?.parameterList?.parameterDefList?.map { getSolType(it.typeName) } ?: return common() else it.stateVariableDeclarationList.map { getSolType(it.typeName) }
           }
+          else -> return common()
+        }
+        return SolTypeSequence(if (ind > 0) retParams.subList(0, ind).map {getSolType(it.typeName) } + refParams else refParams)
+      }
+      return common()
     }
   }
 

@@ -3,28 +3,38 @@ package com.broxus.solidity.lang.types
 import com.broxus.solidity.childrenOfType
 import com.broxus.solidity.ide.hints.VERSION_TAG
 import com.broxus.solidity.ide.hints.tagComments
-import com.broxus.solidity.lang.psi.SolContractDefinition
-import com.broxus.solidity.lang.psi.SolNamedElement
-import com.broxus.solidity.lang.psi.SolPragmaDirective
-import com.broxus.solidity.lang.psi.SolPsiFactory
+import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.resolve.SolResolver
 import com.github.yuchi.semver.Range
 import com.github.yuchi.semver.SemVer
 import com.github.yuchi.semver.Version
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import org.intellij.lang.annotations.Language
 import kotlin.reflect.KProperty1
+
+
 
 class SolInternalTypeFactory(project: Project) {
 
   private val psiFactory: SolPsiFactory = SolPsiFactory(project)
 
   companion object {
-    const val varargsId = "varargs"
+    // special tokens available in the api definitions
+
+    const val varargsId = "varargs" // disable inspection validation when a parameter with this name is defined
+
+    const val functionHandleFunction = "function" // builtin function that is handle functions. so constructor will be used if contract passed as argument
+
+    const val argsType = "Args"
+    const val literalRef = "LiteralRef"
+    const val numberType = "Number"
+    const val intType = "Int"
+    const val typeType = "Type"
+
     fun of(project: Project): SolInternalTypeFactory {
-      return ServiceManager.getService(project, SolInternalTypeFactory::class.java)
+      return project.service<SolInternalTypeFactory>()
     }
   }
 
@@ -64,12 +74,27 @@ class SolInternalTypeFactory(project: Project) {
 
   fun builtinByName(name: String): SolNamedElement? = everBuiltinTypes[name]
 
-  fun builtinTypeByName(name: String, context: List<SolType>): SolType? = when (name) {
-    "Number" -> SolNumericType
-    "Int" -> SolInteger.MAX_INT_TYPE
-    "Type" -> SolTypeType
+  fun builtinMetaTypeByName(name: String): SolType? = when (name) {
+    numberType -> SolNumericType
+    intType -> SolInteger.MAX_INT_TYPE
+    typeType -> SolTypeType
 //    "TypeSequence" -> SolTypeSequence(context)
     else -> null
+  }
+
+  fun builtinInternalTypeByName(type: SolUserDefinedTypeName/*, ref: SolVarLiteral*/): SolType? {
+    val name1 = type.name
+    val argName = (type.parent as? SolParameterDef)?.name ?: ""
+    return when (name1) {
+      literalRef -> SolLiteralRefType(
+        when  {
+          argName.contains("contract", true) && !argName.contains("function", true) -> LiteralRefType.CONTRACT
+          argName.contains("function", true) && !argName.contains("contract", true) -> LiteralRefType.FUNCTION
+          else -> LiteralRefType.ABSTRACT
+        })
+
+      else -> null
+    }
   }
 
   val tvmCell: SolContract by lazy {
@@ -324,18 +349,14 @@ class SolInternalTypeFactory(project: Project) {
               function loadSlice(uint length, uint refs) returns (TvmSlice);
               /**
               Decodes parameters of the function or constructor (if contract type is provided). This function is usually used in <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#onbounce">onBounce</a> function.
-              @custom:no_validation
-              @custom:typeArgument Type:FunctionOrContract, TypeRet:DecodedElement
               @custom:deprecated
               */              
-              function decodeFunctionParams(Type functionOrContract) returns (TypeRet);
+              function decodeFunctionParams(LiteralRef functionOrContract) returns (Args);
               /**
               Decodes parameters of the function or constructor (if contract type is provided). This function is usually used in <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#onbounce">onBounce</a> function.
-              @custom:no_validation
-              @custom:typeArgument Type:FunctionOrContract, TypeRet:DecodedElement
               @custom:version min=0.70.0              
               */              
-              function loadFunctionParams(Type functionOrContract) returns (TypeRet);              
+              function loadFunctionParams(LiteralRef functionOrContract) returns (Args);              
               /**
               Decode state variables from slice that is obtained from the field data of stateInit
               
@@ -368,10 +389,9 @@ class SolInternalTypeFactory(project: Project) {
               		// s.empty()
               	}
               }</pre></code>
-              @custom:typeArgument Type:ContractName
               @custom:deprecated              
               */              
-              function decodeStateVars(Type contractName) returns (uint256 /*pubkey*/, uint64 /*timestamp*/, bool /*constructorFlag*/, Type1 /*var1*/, Type2 /*var2*/); 
+              function decodeStateVars(LiteralRef contractName) returns (uint256 /*pubkey*/, uint64 /*timestamp*/, bool /*constructorFlag*/, Args); 
               /**
               Decode state variables from slice that is obtained from the field data of stateInit
               
@@ -404,10 +424,9 @@ class SolInternalTypeFactory(project: Project) {
               		// s.empty()
               	}
               }</pre></code>
-              @custom:typeArgument Type:ContractName
               @custom:version min=0.70.0              
               */              
-              function loadStateVars(Type contractName) returns (uint256 /*pubkey*/, uint64 /*timestamp*/, bool /*constructorFlag*/, Type1 /*var1*/, Type2 /*var2*/); 
+              function loadStateVars(LiteralRef contractName) returns (uint256 /*pubkey*/, uint64 /*timestamp*/, bool /*constructorFlag*/, Args); 
               /**
               Skips the first <code>length</code> bits and <code>refs</code> references from the <code>TvmSlice</code>.
               */              
@@ -983,9 +1002,9 @@ Returns public key that is used to check the message signature. If the message i
           @custom:typeArgument T:Int
           @custom:version min=0.73.0
           */
-          function cast(T) returns (T);
+          function cast(T val) returns (T);
         }
-        """, "cast", "address abc; abc.")
+        """, "cast", "uint abc; abc.")
   }
 
   val addressType: SolContract by lazy {
@@ -1569,7 +1588,7 @@ Checks whether the <code>vector</code> is empty.
   						/**
                 @custom:version min=0.73.0
 							*/
-							function decodeData(ContractName name, TvmSlice) returns (uint256 /*pubkey*/, uint64 /*timestamp*/, bool /*constructorFlag*/, Type1 /*var1*/, Type2 /*var2*/);
+							function decodeData(LiteralRef name, TvmSlice) returns (uint256 /*pubkey*/, uint64 /*timestamp*/, bool /*constructorFlag*/, Args);
        				/**
                 @custom:version min=0.73.0
 							*/
@@ -1583,7 +1602,7 @@ Checks whether the <code>vector</code> is empty.
                 @custom:no_validation
 							*/
  
-							function encodeStateInit(TvmCell code, TvmCell data, uint8 splitDepth, uint256 pubkey, Contract contr, Type varInit); 
+							function encodeStateInit(TvmCell code, TvmCell data, uint8 splitDepth, uint256 pubkey, LiteralRef contr, Type varInit); 
        				/**
                 @custom:version min=0.73.0
 							*/
@@ -1591,20 +1610,17 @@ Checks whether the <code>vector</code> is empty.
  
         				/**
                 @custom:version min=0.73.0
-                @custom:no_validation
 							*/
-							function encodeBody(functionOrContract, Any varargs) returns (TvmCell);
+							function encodeBody(LiteralRef functionOrContract, Args varargs) returns (TvmCell);
         				/**
                 @custom:version min=0.73.0
-                @custom:no_validation
 							*/
-							function encodeBody(functionOrContract, callbackFunction, Any varargs) returns (TvmCell);
+							function encodeBody(LiteralRef functionOrContract, LiteralRef callbackFunction, Args varargs) returns (TvmCell);
 							 
        				/**
                 @custom:version min=0.73.0
-                @custom:no_validation
 							*/
-							function decodeFunctionParams(functionName) returns (TypeA /*a*/, TypeB /*b*/); 
+							function decodeFunctionParams(LiteralRef functionName) returns (Args); 
        				/**
                 @custom:version min=0.73.0
 							*/
@@ -1616,18 +1632,16 @@ Checks whether the <code>vector</code> is empty.
 							function setCodeSalt(TvmCell code, TvmCell salt) returns (TvmCell newCode);
        				/**
                 @custom:version min=0.73.0
-                @custom:no_validation
 							*/
-							function functionId(functionOrContractName) returns (uint32);
+							function functionId(LiteralRef functionOrContractName) returns (uint32);
        				/**
                 @custom:version min=0.73.0
-                @custom:no_validation
 							*/
 							function encodeExtMsg(
 							    address dest,
 							    uint64 time,
 							    uint32 expire,
-							    functionIdentifier call,
+							    LiteralRef call,
 							    bool sign,
 							    optional(uint256) pubkey,
 							    uint32 callbackId,
@@ -1641,7 +1655,6 @@ Checks whether the <code>vector</code> is empty.
 
        				/**
                 @custom:version min=0.73.0
-                @custom:no_validation
 							*/
 							function encodeIntMsg(
 							    address dest,
@@ -1655,7 +1668,6 @@ Checks whether the <code>vector</code> is empty.
       
 							/**
                 creates <code>cell</code> from the values.
-                @custom:no_validation
                 @custom:typeArgument Type
 							*/
 							function encode(AnyType varargs) returns (TvmCell /*cell*/);
@@ -2377,9 +2389,7 @@ See example of how to use this function:
 							Resets all state variables to their default values.
 							*/
 							function resetStorage();
-							/**
-							*/
-							function functionId(Function functionName) returns (uint32);
+
 							/**
 							Returns the function id (uint32) of a public/external function or constructor.
 
@@ -2407,7 +2417,7 @@ See example of how to use this function:
 							See example of how to use this function:
 							<li><a href="https://github.com/tonlabs/samples/blob/master/solidity/16_onBounceHandler.sol"></a>onBounceHandler</li>
 							*/
-							function functionId(Contract ContractName) returns (uint32); 
+							function functionId(LiteralRef functionOrContractName) returns (uint32); 
 							/**
 							Constructs a message body for the function call. Body can be used as a payload for <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#addresstransfer"><address>.transfer()</a> If the function is <code>responsible</code>, <strong>callbackFunction</strong> must be set.
 
@@ -2435,7 +2445,7 @@ See example of how to use this function:
 							<li><a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmslicedecodefunctionparams"><TvmSlice>.decodeFunctionParams()</a></li>
 							<li><a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmbuildintmsg">tvm.buildIntMsg()</a></li>
 							*/
-							function encodeBody(functionName, arg0, arg1, arg2) returns (TvmCell);
+							function encodeBody(LiteralRef functionOrContractName, Args varargs) returns (TvmCell);
 							/**
 							Constructs a message body for the function call. Body can be used as a payload for <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#addresstransfer"><address>.transfer()</a> If the function is <code>responsible</code>, <strong>callbackFunction</strong> must be set.
 
@@ -2463,35 +2473,8 @@ See example of how to use this function:
 								<li><a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmslicedecodefunctionparams"><TvmSlice>.decodeFunctionParams()</a></li>
 								<li><a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmbuildintmsg">tvm.buildIntMsg()</a></li>
 							*/
-							function encodeBody(functionName, callbackFunction, arg0, arg1, arg2) returns (TvmCell);
-							/**
-							Constructs a message body for the function call. Body can be used as a payload for <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#addresstransfer"><address>.transfer()</a> If the function is <code>responsible</code>, <strong>callbackFunction</strong> must be set.
+							function encodeBody(LiteralRef functionOrContractName, LiteralRef callbackFunction, Args varargs) returns (TvmCell);
 
-								Example:
-								<code><pre>contract Remote {
-									constructor(uint x, uint y, uint z) public { /.../ }
-									function func(uint256 num, int64 num2) public pure { /.../ }
-									function getCost(uint256 num) public responsible pure returns (uint128) { /.../ }
-								}
-								
-								// deploy the contract
-								TvmCell body = tvm.encodeBody(Remote, 100, 200, 300);
-								addr.transfer({value: 10 ton, body: body, stateInit: stateInit });
-								
-								// call the function
-								TvmCell body = tvm.encodeBody(Remote.func, 123, -654);
-								addr.transfer({value: 10 ton, body: body});
-								
-								// call the responsible function
-								TvmCell body = tvm.encodeBody(Remote.getCost, onGetCost, 105);
-								addr.transfer({value: 10 ton, body: body});</pre></code>
-	
-								See also: 
-								<li><a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#external-function-calls">External function calls</a></li>
-								<li><a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmslicedecodefunctionparams"><TvmSlice>.decodeFunctionParams()</a></li>
-								<li><a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmbuildintmsg">tvm.buildIntMsg()</a></li>
-							*/
-							function encodeBody(contractName, arg0, arg1, arg2) returns (TvmCell);
 							/**
 							Functions are used to save state variables and quickly terminate execution of the smart contract. Exit codes are equal to zero and one for <code>tvm.exit</code> and <code>tvm.exit1</code> respectively.
 
@@ -2531,9 +2514,6 @@ See example of how to use this function:
 							*/
 							function exit();
 							/**
-							*/
-							function exit1();
-							/**
 							Generates <code>data</code> field of the <code>StateInit</code> (<a href="https://test.ton.org/tblkch.pdf">TBLKCH</a>> - 3.1.7.). Parameters are the same as in <a href="https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmbuildstateinit">tvm.buildStateInit()</a>
 							<code><pre>// SimpleWallet.sol
 								contract SimpleWallet {
@@ -2558,7 +2538,7 @@ See example of how to use this function:
 									pubkey: 0x3f82435f2bd40915c28f56d3c2f07af4108931ae8bf1ca9403dcf77d96250827
 								});</pre></code>
 							*/
-							function buildDataInit(uint256 pubkey, contractName, VarInit varInit);
+							function buildDataInit(uint256 pubkey, LiteralRef contractName, VarInit varInit);
 							/**
 							Function should be used only offchain and intended to be used only in debot contracts. Allows creating an external inbound message, that calls the func function of the contract on address destination with specified function arguments.
 
@@ -2647,7 +2627,7 @@ See example of how to use this function:
                uint32 expire,
 							/**
 							*/
-							functionIdentifier /*[, list of function arguments]}*/ call,
+							LiteralRef functionIdentifier, /*[, list of function arguments]}*/ call,
                bool sign,
                optional(uint256) pubkey,
                uint32 /*| functionIdentifier*/ callbackId,
@@ -2672,7 +2652,7 @@ See example of how to use this function:
                uint128 value,
 							/**
 							*/
-							functionName/*, [callbackFunction,] arg0, arg1, arg2, ...}*/ call,
+							LiteralRef functionName,/* [callbackFunction,] arg0, arg1, arg2, ...}*/ call,
                bool bounce,
                ExtraCurrencyCollection currencies, 
                TvmCell stateInit 
@@ -2694,7 +2674,7 @@ See example of how to use this function:
                           uint128 value,
            							/**
            							*/
-           							functionName/*, [callbackFunction,] arg0, arg1, arg2, ...}*/ call,
+           							LiteralRef functionName,/* [callbackFunction,] arg0, arg1, arg2, ...}*/ call,
                           bool bounce,
                           mapping(uint32 => varUint32) currencies, 
                           TvmCell stateInit 
@@ -3446,6 +3426,7 @@ causes a Panic error and thus state change reversion if the condition is not met
     SolContract(psiFactory.createContract(contractBody), true).also { if (elementName.isNotBlank()) finalElements[code] = elementName }
 
 }
+
 fun findPragmaVersion(place: PsiElement): Range? {
   return place.containingFile.childrenOfType<SolPragmaDirective>().find { it.identifier.text == "ever" }
     ?.let { it.pragmaAll?.text?.takeIf { it.startsWith("-solidity ") }?.removePrefix("-solidity ") }

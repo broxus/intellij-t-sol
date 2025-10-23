@@ -55,6 +55,7 @@ SPACE=[ \t\n\x0B\f\r]+
 IDENTIFIER=[a-zA-Z_$][a-zA-Z_$0-9]*
 // Pragma parses anything up to the trailing ';' to be fully forward-compatible.
 PRAGMAALL=[^\s][^;]*
+//NUMBER_SIGN=#
 
 %%
 <YYINITIAL> {
@@ -108,6 +109,7 @@ PRAGMAALL=[^\s][^;]*
   ">>"                    { return RSHIFT; }
   ":="                    { return LEFT_ASSEMBLY; }
   "=:"                    { return RIGHT_ASSEMBLY; }
+  "#"                     { return NUMBER_SIGN; }
   "/*"                    {
                             yybegin(IN_BLOCK_COMMENT);
                             yypushback(2);

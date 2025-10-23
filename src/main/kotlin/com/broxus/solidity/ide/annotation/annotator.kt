@@ -2,6 +2,7 @@ package com.broxus.solidity.ide.annotation
 
 import com.broxus.solidity.ide.colors.SolColor
 import com.broxus.solidity.ide.hints.startOffset
+import com.broxus.solidity.lang.core.SolidityTokenTypes
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.psi.impl.SolErrorDefMixin
 import com.broxus.solidity.lang.resolve.SolResolver
@@ -15,6 +16,11 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.childLeafs
+
+const val externalMessageAttribute = "ExternalMessage"
+val attributes = setOf(externalMessageAttribute, "TimeReplayProt", "SeqnoReplayProt", "CustomReplayProt", "Library")
+val externalMessageAttributeParams = setOf("time","expire","pubkey")
 
 
 class SolidityAnnotator : Annotator {
@@ -118,6 +124,20 @@ class SolidityAnnotator : Annotator {
             }
           }
         }
+      }
+      is SolAttributeDirective -> {
+        val ids = element.childLeafs().filter { it.elementType == SolidityTokenTypes.IDENTIFIER }.toList()
+        ids.firstOrNull()?.text?.let {
+          if (it !in attributes) {
+            holder.newAnnotation(HighlightSeverity.ERROR, "Expected one of $attributes, but found $it").create()
+          }
+          if (it == externalMessageAttribute) {
+            ids.drop(1).map { it.text }.filterNot { externalMessageAttributeParams.contains(it) }.forEach { holder.newAnnotation(HighlightSeverity.ERROR, "Unexpected value for ExternalMessage: $it").create() }
+          } else if (ids.size > 1) {
+            holder.newAnnotation(HighlightSeverity.ERROR, "No arguments expected").create()
+          }
+        }
+        applyColor(holder, element, SolColor.KEYWORD)
       }
     }
   }

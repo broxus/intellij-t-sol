@@ -87,6 +87,7 @@
     LEFT_ASSEMBLY=':='
     RIGHT_ASSEMBLY='=:'
     NAT_SPEC_TAG='regexp:@[a-zA-Z_0-9:]*'
+    NUMBER_SIGN='#'
 
     // this is a special grammar for "preview only" because grammar-kit seems to not
     // support whitespaces
@@ -99,6 +100,7 @@
 
 SourceUnit ::= (
     PragmaDirective
+    | AttributeDirective
     | ImportDirective
     | UsingForDeclaration
     | ContractDefinition
@@ -122,6 +124,8 @@ private PragmaPart ::= pragma Identifier pragmaAll {
     recoverWhile = UntilSemicolonRecover
 }
 PragmaDirective ::= PragmaPart ';'
+
+AttributeDirective ::= '#' '[' Identifier('(' Identifier (',' Identifier)* ')')? ']'
 
 private ClosedBracketRecover ::= !('}')
 ImportAlias ::= Identifier {
@@ -236,7 +240,7 @@ private ModifierInvocationCallArguments ::= FunctionCallArguments
 private FunctionID ::= functionID '(' NumberLiteral ')'
 
 ConstructorDefinition ::= constructor ParameterList
-                         ( ModifierInvocation | FunctionVisibilitySpecifier | StateMutability | FunctionID)*
+                         FunctionAttribute *
                          Block {
     pin = 1
     implements = "com.broxus.solidity.lang.psi.SolHasModifiersElement"

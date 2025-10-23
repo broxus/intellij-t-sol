@@ -63,11 +63,12 @@ open class SolFormattingBlock(
     val firstChildType = firstChild?.elementType
     val lastChild = astNode.lastChildNode // the expression on the right-hand side
     val lastChildIsComposite = lastChild is CompositeElement && lastChild != firstChild
-    if (type == FUNCTION_INVOCATION || type == SEQ_EXPRESSION ||
+      if (type == FUNCTION_INVOCATION || type == SEQ_EXPRESSION || type == INLINE_ARRAY_EXPRESSION ||
       parent != null && type in binaryExpressionTypes &&
       doc?.let { it.getLineNumber(parent.startOffset) != it.getLineNumber(astNode.startOffset) } == true) {
       enforceChildIndent = false
     }
+    if (childType == RETURNS) enforceChildIndent = true
     val result = when {
       child is PsiComment && type in setOf(
         CONTRACT_DEFINITION,
@@ -109,6 +110,10 @@ open class SolFormattingBlock(
 
       // chained function calls: if the callee is another call, indent subsequent parts
       type == FUNCTION_CALL_EXPRESSION && firstChildType == FUNCTION_CALL_EXPRESSION && child != firstChild -> {
+        Indent.getContinuationIndent()
+      }
+
+      type == MEMBER_ACCESS_EXPRESSION && childType == DOT -> {
         Indent.getContinuationIndent()
       }
 

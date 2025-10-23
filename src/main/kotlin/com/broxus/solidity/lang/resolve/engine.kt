@@ -5,6 +5,7 @@ import com.broxus.solidity.ide.hints.isBuiltin
 import com.broxus.solidity.lang.core.SolidityFile
 import com.broxus.solidity.lang.psi.*
 import com.broxus.solidity.lang.psi.impl.SolNewExpressionElement
+import com.broxus.solidity.lang.resolve.function.SolFunctionResolver
 import com.broxus.solidity.lang.resolve.ref.SolFunctionCallReference
 import com.broxus.solidity.lang.resolve.ref.SolReference
 import com.broxus.solidity.lang.stubs.SolGotoClassIndex
@@ -12,6 +13,7 @@ import com.broxus.solidity.lang.stubs.SolModifierIndex
 import com.broxus.solidity.lang.stubs.SolNamedElementIndex
 import com.broxus.solidity.lang.types.*
 import com.broxus.solidity.wrap
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.psi.PsiElement
@@ -275,6 +277,13 @@ object SolResolver {
     SolNamedElement::class.java
   )
 
+  fun resolveTypeName(project: Project, element: String): Collection<SolNamedElement> = StubIndex.getElements(
+      SolGotoClassIndex.KEY,
+      element,
+      project,
+      null,
+      SolNamedElement::class.java)
+
   fun resolveModifier(modifier: SolModifierInvocationElement): List<SolModifierDefinition> = StubIndex.getElements(
     SolModifierIndex.KEY,
     modifier.firstChild.text,
@@ -299,7 +308,7 @@ object SolResolver {
           val modifierInvocation = element.parent as SolModifierInvocation
           fun resolveModifier() = modifierInvocation.reference?.multiResolve()?.filterIsInstance<SolNamedElement>()?.takeIf { it.isNotEmpty() }
           when {
-            element.parent.parent is SolConstructorDefinition -> element.findContract()?.collectSupers?.filter { resolveTypeName(it).filterIsInstance<SolContractDefinition>().any { it.name == element.name } }?.takeIf { it.isNotEmpty() } ?: resolveModifier()
+            element.findParentOfType<SolConstructorDefinition>() != null  -> element.findContract()?.collectSupers?.filter { resolveTypeName(it).filterIsInstance<SolContractDefinition>().any { it.name == element.name } }?.takeIf { it.isNotEmpty() } ?: resolveModifier()
             else -> resolveModifier()
           } ?: emptyList()
         }
@@ -347,12 +356,25 @@ object SolResolver {
         lexicalDeclarations(element)
           .filter { it.name == elementToSearch.name && (importAlias == null || importAlias.importPath?.reference?.resolve() == it.containingFile)}
           .toList().let {
-            if (it.size <= 1 || it.any { it !is SolContractDefinition }) it
+            if (it.size <= 1 || it.any { it !is SolContractDefinition }) filterOverridden(it)
             // resolve by imports to distinguish elements with the same name
-            else SolResolver.resolveTypeNameUsingImports(element).toList()
+            else resolveTypeNameUsingImports(element).toList()
           }
       }
     }
+  }
+
+  fun filterOverridden(names: List<SolNamedElement>): List<SolNamedElement> {
+    if (names.size < 2 ) return names
+    val name = names[0].name ?: return names
+    if (names.any { it !is SolFunctionDefinition || it.name != name }) return names
+    return listOf((names as List<SolFunctionDefinition>).reduce { a, b ->
+            if (SolFunctionResolver.collectOverriden(a).contains(b)) {
+              a
+            } else if (SolFunctionResolver.collectOverriden(b).contains(a)) {
+              b
+            } else return names
+          })
   }
 
 
@@ -404,6 +426,13 @@ object SolResolver {
       null -> emptyList()
       else -> element.getMembers()
         .filter { it.getName() == memberName }
+        .let {
+          if (it.size <= 1) it else {
+            val actParent = element.text.split(".").takeIf { it.size > 1 }?.first() ?: return@let it
+            val actResolved = (resolveTypeName(element.project, actParent).takeIf { it.isNotEmpty() } ?: return@let it).flatMap { resolveTypeNameUsingImports(it) }.takeIf { it.size == 1 }?.first() ?: return@let it
+            it.filter { actResolved == it.resolveElement()?.findContract() }
+          }
+        }
     }
   }
 

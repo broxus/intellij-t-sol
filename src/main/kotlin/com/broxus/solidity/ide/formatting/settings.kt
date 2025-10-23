@@ -66,7 +66,7 @@ class SolLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvider()
   override fun getIndentOptionsEditor(): IndentOptionsEditor? = SmartIndentOptionsEditor()
 
   private val INDENT_SAMPLE: String by lazy {
-    loadCodeSampleResource(this, "com.broxus/solidity/ide/formatting/indent_sample.tsol")
+    loadCodeSampleResource(this, "com/broxus/solidity/ide/formatting/indent_sample.tsol")
   }
 }
 

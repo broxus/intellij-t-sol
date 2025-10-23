@@ -13,6 +13,22 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <b>v1.9</b>
+        Changes:
+        <ul>
+           <li>Fixed various formatting cases</li>
+           <li>Improved auto-complete</li>
+           <li>Parser: Allow empty hex strings</li>
+           <li>Support renaming of qualified references</li>
+           <li>Fixed parsing of deeply nested sequences</li>
+           <li>Fixed an exception on lookup paint</li>
+           <li>Folding for NatSpec</li>
+           <li>Fixed references to free (root) structures</li>
+           <li>Added handling of context-dependent types</li>
+           <li>Partial support for compiler version 0.79: attributes supported in parser and validation</li>
+           <li>Unambiguous resolution for overridden functions (fixes the specified issue with tvm.encodeBody validation)</li>
+           <li>Named parameters in returns are not validated for usability</li>
+        </ul>
         <b>v1.8</b>
         Features:
         <ul>

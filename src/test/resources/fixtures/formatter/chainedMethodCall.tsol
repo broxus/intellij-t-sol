@@ -1,6 +1,7 @@
 contract C {
     function sum1(uint a, uint b, uint c) returns (uint s) {
         s = a.add(b)
+        .add(c)
         .add(c);
         return s;
     }

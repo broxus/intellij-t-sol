@@ -46,7 +46,9 @@ class ValidateFunctionArgumentsInspectionTest : SolInspectionsTestBase(FunctionA
 
   fun testValidationLiteralRef() = checkByText("""
         function a(int i, string k) {
-            tvm.encodeBody(a, 1);
+            tvm.encodeBody(a, 1, "");
+            
+            tvm.encodeBody(a, 1, /*@error descr="Argument of type 'uint8' is not assignable to parameter of type 'string'"@*/2/*@/error@*/);
           }
     """)
 

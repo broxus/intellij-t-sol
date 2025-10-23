@@ -28,7 +28,7 @@ class SolDocumentationProviderTest : SolTestBase() {
                     abi.encode/*caret*/();
                 }
             }
-        """, """<div class='definition'><pre><b style='color:rgb(0,0,128)'>function</b> encode(<b style='color:rgb(0,0,128)'>AnyType</b> varargs)  <b style='color:rgb(0,0,128)'>returns</b> (<b style='color:rgb(0,0,128)'>TvmCell</b>)</pre></div><div class='content'><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;creates&nbsp;<code>cell</code>&nbsp;from&nbsp;the&nbsp;values.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/><span&nbsp;class='grayed'>custom:typeArgument:</span>&nbsp;Type<br/>							</div>""")
+        """, """<div class='definition'><pre><b style='color:rgb(0,0,128)'>function</b> encode(<b style='color:rgb(0,0,128)'>AnyType</b> varargs)  <b style='color:rgb(0,0,128)'>returns</b> (<b style='color:rgb(0,0,128)'>TvmCell</b>)</pre></div><div class='content'><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;creates&nbsp;<code>cell</code>&nbsp;from&nbsp;the&nbsp;values.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/><span&nbsp;class='grayed'>custom:typeArgument:</span>&nbsp;Type<br/>							</div>""")
 
   fun testTripleSlashDocs() = checkByText("""
           contract A {

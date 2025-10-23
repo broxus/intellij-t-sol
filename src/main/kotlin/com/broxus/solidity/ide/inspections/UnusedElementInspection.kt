@@ -11,6 +11,7 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.search.searches.ReferencesSearch
+import com.intellij.psi.util.findParentOfType
 import com.intellij.psi.util.parents
 
 class UnusedElementInspection : LocalInspectionTool() {
@@ -91,7 +92,7 @@ fun inspectVariableDeclaration(o: SolVariableDeclaration, holder: SolProblemsHol
 
 
 fun inspectParameterDef(o: SolParameterDef, holder: SolProblemsHolder) {
-  o.identifier?.takeIf { o.parents(false).filterIsInstance<SolConstructorOrFunctionDef>().firstOrNull()?.getBlock() != null }?.checkForUsage(o, holder, "Parameter '${o.name}' is never used")
+  o.identifier?.takeIf { o.parents(false).filterIsInstance<SolConstructorOrFunctionDef>().firstOrNull()?.getBlock() != null && o.findParentOfType<SolFunctionDefinition>()?.parameters?.contains(o) ?: false }?.checkForUsage(o, holder, "Parameter '${o.name}' is never used")
 }
 
 fun inspectImportDirective(o: SolImportDirective, holder: SolProblemsHolder) {

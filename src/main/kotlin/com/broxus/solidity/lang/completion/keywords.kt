@@ -1,5 +1,6 @@
 package com.broxus.solidity.lang.completion
 
+import com.broxus.solidity.lang.psi.SolMemberAccessExpression
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.editor.EditorModificationUtil
@@ -78,7 +79,9 @@ class SolKeywordCompletionProvider(private vararg val keywords: String) : Comple
   override fun addCompletions(
     parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet
   ) {
-    keywords.map { LookupElementBuilder.create(it) }.forEach { result.addElement(it.keywordPrioritised()) }
+    if (parameters.position.parent !is SolMemberAccessExpression) {
+      keywords.map { LookupElementBuilder.create(it) }.forEach { result.addElement(it.keywordPrioritised()) }
+    }
   }
 }
 

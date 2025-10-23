@@ -139,7 +139,9 @@ object SolCompleter {
 class ContractLookupElement(private val contract: SolUserDefinedType) : LookupElement() {
   // read the lookup string on the contract lookup element construction to avoid the exception
   // when #getLookupString is called without a read action when the UI is painted.
-  private val contractName: String = contract.name ?: ""
+  private val contractName: String = (contract.takeIf{
+    it !is SolContractOrLibElement
+  }?.outerContract()?.name?.let {"$it."} ?: "" ) + (contract.name ?: "")
 
   override fun getLookupString(): String = contractName
 
